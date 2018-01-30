@@ -55,7 +55,8 @@
 #	1.4.0 - revampt attempt #2 - see "New Plan of Attack" section - JANUARY 3, 2018
 #           - bug: search: ## might need more case(s) ## - January 3, 2018
 #     1.4.1 - fixing runners moving bugs, mostly on DPs, some POCS-err; etc. - January 4, 2018
-#     1.4.X - adjust the IDs for the tables - take out "2016" portion - January ?
+#     1.4.2 - adjust the IDs for the tables - take out "2016" portion - January 4, 2018
+#     
 #     1.4.X - next issue, need to handle runs scored! - January ?
 ##
 ################################
@@ -290,7 +291,8 @@ init_state <- function(EVN, posis) {
       ALLG <- stack(TEMP)
       ALLG$gameID <- rep(INFO$ID, length(TEMP))
       ALLG <- ALLG[order(ALLG$gameID, ALLG$ind),]
-      ALLG$ID <- (2016*1000000+1):(2016*1000000+nrow(ALLG)) # playID - by year
+      yr <- as.numeric(sub("^([0-9]{4}).*", "\\1", ALLG$gameID[1]))
+      ALLG$ID <- (yr*1000000+1):(yr*1000000+nrow(ALLG)) # playID - by year
       ALLG <- ALLG[,c(4,3,1)]
       ALLG <- ALLG[!is.na(ALLG$values),]
       ALLG$type <- sub(",.*", "", ALLG$values)
