@@ -7,7 +7,7 @@
 ##                                                          ##
 ##    Sorts gamelogs into RStudio-friendly tables.          ##
 ##                                                          ##
-##    Version 1.5.3                                         ##
+##    Version 1.5.4                                         ##
 ##                                                          ##
 ##############################################################
 
@@ -72,6 +72,7 @@
 #           - (need to account for SBH | CSH([1-9]*E[1-9])) -- work in progress
 #     1.5.3 - move pitcherIDs as moving runners in advanceRunners function - January 19, 2018
 #           - incomplete. also need to move the pitcherIDs during substitution!! - January 19, 2018
+#     1.5.4 - move pitcherIDs during substitution too - January 22, 2018
 ##
 ################################
 ################################
@@ -1958,7 +1959,7 @@ adv_runner_ASCpitcher <- function (CLN, LNP) {
       CLN$AB_PT3B[chg_inning] <- NA
       
       if (!isTRUE(all.equal(TMP, CLN))) {
-            CLN <- adv_runnersNA(CLN, LNP)
+            CLN <- adv_runner_ASCpitcher(CLN, LNP)
       }
       return (CLN)
 }
@@ -2234,19 +2235,22 @@ asgn_subs <- function(CLN, LNP) {
                             function(x) grepl(rpm_playerID[AB_bool][x], CLN$AB_3B[pn_rn][AB_bool][x]))
       }
       
-      # filter & replace 1B runner if correct playerID #
+      # filter & replace 1B runner if correct playerID and the original associated pitcher #
       if (length(ab_1b) > 0) {
             CLN$PE_1B[pn_rn][AB_bool][ab_1b] <- CLN$playerID[pn_rn][AB_bool][ab_1b]
+            CLN$PE_PT1B[pn_rn][AB_bool][ab_1b] <- CLN$AB_PT1B[pn_rn][AB_bool][ab_1b]
       }
       
       # filter & replace 2B runner #
       if (length(ab_2b) > 0) {
             CLN$PE_2B[pn_rn][AB_bool][ab_2b] <- CLN$playerID[pn_rn][AB_bool][ab_2b]
+            CLN$PE_PT2B[pn_rn][AB_bool][ab_2b] <- CLN$AB_PT2B[pn_rn][AB_bool][ab_2b]
       }
       
       # filter & replace 3B runner #
       if (length(ab_3b) > 0) {
             CLN$PE_3B[pn_rn][AB_bool][ab_3b] <- CLN$playerID[pn_rn][AB_bool][ab_3b]
+            CLN$PE_PT3B[pn_rn][AB_bool][ab_3b] <- CLN$AB_PT3B[pn_rn][AB_bool][ab_3b]
       }
       
       # return CLN #
@@ -2801,6 +2805,7 @@ for (y in 2010:2015) {
             setNames(.,c("INFO", "ALLG"))
       CLN <- tidy_up(base_INFO[['ALLG']])
       LNP <- c(LNP, list(handle_subs(base_INFO[['INFO']], CLN)))
+      LNP <- setNames(LNP, 2010:y)
       T2 <- Sys.time()
       message("Initial Setup:"); print(T2-T1)
       
@@ -2812,9 +2817,15 @@ for (y in 2010:2015) {
       T2 <- Sys.time()
       message("Assign Outs:"); print(T2-T1)
       
+      # start tracking pitchers in the CLN table #
+      T1 <- Sys.time()
+      CLN <- track_pitchers(CLN, LNP[[as.character(y)]])
+      T2 <- Sys.time()
+      message("Tracking Pitchers:"); print(T2-T1)
+      
       # run the recursive function to move / remove runners #
       T1 <- Sys.time()
-      CLN <- adv_runnersNA(CLN, LNP)
+      CLN <- adv_runner_ASCpitcher(CLN, LNP)
       T2 <- Sys.time()
       message("Advance Runners:"); print(T2-T1)
       
@@ -2854,7 +2865,7 @@ LNP <- setNames(LNP, 2010:2016)
 
 # checks 2000-2009
 pb <- txtProgressBar(min=2000, max=2009, initial=2000, style=3)
-for (y in 2009:2000) {
+for (y in 2000:2009) {
       
       message(paste("Year:", y))
       # parse the event file
@@ -2881,6 +2892,8 @@ for (y in 2009:2000) {
             init_state(.,posis) %>% 
             setNames(.,c("INFO", "ALLG"))
       CLN <- tidy_up(base_INFO[['ALLG']])
+      LNP <- c(LNP, list(handle_subs(base_INFO[['INFO']], CLN)))
+      LNP <- setNames(LNP, 2000:y)
       T2 <- Sys.time()
       message("Initial Setup:"); print(T2-T1)
       
@@ -2892,9 +2905,15 @@ for (y in 2009:2000) {
       T2 <- Sys.time()
       message("Assign Outs:"); print(T2-T1)
       
+      # start tracking pitchers in the CLN table #
+      T1 <- Sys.time()
+      CLN <- track_pitchers(CLN, LNP)
+      T2 <- Sys.time()
+      message("Tracking Pitchers:"); print(T2-T1)
+      
       # run the recursive function to move / remove runners #
       T1 <- Sys.time()
-      CLN <- adv_runnersNA(CLN)
+      CLN <- adv_runner_ASCpitcher(CLN)
       T2 <- Sys.time()
       message("Advance Runners:"); print(T2-T1)
       
@@ -2950,6 +2969,8 @@ for (y in 1990:1999) {
             init_state(.,posis) %>% 
             setNames(.,c("INFO", "ALLG"))
       CLN <- tidy_up(base_INFO[['ALLG']])
+      LNP <- c(LNP, list(handle_subs(base_INFO[['INFO']], CLN)))
+      LNP <- setNames(LNP, 1990:y)
       T2 <- Sys.time()
       message("Initial Setup:"); print(T2-T1)
       
@@ -2961,9 +2982,15 @@ for (y in 1990:1999) {
       T2 <- Sys.time()
       message("Assign Outs:"); print(T2-T1)
       
+      # start tracking pitchers in the CLN table #
+      T1 <- Sys.time()
+      CLN <- track_pitchers(CLN, LNP)
+      T2 <- Sys.time()
+      message("Tracking Pitchers:"); print(T2-T1)
+      
       # run the recursive function to move / remove runners #
       T1 <- Sys.time()
-      CLN <- adv_runnersNA(CLN)
+      CLN <- adv_runner_ASCpitcher(CLN)
       T2 <- Sys.time()
       message("Advance Runners:"); print(T2-T1)
       
