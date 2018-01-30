@@ -7,7 +7,7 @@
 ##                                                          ##
 ##    Sorts gamelogs into RStudio-friendly tables.          ##
 ##                                                          ##
-##    Version 1.5.6                                         ##
+##    Version 1.5.7                                         ##
 ##                                                          ##
 ##############################################################
 
@@ -78,6 +78,7 @@
 #           - removed the OLD functions - January 22, 2018
 #     1.5.6 - incorporate the Basic Pitching Stats - January 23, 2018
 #           - exports for Basic Hitting & Pitching - January 23, 2018
+#     1.5.7 - generate a table with playerID and player names - January 24, 2018
 ##
 ################################
 ################################
@@ -2777,6 +2778,20 @@ final_outputs <- function(bt, typ) {
       }
 }
 
+# simple player's table # -- use Roster file in future...
+handle_playerInfo <- function (EVN) {
+      
+      # pull names from start and sub
+      stt_ply <- EVN %>% subset(., grepl("^(start|sub)", .)) %>% 
+            unique(.) %>% data.frame(str=., stringsAsFactors=TRUE) %>%
+            mutate(playerID=sub("^(start|sub),([a-z0-9\\-]+),.*", "\\2", str)) %>%
+            mutate(playerName=sub("^(start|sub),([a-z0-9\\-]+),\"([A-Za-z0-9 '\\.\\-]+)\",.*", "\\3", str)) %>%
+            extract(., c("playerID", "playerName")) %>% unique(.)
+      
+      # return stt_ply
+      return(stt_ply)
+}
+
 ################################
 ################################
 
@@ -2833,12 +2848,6 @@ CLN <- track_pitchers(CLN, LNP)
 T2 <- Sys.time()
 message("Tracking Pitchers:"); print(T2-T1)
 
-# # run the recursive function to move / remove runners #
-# T1 <- Sys.time()
-# CLN <- adv_runnersNA(CLN, LNP)
-# T2 <- Sys.time()
-# message("Advance Runners:"); print(T2-T1)
-
 # run the recursive function to move / remove runners #
 T1 <- Sys.time()
 CLN <- adv_runner_ASCpitcher(CLN, LNP)
@@ -2867,8 +2876,10 @@ message(paste("Out Types:", length(plyr::count(CLN$PE_Outs)$x)))
 # FINISHED product in list
 FIN2016 <- CLN
 LNP2016 <- LNP
+INF2016 <- base_INFO[['INFO']]
 FIN <- NULL
 LNP <- NULL
+INF <- NULL
 
 
 ## pull out some tables for testing
@@ -2961,12 +2972,17 @@ for (y in 2010:2015) {
       # finished product in list
       FIN <- c(FIN, list(CLN))
       
+      # store INFO as well 
+      INF <- c(INF, list(base_INFO[['INFO']]))
+      
       setTxtProgressBar(pb, y)
 }
 FIN <- c(FIN, list(FIN2016))
 FIN <- setNames(FIN, 2010:2016)
 LNP <- c(LNP, list(LNP2016))
 LNP <- setNames(LNP, 2010:2016)
+INF <- c(INF, list(INF2016))
+INF <- setNames(INF, 2010:2016)
 
 
 # checks 2000-2009
@@ -3189,8 +3205,32 @@ final_outputs(BasicPitch, 2)
 
 ### COMPLETED UP TO HERE FOR version 1.5.6 ###
 
-
-
+# 1.5.7 - generate player/pitcher information #
+PYR <- NULL
+for (y in 2010:2016) {
+      
+      # parse the event file
+      TS <- Sys.time()
+      evn2010s <- list.files(work_loc)
+      use_yr <- paste0("^", y)
+      evn2010s <- evn2010s[grepl(use_yr, evn2010s)]
+      EVN <- NULL # all events
+      
+      # combine all lines from events
+      for (e in 1:length(evn2010s)) {
+            
+            # loop thru to collect all lines from each year's events
+            ENS <- readLines(paste(work_loc, evn2010s[e], sep="/"))
+            EVN <- c(EVN, ENS)
+      }
+      
+      PYR <- EVN %>% handle_playerInfo(.) %>% rbind(PYR, .) %>% unique(.) %>% arrange(., playerID)
+      TE <- Sys.time()
+      
+      message(paste(y, "completed."))
+      print(TE-TS)
+}
+write.csv(PYR, "player_names.csv", na="", row.names=FALSE)
 
 
 # - final scores #
