@@ -7,7 +7,7 @@
 ##                                                          ##
 ##    Sorts gamelogs into RStudio-friendly tables.          ##
 ##                                                          ##
-##    Version 1.4.6                                         ##
+##    Version 1.4.7                                         ##
 ##                                                          ##
 ##############################################################
 
@@ -61,7 +61,7 @@
 #     1.4.5 - handle runs scored and rbis! - January 8, 2018
 #     1.4.6 - initial attempt to add SUBSTITUTIONS - January 9, 2018
 #           - compare for-loop vs. recursive method - January 9, 2018
-#     1.4.7 - ADD NEW rows rather than applying updates to LNP data frame - January ??, 2018
+#     1.4.7 - ADD NEW rows rather than applying updates to LNP data frame - January 10, 2018
 ##
 ################################
 ################################
@@ -72,7 +72,7 @@
 ################################
 
 library(plyr); library(stringr); library(data.table); library(reshape2)
-library(magrittr); library(dplyr); library(bindrcpp); library(qdap)
+library(magrittr); library(dplyr); library(bindrcpp)  # library(qdap) - needs Java
 posis <- c("P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH")
 
 ###       Getting Help       ###
@@ -319,7 +319,15 @@ init_state <- function(EVN, posis) {
       ALLG$SubCode <- ""
       ALLG$SubCode[sub_row] <- gsub(",", ";", sub(".*\",(.*)", "\\1", ALLG$values[sub_row]))
       
+      # add INFO and ALLG into a list base_INFO
+      base_INFO <- list(INFO, ALLG)
       
+      return(base_INFO)
+}
+      
+# separate function for converting the ALLG data frame into a clean data frame of plays + subs
+# this function handles batter and outs
+tidy_up <- function (ALLG) {
       
       ### CLEANING UP THE CODE A BIT - from version 1.1.6 and onward, using the following code ###
       CLN <- data.frame(ID=ALLG$ID, gameID=ALLG$gameID, Inning=ALLG$inning, Team=ALLG$team, 
@@ -433,56 +441,56 @@ init_state <- function(EVN, posis) {
       # score the batter runner
       CLN$Runs[tg_HR | tg_SH | tg_DH | tg_HH | tg_SE | tg_ED | tg_ET | 
                      tg_KH | tg_W4 | tg_HF | tg_FH | tg_PH | tg_HE | tg_HU] <- 1
-       
-	# # check if other ways for batter to get on base that was missed
-	# print(unique(CLN$Event[!(tg_Wk | tg_Sng | tg_K1 | tg_FO | tg_FC | tg_P1 | tg_1E | tg_CI |  
-	#                                tg_HP | tg_BR | tg_Dbl | tg_H2 | tg_E2 | tg_K2 | tg_W2 | tg_2F | 
-	#                                tg_F2 | tg_P2 | tg_2E | tg_Trp | tg_S3 | tg_H3 | tg_ES | tg_E3 | 
-	#                                tg_K3 | tg_W3 | tg_3F | tg_F3 | tg_P3 | tg_3E) & 
-	#                              grepl("B-[1-3]", CLN$Runners)]))
-	# # output should be 0, nothing
-	# 
-	# print(unique(CLN$Event[!(tg_Wk | tg_Sng | tg_K1 | tg_FO | tg_FC | tg_P1 | tg_1E | tg_CI |  
-	#                                tg_HP | tg_BR | tg_Dbl | tg_H2 | tg_E2 | tg_K2 | tg_W2 | tg_2F | 
-	#                                tg_F2 | tg_P2 | tg_2E | tg_Trp | tg_S3 | tg_H3 | tg_ES | tg_E3 | 
-	#                                tg_K3 | tg_W3 | tg_3F | tg_F3 | tg_P3 | tg_3E) & 
-	#                              grepl("BX[1-3]", CLN$Runners) & 
-	#                              !grepl("BX[1-3]\\([1-9TH/]+\\)", CLN$Runners)]))
+      
+      # # check if other ways for batter to get on base that was missed
+      # print(unique(CLN$Event[!(tg_Wk | tg_Sng | tg_K1 | tg_FO | tg_FC | tg_P1 | tg_1E | tg_CI |  
+      #                                tg_HP | tg_BR | tg_Dbl | tg_H2 | tg_E2 | tg_K2 | tg_W2 | tg_2F | 
+      #                                tg_F2 | tg_P2 | tg_2E | tg_Trp | tg_S3 | tg_H3 | tg_ES | tg_E3 | 
+      #                                tg_K3 | tg_W3 | tg_3F | tg_F3 | tg_P3 | tg_3E) & 
+      #                              grepl("B-[1-3]", CLN$Runners)]))
+      # # output should be 0, nothing
+      # 
+      # print(unique(CLN$Event[!(tg_Wk | tg_Sng | tg_K1 | tg_FO | tg_FC | tg_P1 | tg_1E | tg_CI |  
+      #                                tg_HP | tg_BR | tg_Dbl | tg_H2 | tg_E2 | tg_K2 | tg_W2 | tg_2F | 
+      #                                tg_F2 | tg_P2 | tg_2E | tg_Trp | tg_S3 | tg_H3 | tg_ES | tg_E3 | 
+      #                                tg_K3 | tg_W3 | tg_3F | tg_F3 | tg_P3 | tg_3E) & 
+      #                              grepl("BX[1-3]", CLN$Runners) & 
+      #                              !grepl("BX[1-3]\\([1-9TH/]+\\)", CLN$Runners)]))
       # output should only be 0, ignoring all the outs
       
       ##########################################
       ##########################################
       
       
-	##########################################
+      ##########################################
       # now deal with batters safe on errors   #
       ##########################################
-	
+      
       # batter on base from error #
-	E_B <- grepl("^[1-9]*E[1-9]+", CLN$Event) & !grepl("B(-|X)", CLN$Event)
-	E_1 <- grepl("^[1-9]*E[1-9]+", CLN$Event) & grepl("B-1|BX1\\([1-9]*E[1-9]+", CLN$Event)
-	E_2 <- grepl("^[1-9]*E[1-9]+", CLN$Event) & grepl("B-2|BX2\\([1-9]*E[1-9]+", CLN$Event)
-	E_3 <- grepl("^[1-9]*E[1-9]+", CLN$Event) & grepl("B-3|BX3\\([1-9]*E[1-9]+", CLN$Event)
-	E_H <- grepl("^[1-9]*E[1-9]+", CLN$Event) & grepl("B-H|BXH\\([1-9]*E[1-9]+", CLN$Event)
-	CLN$PE_1B[E_B | E_1] <- CLN$playerID[E_B | E_1]
-	CLN$PE_2B[E_2] <- CLN$playerID[E_2]
-	CLN$PE_3B[E_3] <- CLN$playerID[E_3]
-	CLN$Runs[E_H] <- CLN$Runs[E_H] + 1
-	
+      E_B <- grepl("^[1-9]*E[1-9]+", CLN$Event) & !grepl("B(-|X)", CLN$Event)
+      E_1 <- grepl("^[1-9]*E[1-9]+", CLN$Event) & grepl("B-1|BX1\\([1-9]*E[1-9]+", CLN$Event)
+      E_2 <- grepl("^[1-9]*E[1-9]+", CLN$Event) & grepl("B-2|BX2\\([1-9]*E[1-9]+", CLN$Event)
+      E_3 <- grepl("^[1-9]*E[1-9]+", CLN$Event) & grepl("B-3|BX3\\([1-9]*E[1-9]+", CLN$Event)
+      E_H <- grepl("^[1-9]*E[1-9]+", CLN$Event) & grepl("B-H|BXH\\([1-9]*E[1-9]+", CLN$Event)
+      CLN$PE_1B[E_B | E_1] <- CLN$playerID[E_B | E_1]
+      CLN$PE_2B[E_2] <- CLN$playerID[E_2]
+      CLN$PE_3B[E_3] <- CLN$playerID[E_3]
+      CLN$Runs[E_H] <- CLN$Runs[E_H] + 1
+      
       # runner is hit by batted ball ... wow lol #
       BR_scn <- grepl("^S.*BR", CLN$Event) # single is still awarded, the out still recorded: [1-3]X[1-3H]
       CLN$PE_1B[BR_scn] <- CLN$playerID[BR_scn]
       
-	# Catcher interference, redundant B-1 allowed. unless BX-ed
+      # Catcher interference, redundant B-1 allowed. unless BX-ed
       C_INT <- grepl("^C/E[1-9].*(B-1)?", CLN$Event)
       CLN$PE_1B[C_INT] <- CLN$playerID[C_INT]
       
-	# WALK turned into double #
+      # WALK turned into double #
       WK_2B <- grepl("W.*B-2", CLN$Event)
       CLN$PE_2B[WK_2B] <- CLN$playerID[WK_2B]
       CLN$PE_1B[WK_2B] <- NA # remove batter from 1st which is automatic from Walks above
       
-	# strikeout, batter makes it to first on error
+      # strikeout, batter makes it to first on error
       K_BX1E <- grepl("^K.BX1\\([1-9]*E[1-9]*", CLN$Event)
       CLN$PE_1B[K_BX1E] <- CLN$playerID[K_BX1E]
       CLN$Outs[K_BX1E & CLN$Outs > 0] <- CLN$Outs[K_BX1E & CLN$Outs > 0] - 1      
@@ -500,21 +508,21 @@ init_state <- function(EVN, posis) {
       ##########################
       
       
-	##########################
+      ##########################
       # now deal with all outs #
       ##########################
-	
-	# batter outs / force out / fielder's choice outs #
-	OB_K <- grepl("^K", CLN$Play) & !grepl("(B-|BX[1-H]\\([1-9]*E[1-9])", CLN$Runners) & !grepl("K\\/FO", CLN$Event)
-	FO_B <- grepl("^[1-9]+", CLN$Play) & !grepl("FO|DP|TP|E[1-9]", CLN$Event)
-	FC_B <- grepl("^FC.*X[1-3H]", CLN$Event) & !grepl("B(-|X)", CLN$Event) & 
-	      !grepl("X[1-3H]\\([1-9]*E[1-9]", CLN$Event) # ignore fielder's choice where no one is out
-	FO_R <- grepl("\\([1-3].*/FO", CLN$Event)
-	CLN$Outs[OB_K | FO_B | FC_B | FO_R] <- CLN$Outs[OB_K | FO_B | FC_B | FO_R] + 1
-	
-	# runner outs #
-	ORUN <- grepl("[1-3]X[1-3H]", CLN$Runners) & !grepl("[1-3]X[1-3H]([\\(NUR\\)])*\\([1-9]*E[1-9]+", CLN$Runners) &
-	      !grepl("^((K\\/FO)|FO|FC)", CLN$Event)
+      
+      # batter outs / force out / fielder's choice outs #
+      OB_K <- grepl("^K", CLN$Play) & !grepl("(B-|BX[1-H]\\([1-9]*E[1-9])", CLN$Runners) & !grepl("K\\/FO", CLN$Event)
+      FO_B <- grepl("^[1-9]+", CLN$Play) & !grepl("FO|DP|TP|E[1-9]", CLN$Event)
+      FC_B <- grepl("^FC.*X[1-3H]", CLN$Event) & !grepl("B(-|X)", CLN$Event) & 
+            !grepl("X[1-3H]\\([1-9]*E[1-9]", CLN$Event) # ignore fielder's choice where no one is out
+      FO_R <- grepl("\\([1-3].*/FO", CLN$Event)
+      CLN$Outs[OB_K | FO_B | FC_B | FO_R] <- CLN$Outs[OB_K | FO_B | FC_B | FO_R] + 1
+      
+      # runner outs #
+      ORUN <- grepl("[1-3]X[1-3H]", CLN$Runners) & !grepl("[1-3]X[1-3H]([\\(NUR\\)])*\\([1-9]*E[1-9]+", CLN$Runners) &
+            !grepl("^((K\\/FO)|FO|FC)", CLN$Event)
       CLN$Outs[ORUN] <- CLN$Outs[ORUN] + 1
       
       # Caught Stealing or Picked Off with no errors
@@ -524,15 +532,20 @@ init_state <- function(EVN, posis) {
       # DOUBLE / TRIPLE PLAYS #
       CLN$Outs[grepl("DP", CLN$Event)] <- 2 # this should fix all the double counts
       CLN$Outs[grepl("TP", CLN$Event)] <- 3
-	
+      
       ##########################
       ##########################
       
-      
+      return(CLN)
+}      
+
+# handle the player subsitutions (OFFENSE)
+handle_subs <- function (INFO, CLN) {
+
       ##########################
       #  handle substitutions  #
       ##########################
-      
+
       # it'd be better to keep a running tally of the batting + fielding lineup #
       LNP <- data.frame(ID=0, gameID=INFO$ID, visteam=INFO$visteam, hometeam=INFO$hometeam,
                         away_bat=apply(INFO[grepl("away_[1-9]$", names(INFO))], 1, paste, collapse=";"),
@@ -540,126 +553,198 @@ init_state <- function(EVN, posis) {
                         away_def=apply(INFO[grepl("away_.*[A-Z]$", names(INFO))], 1, paste, collapse=";"),
                         home_def=apply(INFO[grepl("home_.*[A-Z]$", names(INFO))], 1, paste, collapse=";"),
                         stringsAsFactors = FALSE)
-      
+
       # aggregate for the initial ID of each gameID, then extract ID column for LNP$ID
-      LNP$ID <- CLN %>% 
-            aggregate(ID ~ gameID, ., min) %>% 
+      LNP$ID <- CLN %>%
+            aggregate(ID ~ gameID, ., min) %>%
             extract(.,2) %>%
             pull(.,"ID")
-      
+
       # filter subs mainly to grab ID for reference
-      PH_tmp <- CLN %>% 
-            subset(grepl(";1[12]$", SubCode)) %>% 
+      PH_tmp <- CLN %>%
+            subset(grepl(";1[12]$", SubCode)) %>%
             extract(.,c("ID", "gameID", "playerID", "SubCode"))
-      
+
       # rank the substitutions in order as they appear for every game
-      PH_tmp <- PH_tmp %>% 
-            arrange(gameID, row_number()) %>% 
-            group_by(gameID) %>% 
+      PH_tmp <- PH_tmp %>%
+            arrange(gameID, row_number()) %>%
+            group_by(gameID) %>%
             mutate(rank=row_number())
-      
-      # generate lineups that contains iterations of PH/PR-substitutions for each game
-      apply_sub <- function (LNP, gameID, playerID, SubCode, rankd, rn) {
 
-            # get rank constant
-            rank_id <- rankd %in% rn
-                        
-            # set constants - away / home
-            aw_id <- grepl("^0", SubCode)
-            hm_id <- grepl("^1", SubCode)
-            
-            # set sub values
-            reps <- as.numeric(sapply(SubCode, 
-                                      function(x) sub("[01];([1-9]);1[12]", "\\1", x)))
-            rpval <- paste0("^(", 
-                            sapply(lapply(reps, function(x) rep("[a-zA-Z0-9]*;", x-1)), paste,
-                                  collapse=""), ")([a-z0-9\\-])+(;)?(.*)")
-            fnval <- paste0("\\1", playerID, "\\3\\4")
-            
-            # away team
-            if (any(LNP$gameID %in% gameID[rank_id & aw_id])) {
-                              LNP$away_bat[LNP$gameID %in% gameID[rank_id & aw_id]] <- 
-                  sapply(seq_along(LNP$away_bat[LNP$gameID %in% gameID[rank_id & aw_id]]), 
-                         function(x) sub(rpval[rank_id & aw_id][x], fnval[rank_id & aw_id][x], 
-                                         LNP$away_bat[LNP$gameID %in% gameID[rank_id & aw_id]][x]))
-            }
+      # ## for testing only ##
+      # ID <- PH_tmp$ID
+      # gameID <- PH_tmp$gameID
+      # playerID <- PH_tmp$playerID
+      # SubCode <- PH_tmp$SubCode
+      # rankd <- PH_tmp$rank
+      # rn <- 1
+      
+      ## relocate this function under Recursive Functions ##
+      # # generate lineups that contains iterations of PH/PR-substitutions for each game
+      # apply_sub <- function (LNP, ID, gameID, playerID, SubCode, rankd, rn) {
+      # 
+      #       # set output variable
+      #       OUTP <- LNP
+      #       
+      #       # get rank constant
+      #       rank_id <- rankd == rn
+      # 
+      #       # set constants - away / home
+      #       aw_id <- grepl("^0", SubCode)
+      #       hm_id <- grepl("^1", SubCode)
+      # 
+      #       # set sub values
+      #       reps <- as.numeric(sapply(SubCode,
+      #                                 function(x) sub("[01];([1-9]);1[12]", "\\1", x)))
+      #       rpval <- paste0("^(",
+      #                       sapply(lapply(reps, function(x) rep("[a-zA-Z0-9]*;", x-1)), paste,
+      #                             collapse=""), ")([a-z0-9\\-])+(;)?(.*)")
+      #       fnval <- paste0("\\1", playerID, "\\3\\4")
+      # 
+      #       # away team
+      #       if (any(LNP$gameID %in% gameID[rank_id & aw_id])) {
+      #             OUTP$away_bat[OUTP$gameID %in% gameID[rank_id & aw_id]] <- 
+      #                   sapply(seq_along(LNP$away_bat[LNP$gameID %in% gameID[rank_id & aw_id]]), 
+      #                          function(x)sub(rpval[rank_id & aw_id][x], fnval[rank_id & aw_id][x],
+      #                                         LNP$away_bat[LNP$gameID %in% gameID[rank_id & aw_id]][x]))
+      #             OUTP$ID[OUTP$gameID %in% gameID[rank_id & aw_id]] <-
+      #                   ID[rank_id & aw_id]
+      #       }
+      # 
+      #       # home team
+      #       if (any(LNP$gameID %in% gameID[rank_id & hm_id])) {
+      #             OUTP$home_bat[OUTP$gameID %in% gameID[rank_id & hm_id]] <-
+      #                   sapply(seq_along(LNP$home_bat[LNP$gameID %in% gameID[rank_id & hm_id]]),
+      #                          function(x) sub(rpval[rank_id & hm_id][x], fnval[rank_id & hm_id][x],
+      #                                          LNP$home_bat[LNP$gameID %in% gameID[rank_id & hm_id]][x]))
+      #             OUTP$ID[OUTP$gameID %in% gameID[rank_id & hm_id]] <-
+      #                   ID[rank_id & hm_id]
+      #       }
+      # 
+      #       # all changes that were made stored in OUTP
+      #       OUTP <- OUTP[OUTP$ID %in% ID[rank_id & (hm_id | aw_id)],]
+      #       
+      #       # recursive .. good luck
+      #       RECU <- NULL
+      #       if (any(rankd %in% as.integer(rn+1))) {
+      #             
+      #             # filter for all the remaining ranks
+      #             rank_id <- rankd > rn
+      #             
+      #             # send the filtered values forward
+      #             RECU <- apply_sub(OUTP, ID[rank_id], gameID[rank_id], playerID[rank_id], 
+      #                               SubCode[rank_id], rankd[rank_id], rn+1)
+      # 
+      #             ### ADD NEW ROWS INSTEAD ! ###
+      #             # this means ID, playerID, SubCode, rankd can be smaller and smaller
+      #             # pass only repeatable LNPs and not all of them!
+      #             # check remaining gameID's to sort!
+      #       }
+      #       
+      #       LNP <- rbind(OUTP, RECU)
+      # 
+      #       return(LNP)
+      # }
 
-            # home team
-            if (any(LNP$gameID %in% gameID[rank_id & hm_id])) {
-                  LNP$home_bat[LNP$gameID %in% gameID[rank_id & hm_id]] <- 
-                  sapply(seq_along(LNP$home_bat[LNP$gameID %in% gameID[rank_id & hm_id]]), 
-                         function(x) sub(rpval[rank_id & hm_id][x], fnval[rank_id & hm_id][x], 
-                                         LNP$home_bat[LNP$gameID %in% gameID[rank_id & hm_id]][x]))
-            }
-            
-            # recursive .. good luck
-            if (any(rankd %in% as.integer(rn+1))) {
-                  LNP <- apply_sub(LNP, gameID, playerID, SubCode, rankd, rn+1)
-                  
-                  ### ADD NEW ROWS INSTEAD ! ###
-                  # this means ID, playerID, SubCode, rankd can be smaller and smaller
-                  # pass only repeatable LNPs and not all of them!
-                  # check remaining gameID's to sort!
-            }
-            
-            return(LNP)
-      }
+      # # test the function vs for loop
+      # T1 <- Sys.time()
+      # LNP1 <- apply_sub(LNP, PH_tmp$ID, PH_tmp$gameID, PH_tmp$playerID, PH_tmp$SubCode, PH_tmp$rank, 1)
+      # LNP1 <- LNP %>% rbind(., LNP1) %>% setorder(.,ID)
+      # T2 <- Sys.time()
+      # LNP2 <- LNP
+      # LNP3 <- NULL
+      # for (i in 1:nrow(PH_tmp)) {
+      # 
+      #       # set sub values
+      #       rpval <- paste0("^(",
+      #                       paste(rep("[a-zA-Z0-9]*;", as.numeric(sub("[01];([1-9]);1[12]", "\\1", PH_tmp$SubCode[i]))-1),
+      #                             collapse=""), ")([a-z0-9\\-])+(;)?(.*)")
+      #       fnval <- paste0("\\1", PH_tmp$playerID[i], "\\3\\4")
+      # 
+      #       # set addRow
+      #       if (i > 1) {
+      #             if (PH_tmp$gameID[i-1]==PH_tmp$gameID[i]) {
+      #                   addRow <- LNP3[LNP3$ID==max(LNP3$ID),]
+      #             }
+      #             else {
+      #                   addRow <- LNP2[LNP2$gameID==PH_tmp$gameID[i],]
+      #             }
+      #       }
+      #       else {
+      #             addRow <- LNP2[LNP2$gameID==PH_tmp$gameID[i],]
+      #       }
+      #       
+      #             
+      #       
+      #       # home team
+      #       if (grepl("^0", PH_tmp$SubCode[i])) {
+      # 
+      #             addRow$away_bat[addRow$gameID==PH_tmp$gameID[i]] <- 
+      #                   sub(rpval, fnval, addRow$away_bat[addRow$gameID==PH_tmp$gameID[i]])
+      #             addRow$ID[addRow$gameID==PH_tmp$gameID[i]] <- PH_tmp$ID[i]
+      # 
+      #       }
+      #       # visit team
+      #       else if (grepl("^1", PH_tmp$SubCode[i])) {
+      # 
+      #             addRow$home_bat[addRow$gameID==PH_tmp$gameID[i]] <- 
+      #                   sub(rpval, fnval, addRow$home_bat[addRow$gameID==PH_tmp$gameID[i]])
+      #             addRow$ID[addRow$gameID==PH_tmp$gameID[i]] <- PH_tmp$ID[i]
+      #             
+      #       }
+      #       
+      #       LNP3 <- rbind(LNP3, addRow)
+      # }
+      # LNP2 <- LNP %>% rbind(.,LNP3) %>% setorder(.,ID)
+      # T3 <- Sys.time()
+      # 
+      # message("sapply:"); print(T2-T1)
+      # message("forloop:"); print(T3-T2)
+      # all(LNP1==LNP2)
+      # TRUE            ## FALSE -- old, FIXED Jan 10, 2018
+
+      # Test results: Sapply is much faster! :D yay recursive function!      
+      # sapply:
+      #       Time difference of 1.657991 secs
+      # forloop:
+      #       Time difference of 9.224943 secs
       
-      # test the function vs for loop
-      T1 <- Sys.time()
-      LNP1 <- apply_sub(LNP, PH_tmp$gameID, PH_tmp$playerID, PH_tmp$SubCode, PH_tmp$rank, 1)
-      T2 <- Sys.time()
-      LNP2 <- LNP
-      for (i in 1:nrow(PH_tmp)) {
-            
-            # set sub values
-            rpval <- paste0("^(", 
-                            paste(rep("[a-zA-Z0-9]*;", as.numeric(sub("[01];([1-9]);1[12]", "\\1", PH_tmp$SubCode[i]))-1), 
-                                  collapse=""), ")([a-z0-9\\-])+(;)?(.*)")
-            fnval <- paste0("\\1", PH_tmp$playerID[i], "\\3\\4")
-            
-            # home team
-            if (grepl("^0", PH_tmp$SubCode[i])) {
-                  
-                  LNP2$away_bat[LNP2$gameID==PH_tmp$gameID[i]] <- sub(rpval, fnval, LNP2$away_bat[LNP2$gameID==PH_tmp$gameID[i]])
-                  
-            }
-            # visit team
-            else if (grepl("^1", PH_tmp$SubCode[i])) {
-                  
-                  LNP2$home_bat[LNP2$gameID==PH_tmp$gameID[i]] <- sub(rpval, fnval, LNP2$home_bat[LNP2$gameID==PH_tmp$gameID[i]])
-                  
-            }
-      }
-      T3 <- Sys.time()
       
-      message("sapply:"); print(T2-T1)
-      message("forloop:"); print(T3-T2)
-      all(LNP1==LNP2)
-      
-      
+      # # not fully matched, fix needed! --- update: Jan 10, 2018 - FIXED! :D
+      # row.names(LNP1) <- row.names(LNP2) <- 1:nrow(LNP1)
+      # all.equal(LNP1,LNP2)
+      # # [1] "Attributes: < Component "row.names": 3968 string mismatches >"
+      # # [2] "Component "away_bat": 2456 string mismatches"                 
+      # # [3] "Component "home_bat": 2543 string mismatches"
+      # 
+      # # check why not fully matched
+      # CHK <- merge(LNP1,LNP2,by=c("ID","gameID","visteam","hometeam","home_def","away_def"),all=TRUE)
+      # # View(CHK[!(CHK$away_bat.x==CHK$away_bat.y) | !(CHK$home_bat.x==CHK$home_bat.y),])
+      # write.csv(CHK[!(CHK$away_bat.x==CHK$away_bat.y) | !(CHK$home_bat.x==CHK$home_bat.y),],"CHECK-batting.csv",na="", row.names=FALSE)
+
       ## now use a recursive function to go thru the ranks and generate the batting lineup changes
-      
-      
-      
-      
-      
+      LNP <- LNP %>% 
+            apply_sub(., PH_tmp$ID, PH_tmp$gameID, PH_tmp$playerID, PH_tmp$SubCode, PH_tmp$rank, 1) %>%
+            rbind(LNP, .) %>% 
+            setorder(.,ID)
+
+
       # pinch-hitter #
       pn_ht <- grepl(".*;11$", CLN$SubCode)
       CLN$pinch_hit <- FALSE
       CLN$pinch_hit[pn_ht] <- TRUE # add column for stats side -> easier to track PH stats
-      
+
       # pinch_hitter <- function(LNP, ID, gameID, playerID, subcode) {
-      # 
-      # 
+      #
+      #
       # }
       # 1,ARI201505100,sub,middw001,"Will Middlebrooks",0,1,11
       # 2,ARI201505100,sub,kempm001,"Matt Kemp",0,1,11
-      
-      
+
+
       # pinch runner #
-      
-      
+
+
       
       
       
@@ -689,9 +774,142 @@ init_state <- function(EVN, posis) {
 
 
 ################################
-##     Recursive Function     ##
+##     Recursive Functions    ##
 ################################
 
+# generate lineups that contains iterations of PH/PR-substitutions for each game
+apply_sub <- function (LNP, ID, gameID, playerID, SubCode, rankd, rn) {
+      
+      # set output variable
+      OUTP <- LNP
+      
+      # get rank constant
+      rank_id <- rankd == rn
+      
+      # set constants - away / home
+      aw_id <- grepl("^0", SubCode)
+      hm_id <- grepl("^1", SubCode)
+      
+      # set sub values
+      reps <- as.numeric(sapply(SubCode,
+                                function(x) sub("[01];([1-9]);1[12]", "\\1", x)))
+      rpval <- paste0("^(",
+                      sapply(lapply(reps, function(x) rep("[a-zA-Z0-9]*;", x-1)), paste,
+                             collapse=""), ")([a-z0-9\\-])+(;)?(.*)")
+      fnval <- paste0("\\1", playerID, "\\3\\4")
+      
+      # away team
+      if (any(LNP$gameID %in% gameID[rank_id & aw_id])) {
+            OUTP$away_bat[OUTP$gameID %in% gameID[rank_id & aw_id]] <- 
+                  sapply(seq_along(LNP$away_bat[LNP$gameID %in% gameID[rank_id & aw_id]]), 
+                         function(x)sub(rpval[rank_id & aw_id][x], fnval[rank_id & aw_id][x],
+                                        LNP$away_bat[LNP$gameID %in% gameID[rank_id & aw_id]][x]))
+            OUTP$ID[OUTP$gameID %in% gameID[rank_id & aw_id]] <-
+                  ID[rank_id & aw_id]
+      }
+      
+      # home team
+      if (any(LNP$gameID %in% gameID[rank_id & hm_id])) {
+            OUTP$home_bat[OUTP$gameID %in% gameID[rank_id & hm_id]] <-
+                  sapply(seq_along(LNP$home_bat[LNP$gameID %in% gameID[rank_id & hm_id]]),
+                         function(x) sub(rpval[rank_id & hm_id][x], fnval[rank_id & hm_id][x],
+                                         LNP$home_bat[LNP$gameID %in% gameID[rank_id & hm_id]][x]))
+            OUTP$ID[OUTP$gameID %in% gameID[rank_id & hm_id]] <-
+                  ID[rank_id & hm_id]
+      }
+      
+      # all changes that were made stored in OUTP
+      OUTP <- OUTP[OUTP$ID %in% ID[rank_id & (hm_id | aw_id)],]
+      
+      # recursive .. good luck
+      RECU <- NULL
+      if (any(rankd %in% as.integer(rn+1))) {
+            
+            # filter for all the remaining ranks
+            rank_id <- rankd > rn
+            
+            # send the filtered values forward
+            RECU <- apply_sub(OUTP, ID[rank_id], gameID[rank_id], playerID[rank_id], 
+                              SubCode[rank_id], rankd[rank_id], rn+1)
+            
+            ### ADD NEW ROWS INSTEAD ! ###
+            # this means ID, playerID, SubCode, rankd can be smaller and smaller
+            # pass only repeatable LNPs and not all of them!
+            # check remaining gameID's to sort!
+      }
+      
+      LNP <- rbind(OUTP, RECU)
+      
+      return(LNP)
+}
+
+# generate lineups that contains iterations of Fielding-substitutions for each game
+apply_def <- function (LNP, ID, gameID, playerID, SubCode, rankd, rn) {
+      
+      # set output variable
+      OUTP <- LNP
+      
+      # get rank constant
+      rank_id <- rankd == rn
+      
+      # set constants - away / home
+      aw_id <- grepl("^0", SubCode)
+      hm_id <- grepl("^1", SubCode)
+      
+      # set sub values
+      reps <- as.numeric(sapply(SubCode,
+                                function(x) sub("[01];([0-9]);[1-9]0?", "\\1", x)))
+      rpval <- paste0("^(",
+                      sapply(lapply(reps, function(x) rep("[a-zA-Z0-9]*;", x-1)), paste,
+                             collapse=""), ")([a-z0-9\\-])+(;)?(.*)")
+      fnval <- paste0("\\1", playerID, "\\3\\4")
+      
+      # away team
+      if (any(LNP$gameID %in% gameID[rank_id & aw_id])) {
+            OUTP$away_def[OUTP$gameID %in% gameID[rank_id & aw_id]] <- 
+                  sapply(seq_along(LNP$away_def[LNP$gameID %in% gameID[rank_id & aw_id]]), 
+                         function(x)sub(rpval[rank_id & aw_id][x], fnval[rank_id & aw_id][x],
+                                        LNP$away_def[LNP$gameID %in% gameID[rank_id & aw_id]][x]))
+            OUTP$ID[OUTP$gameID %in% gameID[rank_id & aw_id]] <-
+                  ID[rank_id & aw_id]
+      }
+      
+      # home team
+      if (any(LNP$gameID %in% gameID[rank_id & hm_id])) {
+            OUTP$home_def[OUTP$gameID %in% gameID[rank_id & hm_id]] <-
+                  sapply(seq_along(LNP$home_def[LNP$gameID %in% gameID[rank_id & hm_id]]),
+                         function(x) sub(rpval[rank_id & hm_id][x], fnval[rank_id & hm_id][x],
+                                         LNP$home_def[LNP$gameID %in% gameID[rank_id & hm_id]][x]))
+            OUTP$ID[OUTP$gameID %in% gameID[rank_id & hm_id]] <-
+                  ID[rank_id & hm_id]
+      }
+      
+      # all changes that were made stored in OUTP
+      OUTP <- OUTP[OUTP$ID %in% ID[rank_id & (hm_id | aw_id)],]
+      
+      # recursive .. good luck
+      RECU <- NULL
+      if (any(rankd %in% as.integer(rn+1))) {
+            
+            # filter for all the remaining ranks
+            rank_id <- rankd > rn
+            
+            # send the filtered values forward
+            RECU <- apply_sub(OUTP, ID[rank_id], gameID[rank_id], playerID[rank_id], 
+                              SubCode[rank_id], rankd[rank_id], rn+1)
+            
+            ### ADD NEW ROWS INSTEAD ! ###
+            # this means ID, playerID, SubCode, rankd can be smaller and smaller
+            # pass only repeatable LNPs and not all of them!
+            # check remaining gameID's to sort!
+      }
+      
+      LNP <- rbind(OUTP, RECU)
+      
+      return(LNP)
+}
+
+## Handling Runners ##
 # 1. Transfer runners to next at-bat
 # 2. Assign all runners moving - include errors
 # 3. Account for end of inning
@@ -1121,7 +1339,15 @@ adv_runnersNA <- function (CLN) {
       return (CLN)
 }
 
-# divide and sort the data
+################################
+################################
+
+
+################################
+##   Divide & Sort the Data   ##
+################################
+
+# divide and sort the data - BASIC Hitting
 dv_sort <- function(CLN) {
       
       ################################
@@ -1267,7 +1493,7 @@ dv_sort <- function(CLN) {
                          HTH[!names(HTH) %in% "HitType"], by="playerID", all=TRUE), 
                    c("ID.x"="triple", "ID.y"="home_run"))
       # HT[is.na(HT)] <- 0
-
+      
       ## add in the rest SB, WK, K, CS
       HT <- merge(HT, rename(aggregate(ID ~ playerID, SB[names(SB) %in% c("ID", "playerID")], length),
                              c("ID"="stolen_base")), by="playerID", all=TRUE)
@@ -1331,6 +1557,8 @@ dv_sort <- function(CLN) {
       return(list(CLN, HT))
 }
 
+
+
 ################################
 ################################
 
@@ -1365,7 +1593,10 @@ for (e in 1:length(evn2016)) {
 
 # parse for initial setup state #
 T1 <- Sys.time()
-CLN <- init_state(EVN, posis)
+base_INFO <- EVN %>% 
+      init_state(.,posis) %>% 
+      setNames(.,c("INFO", "ALLG"))
+CLN <- tidy_up(base_INFO[['ALLG']])
 T2 <- Sys.time()
 message("Initial Setup:"); print(T2-T1)
 
@@ -1399,24 +1630,22 @@ x <- c(nrow(CLN[grepl("1(-|X)", CLN$Runners) & is.na(CLN$AB_1B),]),
        nrow(CLN[compareNA(CLN$PE_2B, CLN$PE_3B) & !is.na(CLN$PE_3B),]))
 print(x)
 message(paste("Total errors:", sum(x)))
-message(paste("Out Types:", length(count(CLN$PE_Outs)$x)))
+message(paste("Out Types:", length(plyr::count(CLN$PE_Outs)$x)))
 
 # FINISHED product in list
 FIN2016 <- CLN
 FIN <- NULL
 
+
+## pull out some tables for testing
+INFO <- base_INFO[['INFO']]
+ALLG <- base_INFO[['ALLG']]
+
 ################################
 ################################
 
 
-################################
-##   Divide & Sort the Data   ## - INTERMEDIATE ?
-################################
 
-
-
-################################
-################################
 
 ### Perform Checks - for next couple versions ###
 
@@ -1444,7 +1673,10 @@ for (y in 2010:2015) {
       
       # parse for initial setup state #
       T1 <- Sys.time()
-      CLN <- init_state(EVN, posis)
+      base_INFO <- EVN %>% 
+            init_state(.,posis) %>% 
+            setNames(.,c("INFO", "ALLG"))
+      CLN <- tidy_up(base_INFO[['ALLG']])
       T2 <- Sys.time()
       message("Initial Setup:"); print(T2-T1)
       
@@ -1476,14 +1708,14 @@ for (y in 2010:2015) {
              nrow(CLN[compareNA(CLN$PE_1B, CLN$PE_2B) & !is.na(CLN$PE_1B),]),
              nrow(CLN[compareNA(CLN$PE_2B, CLN$PE_3B) & !is.na(CLN$PE_2B),]),
              nrow(CLN[compareNA(CLN$PE_2B, CLN$PE_3B) & !is.na(CLN$PE_3B),]))
-      if (any(x > 0) | !length(count(CLN$PE_Outs)$x)==4) {
+      if (any(x > 0) | !length(plyr::count(CLN$PE_Outs)$x)==4) {
             eval(parse(text=paste0("ERR",y, " <- CLN")))
       }
       
       message(paste(y, "completed!"))
       print(x)
       message(paste("Total errors:", sum(x)))
-      message(paste("Out Types:", length(count(CLN$PE_Outs)$x)))
+      message(paste("Out Types:", length(plyr::count(CLN$PE_Outs)$x)))
       
       # finished product in list
       FIN <- c(FIN, list(CLN))
@@ -1522,7 +1754,10 @@ for (y in 2009:2000) {
       
       # parse for initial setup state #
       T1 <- Sys.time()
-      CLN <- init_state(EVN, posis)
+      base_INFO <- EVN %>% 
+            init_state(.,posis) %>% 
+            setNames(.,c("INFO", "ALLG"))
+      CLN <- tidy_up(base_INFO[['ALLG']])
       T2 <- Sys.time()
       message("Initial Setup:"); print(T2-T1)
       
@@ -1554,7 +1789,7 @@ for (y in 2009:2000) {
              nrow(CLN[compareNA(CLN$PE_1B, CLN$PE_2B) & !is.na(CLN$PE_1B),]),
              nrow(CLN[compareNA(CLN$PE_2B, CLN$PE_3B) & !is.na(CLN$PE_2B),]),
              nrow(CLN[compareNA(CLN$PE_2B, CLN$PE_3B) & !is.na(CLN$PE_3B),]))
-      if (any(x > 0) | !length(count(CLN$PE_Outs)$x)==4) {
+      if (any(x > 0) | !length(plyr::count(CLN$PE_Outs)$x)==4) {
             eval(parse(text=paste0("ERR",y, " <- CLN")))
       }
       
@@ -1586,14 +1821,28 @@ for (y in 1990:1999) {
             EVN <- c(EVN, ENS)
       }
       
-      TM <- Sys.time()
-      OUTPUT <- basic_stats(EVN, posis)
-      CLN <- OUTPUT[[1]]
-      TE <- Sys.time()
-      message("Initial Load:")
-      print(TM-TS)
-      message("Processing:")
-      print(TE-TM)
+      # parse for initial setup state #
+      T1 <- Sys.time()
+      base_INFO <- EVN %>% 
+            init_state(.,posis) %>% 
+            setNames(.,c("INFO", "ALLG"))
+      CLN <- tidy_up(base_INFO[['ALLG']])
+      T2 <- Sys.time()
+      message("Initial Setup:"); print(T2-T1)
+      
+      # recursively assign outs #
+      all_plyExcp1st <- 2:nrow(CLN)
+      chg_inning <- data.table:::uniqlist(CLN[!is.na(CLN$Team),3:4])
+      T1 <- Sys.time()
+      CLN <- asgn_outs(CLN, all_plyExcp1st, chg_inning)
+      T2 <- Sys.time()
+      message("Assign Outs:"); print(T2-T1)
+      
+      # run the recursive function to move / remove runners #
+      T1 <- Sys.time()
+      CLN <- adv_runnersNA(CLN)
+      T2 <- Sys.time()
+      message("Advance Runners:"); print(T2-T1)
       
       # error checks
       x <- c(nrow(CLN[grepl("1(-|X)", CLN$Runners) & is.na(CLN$AB_1B),]),
@@ -1609,7 +1858,7 @@ for (y in 1990:1999) {
              nrow(CLN[compareNA(CLN$PE_1B, CLN$PE_2B) & !is.na(CLN$PE_1B),]),
              nrow(CLN[compareNA(CLN$PE_2B, CLN$PE_3B) & !is.na(CLN$PE_2B),]),
              nrow(CLN[compareNA(CLN$PE_2B, CLN$PE_3B) & !is.na(CLN$PE_3B),]))
-      if (any(x > 0) | !length(count(CLN$PE_Outs)$x)==4) {
+      if (any(x > 0) | !length(plyr::count(CLN$PE_Outs)$x)==4) {
             eval(parse(text=paste0("ERR",y, " <- CLN")))
       }
       
