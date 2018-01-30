@@ -7,7 +7,7 @@
 ##                                                          ##
 ##    Sorts gamelogs into RStudio-friendly tables.          ##
 ##                                                          ##
-##    Version 1.4.8                                         ##
+##    Version 1.4.9                                         ##
 ##                                                          ##
 ##############################################################
 
@@ -63,7 +63,7 @@
 #           - compare for-loop vs. recursive method - January 9, 2018
 #     1.4.7 - ADD NEW rows rather than applying updates to LNP data frame - January 10, 2018
 #     1.4.8 - incorporate the fielding substitutions as well - January 10, 2018
-#     1.4.9 - ## problem might start from here: 2016016687 - unsure of problem... 
+#     1.4.9 - fixed substitutions lineups - January 11, 2018
 ##
 ################################
 ################################
@@ -582,116 +582,121 @@ handle_subs <- function (INFO, CLN) {
       # rankd <- PH_tmp$rank
       # rn <- 1
       
-      T1 <- Sys.time()
-      LNP1 <- LNP %>% 
-            apply_sub(., PH_tmp$ID, PH_tmp$gameID, PH_tmp$playerID, PH_tmp$SubCode, PH_tmp$rank, 1) %>%
-            rbind(LNP, .) %>% 
-            setorder(.,ID)
-      T2 <- Sys.time()
-      LNP2 <- LNP
-      LNP3 <- NULL
-      for (i in 1:nrow(PH_tmp)) {
-
-            # set addRow
-            if (i > 1) {
-                  if (PH_tmp$gameID[i-1]==PH_tmp$gameID[i]) {
-                        addRow <- LNP3[LNP3$ID==max(LNP3$ID),]
-                  }
-                  else {
-                        addRow <- LNP2[LNP2$gameID==PH_tmp$gameID[i],]
-                  }
-            }
-            else {
-                  addRow <- LNP2[LNP2$gameID==PH_tmp$gameID[i],]
-            }
-
-            # away team
-            if (grepl("^0", PH_tmp$SubCode[i])) {
-                  
-                  if (grepl(";1[12]$", PH_tmp$SubCode[i])) {
-                        # set sub values
-                        off_pat <- paste0("^(",
-                                          paste(rep("[a-zA-Z0-9]*;", as.numeric(sub("[01];([1-9]);1[12]", "\\1", PH_tmp$SubCode[i]))-1),
-                                                collapse=""), ")([a-z0-9\\-]+)(;)?(.*)")
-                        off_sub <- paste0("\\1", PH_tmp$playerID[i], "\\3\\4")
-                        
-                        addRow$away_bat[addRow$gameID==PH_tmp$gameID[i]] <-
-                              sub(off_pat, off_sub, addRow$away_bat[addRow$gameID==PH_tmp$gameID[i]])
-                  }
-                  else if (grepl("[1-9];[1-9]0?$", PH_tmp$SubCode[i])) {
-                        # set sub values
-                        def_pat <- paste0("^(",
-                                          paste(rep("[a-zA-Z0-9]*;", as.numeric(sub("[01];[1-9];([1-9]0?)$", "\\1", PH_tmp$SubCode[i]))-1),
-                                                collapse=""), ")([a-z0-9NA\\-]+)(;)?(.*)")
-                        def_sub <- paste0("\\1", PH_tmp$playerID[i], "\\3\\4")
-                        dof_pat <- paste0("^(",
-                                          paste(rep("[a-zA-Z0-9]*;", as.numeric(sub("[01];([1-9]);[1-9]0?$", "\\1", PH_tmp$SubCode[i]))-1),
-                                                collapse=""), ")([a-z0-9\\-]+)(;)?(.*)")
-                        dof_sub <- paste0("\\1", PH_tmp$playerID[i], "\\3\\4")
-                        
-                        addRow$away_def[addRow$gameID==PH_tmp$gameID[i]] <-
-                              sub(def_pat, def_sub, addRow$away_def[addRow$gameID==PH_tmp$gameID[i]])
-                        addRow$away_bat[addRow$gameID==PH_tmp$gameID[i]] <-
-                              sub(dof_pat, dof_sub, addRow$away_bat[addRow$gameID==PH_tmp$gameID[i]])
-                  }
-                  else if (grepl("0;1$", PH_tmp$SubCode[i])) {
-                        # set sub values
-                        pth_pat <- "^([a-z0-9\\-]+)(.*)"
-                        pth_sub <- paste0(PH_tmp$playerID[i], "\\2")
-                        addRow$away_def[addRow$gameID==PH_tmp$gameID[i]] <-
-                              sub(pth_pat, pth_sub, addRow$away_def[addRow$gameID==PH_tmp$gameID[i]])
-                  }
-            }
-            # home team
-            else if (grepl("^1", PH_tmp$SubCode[i])) {
-
-                  if (grepl(";1[12]$", PH_tmp$SubCode[i])) {
-                        # set sub values
-                        off_pat <- paste0("^(",
-                                          paste(rep("[a-zA-Z0-9]*;", as.numeric(sub("[01];([1-9]);1[12]", "\\1", PH_tmp$SubCode[i]))-1),
-                                                collapse=""), ")([a-z0-9\\-]+)(;)?(.*)")
-                        off_sub <- paste0("\\1", PH_tmp$playerID[i], "\\3\\4")
-                        addRow$home_bat[addRow$gameID==PH_tmp$gameID[i]] <-
-                              sub(rpval, fnval, addRow$home_bat[addRow$gameID==PH_tmp$gameID[i]])
-                  }
-                  else if (grepl("[1-9];[1-9]0?$", PH_tmp$SubCode[i])) {
-                        # set sub values
-                        def_pat <- paste0("^(",
-                                          paste(rep("[a-zA-Z0-9]*;", as.numeric(sub("[01];[1-9];([1-9]0?)$", "\\1", PH_tmp$SubCode[i]))-1),
-                                                collapse=""), ")([a-z0-9NA\\-]+)(;)?(.*)")
-                        def_sub <- paste0("\\1", PH_tmp$playerID[i], "\\3\\4")
-                        dof_pat <- paste0("^(",
-                                          paste(rep("[a-zA-Z0-9]*;", as.numeric(sub("[01];([1-9]);[1-9]0?$", "\\1", PH_tmp$SubCode[i]))-1),
-                                                collapse=""), ")([a-z0-9\\-]+)(;)?(.*)")
-                        dof_sub <- paste0("\\1", PH_tmp$playerID[i], "\\3\\4")
-                        
-                        addRow$home_def[addRow$gameID==PH_tmp$gameID[i]] <-
-                              sub(def_pat, def_sub, addRow$home_def[addRow$gameID==PH_tmp$gameID[i]])
-                        addRow$home_bat[addRow$gameID==PH_tmp$gameID[i]] <-
-                              sub(dof_pat, dof_sub, addRow$home_bat[addRow$gameID==PH_tmp$gameID[i]])
-                  }
-                  else if (grepl("0;1$", PH_tmp$SubCode[i])) {
-                        # set sub values
-                        pth_pat <- "^([a-z0-9\\-]+)(.*)"
-                        pth_sub <- paste0(PH_tmp$playerID[i], "\\2")
-                        addRow$home_def[addRow$gameID==PH_tmp$gameID[i]] <-
-                              sub(pth_pat, pth_sub, addRow$home_def[addRow$gameID==PH_tmp$gameID[i]])
-                  }
-            }
-            addRow$ID[addRow$gameID==PH_tmp$gameID[i]] <- PH_tmp$ID[i]
-            LNP3 <- rbind(LNP3, addRow)
-      }
-      LNP2 <- LNP %>% rbind(.,LNP3) %>% setorder(.,ID)
-      T3 <- Sys.time()
-
-      message("sapply:"); print(T2-T1)
-      message("forloop:"); print(T3-T2)
-      all(LNP1==LNP2)
-      # TRUE
-      row.names(LNP1) <- row.names(LNP2) <- 1:nrow(LNP1)
-      all.equal(LNP1,LNP2)
-      
-      ## problem might start from here: 2016016687
+      # T1 <- Sys.time()
+      # LNP1 <- LNP %>% 
+      #       apply_sub(., PH_tmp$ID, PH_tmp$gameID, PH_tmp$playerID, PH_tmp$SubCode, PH_tmp$rank, 1) %>%
+      #       rbind(LNP, .) %>% 
+      #       setorder(.,ID)
+      # T2 <- Sys.time()
+      # LNP2 <- LNP
+      # LNP3 <- NULL
+      # for (i in 1:nrow(PH_tmp)) {
+      # 
+      #       # set addRow
+      #       if (i > 1) {
+      #             if (PH_tmp$gameID[i-1]==PH_tmp$gameID[i]) {
+      #                   addRow <- LNP3[LNP3$ID==max(LNP3$ID),]
+      #             }
+      #             else {
+      #                   addRow <- LNP2[LNP2$gameID==PH_tmp$gameID[i],]
+      #             }
+      #       }
+      #       else {
+      #             addRow <- LNP2[LNP2$gameID==PH_tmp$gameID[i],]
+      #       }
+      # 
+      #       # away team
+      #       if (grepl("^0", PH_tmp$SubCode[i])) {
+      #             
+      #             if (grepl(";1[12]$", PH_tmp$SubCode[i])) {
+      #                   # set sub values
+      #                   off_pat <- paste0("^(",
+      #                                     paste(rep("[a-zA-Z0-9]*;", as.numeric(sub("[01];([1-9]);1[12]", "\\1", PH_tmp$SubCode[i]))-1),
+      #                                           collapse=""), ")([a-z0-9\\-]+)(;)?(.*)")
+      #                   off_sub <- paste0("\\1", PH_tmp$playerID[i], "\\3\\4")
+      #                   
+      #                   addRow$away_bat[addRow$gameID==PH_tmp$gameID[i]] <-
+      #                         sub(off_pat, off_sub, addRow$away_bat[addRow$gameID==PH_tmp$gameID[i]])
+      #             }
+      #             else if (grepl("[1-9];[1-9]0?$", PH_tmp$SubCode[i])) {
+      #                   # set sub values
+      #                   def_pat <- paste0("^(",
+      #                                     paste(rep("[a-zA-Z0-9]*;", as.numeric(sub("[01];[1-9];([1-9]0?)$", "\\1", PH_tmp$SubCode[i]))-1),
+      #                                           collapse=""), ")([a-z0-9NA\\-]+)(;)?(.*)")
+      #                   def_sub <- paste0("\\1", PH_tmp$playerID[i], "\\3\\4")
+      #                   dof_pat <- paste0("^(",
+      #                                     paste(rep("[a-zA-Z0-9]*;", as.numeric(sub("[01];([1-9]);[1-9]0?$", "\\1", PH_tmp$SubCode[i]))-1),
+      #                                           collapse=""), ")([a-z0-9\\-]+)(;)?(.*)")
+      #                   dof_sub <- paste0("\\1", PH_tmp$playerID[i], "\\3\\4")
+      #                   
+      #                   addRow$away_def[addRow$gameID==PH_tmp$gameID[i]] <-
+      #                         sub(def_pat, def_sub, addRow$away_def[addRow$gameID==PH_tmp$gameID[i]])
+      #                   addRow$away_bat[addRow$gameID==PH_tmp$gameID[i]] <-
+      #                         sub(dof_pat, dof_sub, addRow$away_bat[addRow$gameID==PH_tmp$gameID[i]])
+      #             }
+      #             else if (grepl("0;1$", PH_tmp$SubCode[i])) {
+      #                   # set sub values
+      #                   pth_pat <- "^([a-z0-9\\-]+)(.*)"
+      #                   pth_sub <- paste0(PH_tmp$playerID[i], "\\2")
+      #                   addRow$away_def[addRow$gameID==PH_tmp$gameID[i]] <-
+      #                         sub(pth_pat, pth_sub, addRow$away_def[addRow$gameID==PH_tmp$gameID[i]])
+      #             }
+      #       }
+      #       # home team
+      #       else if (grepl("^1", PH_tmp$SubCode[i])) {
+      # 
+      #             if (grepl(";1[12]$", PH_tmp$SubCode[i])) {
+      #                   # set sub values
+      #                   off_pat <- paste0("^(",
+      #                                     paste(rep("[a-zA-Z0-9]*;", as.numeric(sub("[01];([1-9]);1[12]", "\\1", PH_tmp$SubCode[i]))-1),
+      #                                           collapse=""), ")([a-z0-9\\-]+)(;)?(.*)")
+      #                   off_sub <- paste0("\\1", PH_tmp$playerID[i], "\\3\\4")
+      #                   addRow$home_bat[addRow$gameID==PH_tmp$gameID[i]] <-
+      #                         sub(off_pat, off_sub, addRow$home_bat[addRow$gameID==PH_tmp$gameID[i]])
+      #             }
+      #             else if (grepl("[1-9];[1-9]0?$", PH_tmp$SubCode[i])) {
+      #                   # set sub values
+      #                   def_pat <- paste0("^(",
+      #                                     paste(rep("[a-zA-Z0-9]*;", as.numeric(sub("[01];[1-9];([1-9]0?)$", "\\1", PH_tmp$SubCode[i]))-1),
+      #                                           collapse=""), ")([a-z0-9NA\\-]+)(;)?(.*)")
+      #                   def_sub <- paste0("\\1", PH_tmp$playerID[i], "\\3\\4")
+      #                   dof_pat <- paste0("^(",
+      #                                     paste(rep("[a-zA-Z0-9]*;", as.numeric(sub("[01];([1-9]);[1-9]0?$", "\\1", PH_tmp$SubCode[i]))-1),
+      #                                           collapse=""), ")([a-z0-9\\-]+)(;)?(.*)")
+      #                   dof_sub <- paste0("\\1", PH_tmp$playerID[i], "\\3\\4")
+      #                   
+      #                   addRow$home_def[addRow$gameID==PH_tmp$gameID[i]] <-
+      #                         sub(def_pat, def_sub, addRow$home_def[addRow$gameID==PH_tmp$gameID[i]])
+      #                   addRow$home_bat[addRow$gameID==PH_tmp$gameID[i]] <-
+      #                         sub(dof_pat, dof_sub, addRow$home_bat[addRow$gameID==PH_tmp$gameID[i]])
+      #             }
+      #             else if (grepl("0;1$", PH_tmp$SubCode[i])) {
+      #                   # set sub values
+      #                   pth_pat <- "^([a-z0-9\\-]+)(.*)"
+      #                   pth_sub <- paste0(PH_tmp$playerID[i], "\\2")
+      #                   addRow$home_def[addRow$gameID==PH_tmp$gameID[i]] <-
+      #                         sub(pth_pat, pth_sub, addRow$home_def[addRow$gameID==PH_tmp$gameID[i]])
+      #             }
+      #       }
+      #       addRow$ID[addRow$gameID==PH_tmp$gameID[i]] <- PH_tmp$ID[i]
+      #       LNP3 <- rbind(LNP3, addRow)
+      # }
+      # LNP2 <- LNP %>% rbind(.,LNP3) %>% setorder(.,ID)
+      # T3 <- Sys.time()
+      # 
+      # message("sapply:"); print(T2-T1)
+      # message("forloop:"); print(T3-T2)
+      # all(LNP1==LNP2)
+      # # TRUE
+      # row.names(LNP1) <- row.names(LNP2) <- 1:nrow(LNP1)
+      # all.equal(LNP1,LNP2)
+      # # TRUE
+      ## problem might start from here: 2016016687 --> RESOLVED Jan 11, 2018
+      # test results
+      # sapply:
+      #       Time difference of 38.1668 secs
+      # forloop:
+      #       Time difference of 2.532494 mins
       
       # # check why not all match - LOL typo  home/away
       # CHK <- merge(LNP1,LNP2,by=c("ID","gameID","visteam","hometeam"),all=TRUE)
@@ -790,35 +795,56 @@ apply_sub <- function (LNP, ID, gameID, playerID, SubCode, rankd, rn) {
 
       ## OFFENSE - 11/12 - PH/PR ##
       off_id <- grepl("1[12]$", SubCode)
-      off_reps <- as.numeric(sapply(SubCode[off_id],
-                                function(x) sub("[01];([1-9]);1[12]", "\\1", x)))
-      off_pat <- paste0("^(",
-                      sapply(lapply(off_reps, function(x) rep("[a-zA-Z0-9]*;", x-1)), paste,
-                             collapse=""), ")([a-z0-9\\-]+)(;)?(.*)")
-      off_sub <- paste0("\\1", playerID[off_id], "\\3\\4")
+      off_reps <- SubCode %>%
+            sapply(.,function(x) sub("[01];([1-9]);1[12]", "\\1", x)) %>%
+            {suppressWarnings(as.numeric(.))}
+      off_reps %<>% is.na(.) %>%
+            replace(off_reps, ., 0)
+      off_pat <- off_reps
+      # off_reps <- suppressWarnings(as.numeric(
+      #       sapply(SubCode,function(x) sub("[01];([1-9]);1[12]", "\\1", x))))
+      off_pat[off_pat>0] <- paste0("^(",sapply(
+            lapply(off_reps[off_reps>0], function(x) rep("[a-zA-Z0-9]*;", x-1)), paste,
+            collapse=""), ")([a-z0-9\\-]+)(;)?(.*)")
+      # off_sub <- paste0("\\1", playerID, "\\3\\4")
 
       ## DEFENSE & PITCHING (games w/o DH) - affects batting order ##
       # defensive lineup #
       def_id <- grepl("[1-9];[1-9]0?$", SubCode)
-      def_reps <- as.numeric(sapply(SubCode[def_id],
-                                    function(x) sub("[01];([1-9]);([1-9]0?)", "\\2", x)))
-      def_pat <- paste0("^(",
-                        sapply(lapply(def_reps, function(x) rep("[a-zA-Z0-9]*;", x-1)), paste,
-                               collapse=""), ")([a-z0-9NA\\-]+)(;)?(.*)")
-      def_sub <- paste0("\\1", playerID[def_id], "\\3\\4")
+      def_reps <- SubCode %>%
+            sapply(.,function(x) sub("[01];[1-9];([1-9]0?)", "\\1", x)) %>%
+            {suppressWarnings(as.numeric(.))}
+      def_reps %<>% is.na(.) %>%
+            replace(def_reps, ., 0)
+      def_pat <- def_reps
+      # def_reps <- as.numeric(sapply(SubCode[def_id],
+      #                               function(x) sub("[01];([1-9]);([1-9]0?)", "\\2", x)))
+      def_pat[def_pat>0] <- paste0("^(",sapply(
+            lapply(def_reps[def_reps>0], function(x) rep("[a-zA-Z0-9]*;", x-1)), paste,
+            collapse=""), ")([a-z0-9NA\\-]+)(;)?(.*)")
+      # def_sub <- paste0("\\1", playerID, "\\3\\4")
 
       # batting order#
-      dof_reps <- as.numeric(sapply(SubCode[def_id],
-                                    function(x) sub("[01];([1-9]);([1-9]0?)", "\\1", x)))
-      dof_pat <- paste0("^(",
-                        sapply(lapply(def_reps, function(x) rep("[a-zA-Z0-9]*;", x-1)), paste,
-                               collapse=""), ")([a-z0-9\\-]+)(;)?(.*)")
-      dof_sub <- paste0("\\1", playerID[def_id], "\\3\\4")
+      dof_reps <- SubCode %>%
+            sapply(.,function(x) sub("[01];([1-9]);[1-9]0?", "\\1", x)) %>%
+            {suppressWarnings(as.numeric(.))}
+      dof_reps %<>% is.na(.) %>%
+            replace(dof_reps, ., 0)
+      dof_pat <- dof_reps
+      # dof_reps <- as.numeric(sapply(SubCode[def_id],
+      #                               function(x) sub("[01];([1-9]);([1-9]0?)", "\\1", x)))
+      dof_pat[dof_pat>0] <- paste0("^(",sapply(
+            lapply(dof_reps[dof_reps>0], function(x) rep("[a-zA-Z0-9]*;", x-1)), paste,
+            collapse=""), ")([a-z0-9\\-]+)(;)?(.*)")
+      # dof_sub <- paste0("\\1", playerID, "\\3\\4")
 
+      # all sub replacements except pth_sub below
+      rpm_sub <- paste0("\\1", playerID, "\\3\\4")
+      
       ## PITCHING (games w/ DH) ##
       pth_id <- grepl("0;1$", SubCode)
       pth_pat <- "^([a-z0-9\\-]+)(.*)" # 1 is pitcher, always
-      pth_sub <- paste0(playerID[pth_id], "\\2")
+      pth_sub <- paste0(playerID, "\\2")
 
       ## BUMGARNER RULE: check for !( batting lineup %in% DH ) in AL games
 
@@ -832,7 +858,7 @@ apply_sub <- function (LNP, ID, gameID, playerID, SubCode, rankd, rn) {
                   OUTP$away_bat[OUTP$gameID %in% gameID[rank_id & aw_id & off_id]] <-
                         sapply(seq_along(LNP$away_bat[LNP$gameID %in% gameID[rank_id & aw_id & off_id]]),
                                function(x)sub(off_pat[rank_id & aw_id & off_id][x],
-                                              off_sub[rank_id & aw_id & off_id][x],
+                                              rpm_sub[rank_id & aw_id & off_id][x],
                                               LNP$away_bat[LNP$gameID %in% gameID[rank_id & aw_id & off_id]][x]))
                   OUTP$ID[OUTP$gameID %in% gameID[rank_id & aw_id & off_id]] <-
                         ID[rank_id & aw_id & off_id]
@@ -845,14 +871,14 @@ apply_sub <- function (LNP, ID, gameID, playerID, SubCode, rankd, rn) {
                   OUTP$away_def[OUTP$gameID %in% gameID[rank_id & aw_id & def_id]] <-
                         sapply(seq_along(LNP$away_def[LNP$gameID %in% gameID[rank_id & aw_id & def_id]]),
                                function(x)sub(def_pat[rank_id & aw_id & def_id][x],
-                                              def_sub[rank_id & aw_id & def_id][x],
+                                              rpm_sub[rank_id & aw_id & def_id][x],
                                               LNP$away_def[LNP$gameID %in% gameID[rank_id & aw_id & def_id]][x]))
 
                   # batting
                   OUTP$away_bat[OUTP$gameID %in% gameID[rank_id & aw_id & def_id]] <-
                         sapply(seq_along(LNP$away_bat[LNP$gameID %in% gameID[rank_id & aw_id & def_id]]),
                                function(x)sub(dof_pat[rank_id & aw_id & def_id][x],
-                                              dof_sub[rank_id & aw_id & def_id][x],
+                                              rpm_sub[rank_id & aw_id & def_id][x],
                                               LNP$away_bat[LNP$gameID %in% gameID[rank_id & aw_id & def_id]][x]))
 
                   # ID for entire line item
@@ -882,7 +908,7 @@ apply_sub <- function (LNP, ID, gameID, playerID, SubCode, rankd, rn) {
                   OUTP$home_bat[OUTP$gameID %in% gameID[rank_id & hm_id & off_id]] <-
                         sapply(seq_along(LNP$home_bat[LNP$gameID %in% gameID[rank_id & hm_id & off_id]]),
                                function(x)sub(off_pat[rank_id & hm_id & off_id][x],
-                                              off_sub[rank_id & hm_id & off_id][x],
+                                              rpm_sub[rank_id & hm_id & off_id][x],
                                               LNP$home_bat[LNP$gameID %in% gameID[rank_id & hm_id & off_id]][x]))
                   OUTP$ID[OUTP$gameID %in% gameID[rank_id & hm_id & off_id]] <-
                         ID[rank_id & hm_id & off_id]
@@ -895,14 +921,14 @@ apply_sub <- function (LNP, ID, gameID, playerID, SubCode, rankd, rn) {
                   OUTP$home_def[OUTP$gameID %in% gameID[rank_id & hm_id & def_id]] <-
                         sapply(seq_along(LNP$home_def[LNP$gameID %in% gameID[rank_id & hm_id & def_id]]),
                                function(x)sub(def_pat[rank_id & hm_id & def_id][x],
-                                              def_sub[rank_id & hm_id & def_id][x],
+                                              rpm_sub[rank_id & hm_id & def_id][x],
                                               LNP$home_def[LNP$gameID %in% gameID[rank_id & hm_id & def_id]][x]))
 
                   # batting
                   OUTP$home_bat[OUTP$gameID %in% gameID[rank_id & hm_id & def_id]] <-
                         sapply(seq_along(LNP$home_bat[LNP$gameID %in% gameID[rank_id & hm_id & def_id]]),
                                function(x)sub(dof_pat[rank_id & hm_id & def_id][x],
-                                              dof_sub[rank_id & hm_id & def_id][x],
+                                              rpm_sub[rank_id & hm_id & def_id][x],
                                               LNP$home_bat[LNP$gameID %in% gameID[rank_id & hm_id & def_id]][x]))
 
                   # ID for entire line item
