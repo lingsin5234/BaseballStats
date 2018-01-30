@@ -7,7 +7,7 @@
 ##                                                          ##
 ##    Sorts gamelogs into RStudio-friendly tables.          ##
 ##                                                          ##
-##    Version 1.5.5                                         ##
+##    Version 1.5.6                                         ##
 ##                                                          ##
 ##############################################################
 
@@ -76,6 +76,8 @@
 #     1.5.5 - incorporate runner(s) scored in adv_runner to assign ASCpitcher - January 22, 2018
 #           - minor fix on compareNA function where the order matters for ASCpitcher vs runner - January 22, 2018
 #           - removed the OLD functions - January 22, 2018
+#     1.5.6 - incorporate the Basic Pitching Stats - January 23, 2018
+#           - exports for Basic Hitting & Pitching - January 23, 2018
 ##
 ################################
 ################################
@@ -1500,6 +1502,49 @@ adv_runner_ASCpitcher <- function (CLN, LNP) {
       return (CLN)
 }
 
+# function sort out recursively remove the NP and SUBSTITUTION that begin the inning
+# use the IDs to filter out more 1 Pitcher Innings - easier to handle earned runs
+preinning_subSort <- function(RN_tmp) {
+      
+      # Temp to compare at the end
+      TMP <- RN_tmp
+      
+      # remove any first event of inning that are NP followed by pitcher substitution #
+      NP_1 <- RN_tmp %>% subset(., !duplicated(RN_tmp$game_teamInn)) %>% {grep("NP", .$Play)}
+      NP_ID <- RN_tmp %>% subset(., !duplicated(RN_tmp$game_teamInn)) %>% extract(., "ID")
+      NP_ID <- NP_ID[NP_1,1] # all innings that start with NP
+      
+      # now check the next value if substitution for pitcher #
+      NP_nID <- NP_ID + 1
+      # View(RN_tmp[RN_tmp$ID %in% NP_nID,])
+      # all(RN_tmp$Play[RN_tmp$ID %in% NP_nID]=="SUBSTITUTION")
+      # [1] FALSE
+      # check and remove all those that are not SUBSTITUTION #
+      # RN_tmp$Play[RN_tmp$ID %in% NP_nID & !RN_tmp$Play=="SUBSTITUTION"]
+      # [1] "8" "2"
+      NP_nID <- NP_nID[!NP_nID %in% RN_tmp$ID[RN_tmp$ID %in% NP_nID & !RN_tmp$Play=="SUBSTITUTION"]]
+      nID_PT <- RN_tmp$ID[RN_tmp$ID %in% NP_nID & grepl(";1$", RN_tmp$SubCode)] # pitcher
+      nID_PL <- RN_tmp$ID[RN_tmp$ID %in% NP_nID & grepl(";[2-9]|11|12$", RN_tmp$SubCode)] # not pitcher
+      
+      # remove the NP from lines with nID_PT - 1 #
+      rm_ID <- NP_ID[NP_ID %in% (nID_PT-1)] # pitcher
+      rm_PL <- NP_ID[NP_ID %in% (nID_PL-1)] # not pitcher
+      
+      # remove both the NP and the Pitcher/Fielder Substitutions #
+      RN_tmp <- RN_tmp[!RN_tmp$ID %in% c(nID_PT, rm_ID, nID_PL, rm_PL),]
+      
+      # run recursively
+      if (nrow(TMP)==nrow(RN_tmp)) {
+            return(RN_tmp)
+      }
+      
+      RN_tmp <- preinning_subSort(RN_tmp)
+      
+      # return #
+      return(RN_tmp)
+      
+}
+
 ################################
 ################################
 
@@ -1950,6 +1995,16 @@ track_pitchers <- function(CLN, LNP) {
       return(CLN)
 }
 
+# function to calculate the innings pitched based on # of outs
+calc_innings <- function(Outs) {
+      
+      IP_big <- Outs %/% 3 # get rounded down whole number
+      IP_sml <- Outs %% 3 # get the decimal number
+      
+      IP <- as.numeric(paste(IP_big, IP_sml, sep="."))
+      return(IP)
+}
+
 ################################
 ################################
 
@@ -1958,7 +2013,7 @@ track_pitchers <- function(CLN, LNP) {
 ##   Divide & Sort the Data   ##
 ################################
 
-# post-advance Runner tidy-up
+# post-advance Runner tidy-up #
 clean_up <- function(CLN) {
       
       ##########################
@@ -2134,7 +2189,7 @@ clean_up <- function(CLN) {
       return(CLN)
 }
 
-# divide and sort the data - BASIC Hitting
+# divide and sort the data - BASIC Hitting #
 dv_sort <- function(CLN, LNP) {
       
       ################################
@@ -2381,7 +2436,346 @@ dv_sort <- function(CLN, LNP) {
       return(list(CLN, HT))
 }
 
+# divide and sort the data - BASIC Pitching #
+basic_pitch_sort <- function(CLN) {
+      
+      # sort by pitching_month #
+      CLN$pitcherID_org <- CLN$pitcherID
+      CLN$pitcherID <- paste(CLN$pitcherID,
+                             sub("^[A-Z]{3}([0-9]{6}).*", "\\1", CLN$gameID),
+                             sep=";;")
+      
+      
+      ### Hits Given Up ###
+      # Single
+      Hit_tmp <- CLN[grepl("^S", CLN$Play) & !grepl("^(SB|SUB)", CLN$Play),]
+      HT <- data.frame(ID=Hit_tmp$ID, gameID=Hit_tmp$gameID, Inning=Hit_tmp$Inning, Team=Hit_tmp$Team,
+                       Outs=Hit_tmp$Outs, HitType="Single", 
+                       Runners=3-str_count(paste(Hit_tmp$AB_1B, Hit_tmp$AB_2B, Hit_tmp$AB_3B, sep=";"), "NA"),
+                       playerID=Hit_tmp$playerID, pitcherID=Hit_tmp$pitcherID, stringsAsFactors = FALSE)
+      # Double
+      Hit_tmp <- CLN[grepl("^D", CLN$Play),]
+      HT <- rbind(HT, data.frame(ID=Hit_tmp$ID, gameID=Hit_tmp$gameID, Inning=Hit_tmp$Inning, Team=Hit_tmp$Team,
+                                 Outs=Hit_tmp$Outs, HitType="Double", 
+                                 Runners=3-str_count(paste(Hit_tmp$AB_1B, Hit_tmp$AB_2B, Hit_tmp$AB_3B, sep=";"), "NA"),
+                                 playerID=Hit_tmp$playerID, pitcherID=Hit_tmp$pitcherID, stringsAsFactors = FALSE))
+      # Triple
+      Hit_tmp <- CLN[grepl("^T", CLN$Play),]
+      HT <- rbind(HT, data.frame(ID=Hit_tmp$ID, gameID=Hit_tmp$gameID, Inning=Hit_tmp$Inning, Team=Hit_tmp$Team,
+                                 Outs=Hit_tmp$Outs, HitType="Triple", 
+                                 Runners=3-str_count(paste(Hit_tmp$AB_1B, Hit_tmp$AB_2B, Hit_tmp$AB_3B, sep=";"), "NA"),
+                                 playerID=Hit_tmp$playerID, pitcherID=Hit_tmp$pitcherID, stringsAsFactors = FALSE))
+      # HR
+      Hit_tmp <- CLN[grepl("^HR", CLN$Play),]
+      HT <- rbind(HT, data.frame(ID=Hit_tmp$ID, gameID=Hit_tmp$gameID, Inning=Hit_tmp$Inning, Team=Hit_tmp$Team,
+                                 Outs=Hit_tmp$Outs, HitType="HR", 
+                                 Runners=3-str_count(paste(Hit_tmp$AB_1B, Hit_tmp$AB_2B, Hit_tmp$AB_3B, sep=";"), "NA"),
+                                 playerID=Hit_tmp$playerID, pitcherID=Hit_tmp$pitcherID, stringsAsFactors = FALSE))
+      
+      ## Walks & HP ##
+      W_tmp <- CLN[grepl("^W", CLN$Play) & !grepl("WP", CLN$Play),]
+      WK <- data.frame(ID=W_tmp$ID, gameID=W_tmp$gameID, Inning=W_tmp$Inning, Team=W_tmp$Team,
+                       Outs=W_tmp$Outs, WType="Walk", 
+                       Runners=3-str_count(paste(W_tmp$AB_1B, W_tmp$AB_2B, W_tmp$AB_3B, sep=";"), "NA"),
+                       playerID=W_tmp$playerID, pitcherID=W_tmp$pitcherID, stringsAsFactors = FALSE)
+      W_tmp <- CLN[grepl("^IW", CLN$Play),]
+      WK <- rbind(WK, data.frame(ID=W_tmp$ID, gameID=W_tmp$gameID, Inning=W_tmp$Inning, Team=W_tmp$Team,
+                                 Outs=W_tmp$Outs, WType="Int. Walk", 
+                                 Runners=3-str_count(paste(W_tmp$AB_1B, W_tmp$AB_2B, W_tmp$AB_3B, sep=";"), "NA"),
+                                 playerID=W_tmp$playerID, pitcherID=W_tmp$pitcherID, stringsAsFactors = FALSE))
+      W_tmp <- CLN[grepl("^HP", CLN$Play),]
+      WK <- rbind(WK, data.frame(ID=W_tmp$ID, gameID=W_tmp$gameID, Inning=W_tmp$Inning, Team=W_tmp$Team,
+                                 Outs=W_tmp$Outs, WType="Hit By Pitch", 
+                                 Runners=3-str_count(paste(W_tmp$AB_1B, W_tmp$AB_2B, W_tmp$AB_3B, sep=";"), "NA"),
+                                 playerID=W_tmp$playerID, pitcherID=W_tmp$pitcherID, stringsAsFactors = FALSE))
+      
+      ## Strikeouts ##
+      K_tmp <- CLN[grepl("^K", CLN$Play),]
+      KS <- data.frame(ID=K_tmp$ID, gameID=K_tmp$gameID, Inning=K_tmp$Inning, Team=K_tmp$Team, Outs=K_tmp$Outs, 
+                       Runners=3-str_count(paste(K_tmp$AB_1B, K_tmp$AB_2B, K_tmp$AB_3B, sep=";"), "NA"),
+                       playerID=K_tmp$playerID, pitcherID=K_tmp$pitcherID, stringsAsFactors = FALSE)
+      
+      
+      ## Aggregate and summarise by playerID & HitType ##
+      HTS <- aggregate(ID ~ pitcherID + HitType, HT[HT$HitType=="Single",], length)
+      HTD <- aggregate(ID ~ pitcherID + HitType, HT[HT$HitType=="Double",], length)
+      HTT <- aggregate(ID ~ pitcherID + HitType, HT[HT$HitType=="Triple",], length)
+      HTH <- aggregate(ID ~ pitcherID + HitType, HT[HT$HitType=="HR",], length)
+      HT <- plyr::rename(merge(merge(plyr::rename(merge(HTS[!names(HTS) %in% "HitType"], 
+                                                        HTD[!names(HTD) %in% "HitType"], 
+                                                        by="pitcherID", all=TRUE), 
+                                                  c("ID.x"="single", "ID.y"="dou_ble")), 
+                                     HTT[!names(HTT) %in% "HitType"], by="pitcherID", all=TRUE), 
+                               HTH[!names(HTH) %in% "HitType"], by="pitcherID", all=TRUE), 
+                         c("ID.x"="triple", "ID.y"="home_run"))
+      # HT[is.na(HT)] <- 0
+      
+      ## add in the rest SB, WK, K, CS
+      WKW <- aggregate(ID ~ pitcherID + WType, WK[WK$WType=="Walk",], length)
+      WKI <- aggregate(ID ~ pitcherID + WType, WK[WK$WType=="Int. Walk",], length)
+      WKH <- aggregate(ID ~ pitcherID + WType, WK[WK$WType=="Hit By Pitch",], length)
+      HT <- merge(HT, plyr::rename(
+            merge(WKH[!names(WKH) %in% "WType"], 
+                  plyr::rename(merge(WKW[!names(WKW) %in% "WType"], WKI[!names(WKI) %in% "WType"], 
+                                     by="pitcherID", all=TRUE), c("ID.x"="walk", "ID.y"="intentional_walk")), 
+                  by="pitcherID", all=TRUE), c("ID"="hit_by_pitch")), by="pitcherID", all=TRUE)
+      HT <- merge(HT, plyr::rename(aggregate(ID ~ pitcherID, KS[names(KS) %in% c("ID", "pitcherID")], 
+                                             length), c("ID"="strikeout")), by="pitcherID", all=TRUE)
+      
+      ## add Hits
+      HT[is.na(HT)] <- 0
+      HT$hit <- HT$single+HT$dou_ble+HT$triple+HT$home_run
+      
+      
+      ## figure out appearances, starts, innings pitched ##
+      APR_tmp <- CLN[!grepl("SUBSTITUTION|NP", CLN$Event),]
+      
+      # appearances #
+      APR <- APR_tmp %>% aggregate(gameID ~ pitcherID, ., function(x) length(unique(x))) %>%
+            plyr::rename(., c("gameID"="appearance"))
+      
+      # starts #
+      STA <- CLN[!duplicated(CLN$gameID),]
+      STA$home_pitcher <- paste(STA$home_pitcher, 
+                                sub("^[A-Z]{3}([0-9]{6}).*", "\\1", STA$gameID), sep=";;")
+      STA$away_pitcher <- paste(STA$away_pitcher, 
+                                sub("^[A-Z]{3}([0-9]{6}).*", "\\1", STA$gameID), sep=";;")
+      STA <- STA %>% aggregate(gameID ~ home_pitcher, ., length) %>%
+            plyr::rename(., c("home_pitcher"="pitcherID")) %>%
+            rbind(., plyr::rename(aggregate(gameID ~ away_pitcher, STA, length), 
+                                  c("away_pitcher"="pitcherID"))) %>%
+            aggregate(gameID ~ pitcherID, ., sum) %>%
+            plyr::rename(., c("gameID"="games_started"))
+      
+      # innings pitched #
+      # count the number of outs recorded ... :) #
+      INN <- APR_tmp %>% extract(., c("gameID", "Outs", "pitcherID")) %>%
+            aggregate(Outs ~ pitcherID + gameID, ., sum) %>%
+            mutate(innings_pitched = calc_innings(Outs)) %>%
+            plyr::rename(., c("Outs"="outs_total"))
+      
+      # complete games #
+      CMG <- APR_tmp %>% extract(., c("gameID", "Team", "pitcherID")) %>%
+            unique(.) %>% mutate(unique_game_check = paste(gameID, Team, sep=";"))
+      CMG <- CMG[!CMG$unique_game_check %in% CMG$unique_game_check[duplicated(CMG$unique_game_check)],] %>%
+            aggregate(unique_game_check ~ pitcherID, ., length) %>%
+            plyr::rename(., c("unique_game_check"="complete_game"))
+      
+      # batters faced #
+      # sort into home and away to see continuity of the batters #
+      # basically need to ignore SB|PO|CS|BK|OA|WP as the same batter is still at-bat
+      BTF <- APR_tmp %>% 
+            extract(., c("gameID", "Team", "playerID", "Event", "pitcherID", "PE_Outs")) %>%
+            subset(., !grepl("^(SB|PO|CS|BK|OA|WP|DI|PB|FLE)", .$Event))
+      
+      # # checker #
+      # for (i in 2:nrow(HOM)) {
+      #       if (HOM$playerID[i]==HOM$playerID[i-1] & HOM$gameID[i]==HOM$gameID[i-1]) {
+      #             print(HOM$gameID[i])
+      #       }
+      # }
+      # # no results should show.
+      BTF <- BTF %>% aggregate(playerID ~ pitcherID, ., length) %>%
+            plyr::rename(., c("playerID"="batters_faced"))
+      
+      ### NOTE: ^ this currently ignores pitchers that threw at least 1 pitch to a batter ###
+      ### but was then substituted for a relief pitcher ###
+      
+      # combine total outs to calculate innings pitched #
+      HT <- INN %>% aggregate(outs_total ~ pitcherID, ., sum) %>%
+            mutate(innings_pitched = calc_innings(outs_total)) %>%
+            extract(., c("innings_pitched", "pitcherID")) %>%
+            merge(HT, ., by="pitcherID", all=TRUE) %>%
+            merge(., STA, by="pitcherID", all=TRUE) %>%
+            merge(., APR, by="pitcherID", all=TRUE) %>%
+            merge(., CMG, by="pitcherID", all=TRUE) %>%
+            merge(., BTF, by="pitcherID", all=TRUE)
+      
+      HT[is.na(HT)] <- 0
+      
+      
+      
+      
+      
+      
+      ### ERA = 9 × Earned Runs Allowed / Innings Pitched ###
+      
+      ## get all innings where at least a run scored ##
+      RN_tmp <- CLN %>% mutate(game_teamInn = paste(gameID, Inning, Team, sep=";;")) %>%
+            subset(., Runs>0) %>%
+            extract(., "game_teamInn") %>%
+            {subset(CLN %>% 
+                          mutate(game_teamInn = paste(gameID, Inning, Team, sep=";;")), 
+                    game_teamInn %in% .$game_teamInn)}
+      # ^ wow i'm a genius...
+      
+      # run the recursive pre-inning removal of substitutions
+      RN_tmp <- preinning_subSort(RN_tmp)
+      
+      # columns to keep #
+      keepCols <- c("ID", "gameID", "Inning", "Team", "game_teamInn", "Runs")
+      
+      ## calculate Runs, Earned Runs ##
+      
+      ## TESTING ##
+      # ER <- RN_tmp %>% subset(., select=c(keepCols, "PT_EarnedRuns", "PT_RunsScored")) %>%
+      #       subset(., !is.na(PT_RunsScored))
+      # 
+      # parse the RunsScored and EarnedRuns to split by pitcher!
+      # TEST <- ER %>% subset(., select=c(keepCols, "PT_RunsScored")) %>%
+      #       mutate(pitcherID=PT_RunsScored) %>%
+      #       mutate(pitcherID = strsplit(as.character(pitcherID), ";;")) %>%
+      #       tidyr::unnest(pitcherID) %>% 
+      #       # aggregate(PT_RunsScored ~ ., ., function(x, .$pitcherID) str_count(x, .$pitcherID)) %>%
+      #       # try mutate 
+      #       mutate(PT_RunsScored = str_count(PT_RunsScored, pitcherID)) %>%
+      #       arrange(., ID) %>% unique(.) %>%
+      #       mutate(pitcherID_org = pitcherID) %>%
+      #       mutate(pitcherID=paste(pitcherID, sub("^[A-Z]{3}([0-9]{6}).*", "\\1", gameID), sep=";;"))
+      # 
+      # run 2 checks #
+      # 1. check that PT_RunsScored is same as Runs #
+      # 2. check that PT_RunsScored is >= PT_EarnedRuns #
+      # any(is.na(TEST$PT_RunsScored))
+      # [1] FALSE
+      
+      ## tidyr::unnest - rearranges the strsplits into separate rows
+      
+      RN <- RN_tmp %>% subset(., select=c(keepCols, "PT_EarnedRuns", "PT_RunsScored")) %>% 
+            subset(., !is.na(PT_RunsScored)) %>% subset(., select=c(keepCols, "PT_RunsScored")) %>%
+            mutate(pitcherID=PT_RunsScored) %>%
+            mutate(pitcherID = strsplit(as.character(pitcherID), ";;")) %>%
+            tidyr::unnest(pitcherID) %>% 
+            # aggregate(PT_RunsScored ~ ., ., function(x, .$pitcherID) str_count(x, .$pitcherID)) %>%
+            # try mutate 
+            mutate(PT_RunsScored = str_count(PT_RunsScored, pitcherID)) %>%
+            arrange(., ID) %>% unique(.) %>%
+            mutate(pitcherID_org = pitcherID) %>%
+            mutate(pitcherID=paste(pitcherID, sub("^[A-Z]{3}([0-9]{6}).*", "\\1", gameID), sep=";;"))
+      
+      ER <- RN_tmp %>% subset(., select=c(keepCols, "PT_EarnedRuns", "PT_RunsScored")) %>%
+            subset(., !is.na(PT_RunsScored)) %>% subset(., select=c(keepCols, "PT_EarnedRuns")) %>%
+            mutate(pitcherID=PT_EarnedRuns) %>%
+            mutate(pitcherID = strsplit(as.character(pitcherID), ";;")) %>%
+            tidyr::unnest(pitcherID) %>%
+            mutate(PT_EarnedRuns = str_count(PT_EarnedRuns, pitcherID)) %>%
+            arrange(., ID) %>% unique(.) %>%
+            mutate(pitcherID_org = pitcherID) %>%
+            mutate(pitcherID=paste(pitcherID, sub("^[A-Z]{3}([0-9]{6}).*", "\\1", gameID), sep=";;")) %>%
+            subset(., !is.na(PT_EarnedRuns))
+      
+      # merge HT with RN and ER #
+      HT <- RN %>% aggregate(PT_RunsScored ~ pitcherID, ., sum) %>%
+            merge(., aggregate(PT_EarnedRuns ~ pitcherID, ER, sum), by="pitcherID", all=TRUE) %>%
+            merge(HT, ., by="pitcherID", all=TRUE)
+      HT[is.na(HT)] <- 0
+      
+      # rename
+      HT <- HT %>% plyr::rename(., c("PT_RunsScored"="runs_against", "PT_EarnedRuns"="earned_run"))
+      
+      
+      # SKIP FOR NOW ---- COMPLETED ! #
+      # 
+      # 
+      # ## handle all innings where all runs are charged to the one pitcher only ##
+      # # isolate for these innings #
+      # RN_1PT <- RN_tmp %>% subset(., !game_teamInn %in% .$game_teamInn[grep(";1$",.$SubCode)])
+      # 
+      # # add Earned Runs #
+      # RN_1PT$EarnedRuns <- str_count(RN_1PT$Runners, "(-H)|(XH\\([1-9]*E[1-9])") -
+      #       str_count(RN_1PT$Runners, "\\(UR\\)")
+      # RN_1PT$EarnedRuns[grepl("HR", RN_1PT$Play) & !grepl("(B-H)|(BXH\\([1-9]*E[1-9])", RN_1PT$Runners)] <- 
+      #       RN_1PT$EarnedRuns[grepl("HR", RN_1PT$Play) & !grepl("(B-H)|(BXH\\([1-9]*E[1-9])", RN_1PT$Runners)] + 1
+      # RN_1PT$EarnedRuns[is.na(RN_1PT$EarnedRuns)] <- 0
+      # 
+      # # summary #
+      # RN <- RN_1PT %>% aggregate(EarnedRuns ~ pitcherID, ., sum) %>%
+      #       merge(., aggregate(Runs ~ pitcherID, RN_1PT, sum), by="pitcherID", all=TRUE)
+      # 
+      # 
+      # ## Now handle all the other innings, more than 1 pitcher in the inning ##
+      # # isolate for these innings #
+      # RN_PTS <- RN_tmp %>% subset(., game_teamInn %in% .$game_teamInn[grepl(";1$", .$SubCode)])
+      # 
+      # 
+      # 
+      # 
+      # HANDLED! :)
+      ########################################
+      ### NOTE: STILL NEED TO HANDLE (TUR) ###
+      ########################################
+      # 
+      # 
+      # 
+      # # merge RN to HT
+      # HT <- HT %>% merge(., RN, by="pitcherID", all=TRUE) %>%
+      #       plyr::rename(., c("EarnedRuns"="earned_run", "Runs"="runs_against"))
+      # 
+      
+      
+      
+      # rearrange columns
+      HT <- HT[,c("pitcherID", "appearance", "games_started", "innings_pitched", "complete_game",
+                  "hit", "single", "dou_ble", "triple",  "home_run", "walk", "intentional_walk",
+                  "hit_by_pitch", "strikeout", "batters_faced", "earned_run", "runs_against")]
+      
+      ## sanity checks ##
+      # any(HT$runs_against < HT$earned_run)
+      # [1] FALSE
+      # max(HT$appearance)
+      # [1] 82
+      # max(HT$games_started)
+      # [1] 35
+      # any(HT$innings_pitched==0)
+      # [1] FALSE <- might not be false...
+      
+      
+      # QUICK CHECK #
+      # ACTUAL:   David Price Runs Against=106, Earned Runs Against=102
+      # MINE:     David Price Runs Against=83,  Earned Runs Against=79
+      
+      
+      # return
+      return(HT)
+}
 
+# final output - OneFrame #
+final_outputs <- function(bt, typ) {
+      
+      # convert to big data frame #
+      bt <- bt %>% ldply(., data.frame)
+
+      # check if pitching data #
+      if (typ==2) {
+            bt <- bt %>% plyr::rename(., c("pitcherID"="playerID"))
+      }
+      
+      # sort data frame: add year & month, fix indexID, playerID #
+      OneFrame <- bt %>% mutate(year=.id) %>% extract(., c(names(.)[-1])) %>%
+            mutate(month=sub(".*([0-9]{2})$", "\\1", year_month)) %>%
+            mutate(indexID=playerID) %>% mutate(playerID=sub(";;.*", "", playerID)) %>%
+            mutate(ID=(typ*1000000000+1):(typ*1000000000+nrow(.)))
+      
+      # for no data add the year_month back in
+      OneFrame$indexID[!grepl(";;", OneFrame$indexID)] <- 
+            paste(OneFrame$playerID[!grepl(";;", OneFrame$indexID)], 
+                  OneFrame$year_month[!grepl(";;", OneFrame$indexID)], sep=";;")
+      
+      # rearrange column names #
+      OneFrame <- OneFrame[, c("ID", "indexID", "playerID", 
+                               names(OneFrame)[!names(OneFrame) %in% c("ID", "indexID", "playerID")])]
+      
+      # all NAs to 0
+      OneFrame[is.na(OneFrame)] <- 0
+      
+      if (typ==1) {
+            write.csv(OneFrame, "basic_hitting_month3.csv", na="", row.names=FALSE)
+      }
+      else if (typ==2) {
+            OneFrame <- OneFrame %>% plyr::rename(., c("playerID"="pitcherID"))
+            write.csv(OneFrame, "basic_pitching_month.csv", na="", row.names=FALSE)
+      }
+}
 
 ################################
 ################################
@@ -2403,7 +2797,7 @@ setwd("~/Personal/Practice/MLB")
 work_loc <- "C:/Users/siling/Desktop/DoesNotNeedContinuousBackup/2010seve"
 evn2016 <- list.files(work_loc)
 evn2016 <- evn2016[grepl("^2016", evn2016)]
-BasicStats <- NULL # set the final output
+BasicHit <- NULL # set the final output
 IntmdStats <- NULL # set the final output
 EVN <- NULL # all events
 
@@ -2499,8 +2893,6 @@ for (y in 2010:2015) {
       evn2010s <- list.files(work_loc)
       use_yr <- paste0("^", y)
       evn2010s <- evn2010s[grepl(use_yr, evn2010s)]
-      BasicStats <- NULL # set the final output
-      IntmdStats <- NULL # set the final output
       EVN <- NULL # all events
       
       # combine all lines from events
@@ -2588,8 +2980,6 @@ for (y in 2000:2009) {
       evn2000s <- list.files(work_loc)
       use_yr <- paste0("^", y)
       evn2000s <- evn2000s[grepl(use_yr, evn2000s)]
-      BasicStats <- NULL # set the final output
-      IntmdStats <- NULL # set the final output
       EVN <- NULL # all events
       
       # combine all lines from events
@@ -2666,8 +3056,6 @@ for (y in 1990:1999) {
       evn1990s <- list.files(work_loc)
       use_yr <- paste0("^", y)
       evn1990s <- evn1990s[grepl(use_yr, evn1990s)]
-      BasicStats <- NULL # set the final output
-      IntmdStats <- NULL # set the final output
       EVN <- NULL # all events
       
       # combine all lines from events
@@ -2734,10 +3122,7 @@ for (y in 1990:1999) {
 
 
 
-# - final scores
-
-
-
+### Setting Up Basic Stat Tables ###
 
 # set up monthly and yearly table
 for (y in 2010:2016) {
@@ -2753,65 +3138,62 @@ for (y in 2010:2016) {
 
 
 # - add to basic Stats
+BasicHit <- BasicPitch <- NULL
 pb <- txtProgressBar(min=2010, max=2016, initial=2010, style=3)
 for (y in 2010:2016) {
       
-      ## generate stats and add to basic stats list
+      ## HITTING ##
+      # generate stats and add to basic stats list #
       T1 <- Sys.time()
       OUTPUT <- dv_sort(FIN[[as.character(y)]], LNP[[as.character(y)]])
       T2 <- Sys.time()
-      message("Divide & Sort:"); print(T2-T1)
+      message("Sort Hitting:"); print(T2-T1)
       
-      ## add month code for sorting
+      # add month code for sorting #
       OUTPUT[[2]]$year_month <- sub(".*;;(.*)", "\\1", OUTPUT[[2]]$playerID)
       
-      ## set the initital list for first iteration
+      # set the initital list for first iteration #
       if (y > 2010) {
-            BasicStats <- c(BasicStats, list(OUTPUT[[2]]))
+            BasicHit <- c(BasicHit, list(OUTPUT[[2]]))
       } else {
-            BasicStats <- list(OUTPUT[[2]])
+            BasicHit <- list(OUTPUT[[2]])
       }
       
+      ## PITCHING ##
+      # generate stats and add to basic stats list #
+      T1 <- Sys.time()
+      OUTPUT <- basic_pitch_sort(FIN[[as.character(y)]])
+      T2 <- Sys.time()
+      message("Sort Pitching:"); print(T2-T1)
+      
+      # add month code for sorting #
+      OUTPUT$year_month <- sub(".*;;(.*)", "\\1", OUTPUT$pitcherID)
+      
+      # set the initital list for first iteration #
+      if (y > 2010) {
+            BasicPitch <- c(BasicPitch, list(OUTPUT))
+      } else {
+            BasicPitch <- list(OUTPUT)
+      }
       
       message(paste(y, " Completed!"))
       setTxtProgressBar(pb, y)
 }
-BasicStats <- setNames(BasicStats, 2010:2016)
+BasicHit <- setNames(BasicHit, 2010:2016)
+BasicPitch <- setNames(BasicPitch, 2010:2016)
 
-# sort into a big data frame
-OneFrame <- ldply(BasicStats, data.frame)
-names(OneFrame)[1] <- "year"
-OneFrame <- OneFrame[,c(2:length(OneFrame), 1)]
-OneFrame$month <- sub(".*([0-9]{2})$", "\\1", OneFrame$year_month)
-# might want numeric later on...
-# TEST1 <- OneFrame
-# TEST1[,c("month", "year", "year_month")] <- as.numeric(TEST1[,c("month", "year", "year_month")])
+## send to output function ##
+final_outputs(BasicHit, 1)
+final_outputs(BasicPitch, 2)
 
-# fix playerID
-OneFrame$indexID <- OneFrame$playerID
-OneFrame$playerID <- sub(";;.*", "", OneFrame$playerID)
-OneFrame <- OneFrame[,c(length(OneFrame), 1:length(OneFrame)-1)]
 
-# for no data add the year_month back in
-OneFrame$indexID[!grepl(";;", OneFrame$indexID)] <- 
-      paste(OneFrame$playerID[!grepl(";;", OneFrame$indexID)], OneFrame$year_month[!grepl(";;", OneFrame$indexID)], sep=";;")
+### COMPLETED UP TO HERE FOR version 1.5.6 ###
 
-# add actual ID
-OneFrame$ID <- 1000000001:(1000000000+nrow(OneFrame))
-OneFrame <- OneFrame[,c(length(OneFrame), 1:length(OneFrame)-1)]
 
-# fix all the column names --- THIS IS QUICK FIX
-names(OneFrame)[4:21] <- c("games_played", "games_started", "plate_appearance", "at_bat", "hit", "single", "dou_ble", 
-                           "triple", "home_run", "walk", "intentional_walk", "hit_by_pitch", "strikeout", "sacrifice_hit", 
-                           "stolen_base", "caught_stealing", "runs_scored", "rbi")
 
-# all NAs to 0
-OneFrame[is.na(OneFrame)] <- 0
 
-# write.csv(OneFrame, "basic_hitting_month.csv", na="", row.names=FALSE)
-# write.csv(OneFrame, "basic_hitting_month2.csv", na="", row.names=FALSE)
-write.csv(OneFrame, "basic_hitting_month3.csv", na="", row.names=FALSE)
 
+# - final scores #
 
 
 
