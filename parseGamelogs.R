@@ -7,7 +7,7 @@
 ##                                                          ##
 ##    Sorts gamelogs into RStudio-friendly tables.          ##
 ##                                                          ##
-##    Version 1.4.3                                         ##
+##    Version 1.4.4                                         ##
 ##                                                          ##
 ##############################################################
 
@@ -57,6 +57,7 @@
 #     1.4.1 - fixing runners moving bugs, mostly on DPs, some POCS-err; etc. - January 4, 2018
 #     1.4.2 - adjust the IDs for the tables - take out "2016" portion - January 4, 2018
 #     1.4.3 - fix some of the PE_Outs - January 4, 2018
+#     1.4.4 - Fixed all PE_Outs, generate basic stats by month - tables by year - January 7, 2018
 #     1.4.X - next issue, need to handle runs scored! - January ?
 ##
 ################################
@@ -291,7 +292,7 @@ init_state <- function(EVN, posis) {
       ALLG <- stack(TEMP)
       ALLG$gameID <- rep(INFO$ID, length(TEMP))
       ALLG <- ALLG[order(ALLG$gameID, ALLG$ind),]
-      yr <- as.numeric(sub("^([0-9]{4}).*", "\\1", ALLG$gameID[1]))
+      yr <- as.numeric(sub("^[A-Z]+([0-9]{4}).*", "\\1", ALLG$gameID[1]))
       ALLG$ID <- (yr*1000000+1):(yr*1000000+nrow(ALLG)) # playID - by year
       ALLG <- ALLG[,c(4,3,1)]
       ALLG <- ALLG[!is.na(ALLG$values),]
@@ -489,34 +490,26 @@ init_state <- function(EVN, posis) {
       # now deal with all outs #
       ##########################
 	
-	# batter outs
-	OB_K <- grepl("^K", CLN$Play) & !grepl("(B-|BX[1-H][1-9]*E[1-9])", CLN$Play)
+	# batter outs / force out / fielder's choice outs #
+	OB_K <- grepl("^K", CLN$Play) & !grepl("(B-|BX[1-H]\\([1-9]*E[1-9])", CLN$Runners) & !grepl("K\\/FO", CLN$Event)
 	FO_B <- grepl("^[1-9]+", CLN$Play) & !grepl("FO|DP|TP|E[1-9]", CLN$Event)
-	FC_B <- grepl("^FC.*X[1-3H]", CLN$Play) & !grepl("B(-|X)", CLN$Event) & 
+	FC_B <- grepl("^FC.*X[1-3H]", CLN$Event) & !grepl("B(-|X)", CLN$Event) & 
 	      !grepl("X[1-3H]\\([1-9]*E[1-9]", CLN$Event) # ignore fielder's choice where no one is out
-	CLN$Outs[OB_K | FO_B | FC_B] <- CLN$Outs[OB_K | FO_B | FC_B] + 1
+	FO_R <- grepl("\\([1-3].*/FO", CLN$Event)
+	CLN$Outs[OB_K | FO_B | FC_B | FO_R] <- CLN$Outs[OB_K | FO_B | FC_B | FO_R] + 1
 	
-	# runner outs
-	ORUN <- grepl("[1-3]X[1-3H]", CLN$Runners) & !grepl("[1-3]X[1-3H]([\\(NUR\\)])*\\([1-9]*E[1-9]+", CLN$Runners)
+	# runner outs #
+	ORUN <- grepl("[1-3]X[1-3H]", CLN$Runners) & !grepl("[1-3]X[1-3H]([\\(NUR\\)])*\\([1-9]*E[1-9]+", CLN$Runners) &
+	      !grepl("^((K\\/FO)|FO|FC)", CLN$Event)
       CLN$Outs[ORUN] <- CLN$Outs[ORUN] + 1
       
-      # force outs / fielder's choice #
-      FO_R <- grepl("\\([1-3].*/FO", CLN$Event)
-      FC_R <- grepl("^FC", CLN$Play) & grepl("B-[1-3H]", CLN$Event)
-      FC_X <- grepl("^FC", CLN$Play) & grepl("BX", CLN$Event)
-      CLN$Outs[FO_R | FC_R] <- CLN$Outs[FO_R | FC_R] + 1
-      CLN$Outs[FC_X] <- CLN$Outs[FC_X] + str_count(CLN$Play[FC_X], "X")
+      # Caught Stealing or Picked Off with no errors
+      CSPO <- grepl("^(CS|PO)", CLN$Play) & !grepl("[1-9]*E[1-9]", CLN$Play)
+      CLN$Outs[CSPO] <- CLN$Outs[CSPO] + 1
       
       # DOUBLE / TRIPLE PLAYS #
-      DP_F1 <- grepl("^[1-9]+.*\\(1.*DP", CLN$Event) & !grepl("[B1-3]X[1-3H]", CLN$Event)
-      DP_F2 <- grepl("^[1-9]+.*\\(2.*DP", CLN$Event) & !grepl("[B1-3]X[1-3H]", CLN$Event)
-      DP_F3 <- grepl("^[1-9]+.*\\(3.*DP", CLN$Event) & !grepl("[B1-3]X[1-3H]", CLN$Event)
-      CLN$Outs[grepl("DP", CLN$Event)] <- 2
+      CLN$Outs[grepl("DP", CLN$Event)] <- 2 # this should fix all the double counts
       CLN$Outs[grepl("TP", CLN$Event)] <- 3
-	
-	# Caught Stealing or Picked Off with no errors
-	CSPO <- grepl("^(CS|PO)", CLN$Play) & !grepl("[1-9]*E[1-9]", CLN$Play)
-	CLN$Outs[CSPO] <- CLN$Outs[CSPO] + 1
 	
 	# return CLN #
       return(CLN)
@@ -929,13 +922,6 @@ adv_runnersNA <- function (CLN) {
 		}
       }
       
-      # apply all DP outs!
-      CLN$Outs[DP_F1 | DP_F2 | DP_F3 | DP_11 | DP_B1 | DP_K1 | DP_XX | DP_2X] <- 2
-      
-      # triple plays don't matter, inning is over! lol
-      CLN$PE_Outs[grepl("TP", CLN$Event)] <- CLN$Outs[grepl("TP", CLN$Event)] <- 3
-      
-      
       # # errors
       # CLN$PE_1B[E_B | E_1] <- CLN$playerID[E_B | E_1]
       # CLN$PE_2B[E_2] <- CLN$playerID[E_2]
@@ -948,14 +934,14 @@ adv_runnersNA <- function (CLN) {
       ## strikeout turned bad lol... ##
       CLN$PE_1B[grepl("^K.*BX1\\([1-9]*E[1-9]", CLN$Event)] <- 
             CLN$playerID[grepl("^K.*BX1\\([1-9]*E[1-9]", CLN$Event)]
-      CLN$Outs[grepl("^K.*BX1\\([1-9]*E[1-9]", CLN$Event) & str_count(CLN$Event, "X") > 0] <-
-            str_count(CLN$Event[grepl("^K.*BX1\\([1-9]*E[1-9]", CLN$Event) & str_count(CLN$Event, "X") > 0], "X")-1
-      
+      # CLN$Outs[grepl("^K.*BX1\\([1-9]*E[1-9]", CLN$Event) & str_count(CLN$Event, "X") > 0] <-
+      #       str_count(CLN$Event[grepl("^K.*BX1\\([1-9]*E[1-9]", CLN$Event) & str_count(CLN$Event, "X") > 0], "X")-1
+      # 
       CLN$PE_2B[grepl("^K.*B-2", CLN$Event)] <- CLN$playerID[grepl("^K.*B-2", CLN$Event)]
       CLN$PE_3B[grepl("^K.*B-3", CLN$Event)] <- CLN$playerID[grepl("^K.*B-3", CLN$Event)]
-      CLN$Outs[(grepl("^K.*B-3", CLN$Event) | grepl("^K.*B-2", CLN$Event))] <- 
-            str_count(CLN$Event[(grepl("^K.*B-3", CLN$Event) | grepl("^K.*B-2", CLN$Event))], "X")
-      
+      # CLN$Outs[(grepl("^K.*B-3", CLN$Event) | grepl("^K.*B-2", CLN$Event))] <- 
+      #       str_count(CLN$Event[(grepl("^K.*B-3", CLN$Event) | grepl("^K.*B-2", CLN$Event))], "X")
+      # 
       ## ignore the change of inning inheriting of runners again, in case of any changes ##
       chg_inning <- data.table:::uniqlist(CLN[!is.na(CLN$Team),3:4])
       CLN$PE_1B[chg_inning-1] <- NA
@@ -1065,6 +1051,10 @@ dv_sort <- function(CLN) {
       CS <- rbind(CS, data.frame(ID=CS_tmp$ID, GP=CS_tmp$GP, Inning=CS_tmp$Inning, Team=CS_tmp$Team,
                                  Outs=CS_tmp$Outs, playerID=CS_tmp$AB_3B, Base="Home", stringsAsFactors = FALSE))
       
+      # change the playerID to the CS / SB version
+      SB$playerID <- paste(SB$playerID, sub("^[A-Z]{3}([0-9]{6}).*", "\\1", SB$GP), sep=";;")
+      CS$playerID <- paste(CS$playerID, sub("^[A-Z]{3}([0-9]{6}).*", "\\1", CS$GP), sep=";;")
+      
       
       
       
@@ -1147,7 +1137,7 @@ setwd("~/Personal/Practice/MLB")
 # EVN <- readLines("C:/Users/siling/Desktop/DoesNotNeedContinuousBackup/2010seve/2016CHA.EVA") 
 
 # put all 2016 events together
-# evn2016 <- list.files("Gamelogs")
+# work_loc <- "Gamelogs"
 work_loc <- "C:/Users/siling/Desktop/DoesNotNeedContinuousBackup/2010seve"
 evn2016 <- list.files(work_loc)
 evn2016 <- evn2016[grepl("^2016", evn2016)]
@@ -1201,6 +1191,10 @@ print(x)
 message(paste("Total errors:", sum(x)))
 message(paste("Out Types:", length(count(CLN$PE_Outs)$x)))
 
+# FINISHED product in list
+FIN2016 <- CLN
+FIN <- NULL
+
 ################################
 ################################
 
@@ -1217,7 +1211,7 @@ message(paste("Out Types:", length(count(CLN$PE_Outs)$x)))
 ### Perform Checks - for next couple versions ###
 
 # checks 2010-2015
-pb <- txtProgressBar(min = 2010, max = 2015, style=3)
+pb <- txtProgressBar(min = 2010, max = 2015, initial = 2010, style=3)
 for (y in 2010:2015) {
       
       message(paste("Year:", y))
@@ -1280,17 +1274,27 @@ for (y in 2010:2015) {
       print(x)
       message(paste("Total errors:", sum(x)))
       message(paste("Out Types:", length(count(CLN$PE_Outs)$x)))
+      
+      # finished product in list
+      FIN <- c(FIN, list(CLN))
+      
       setTxtProgressBar(pb, y)
 }
+FIN <- c(FIN, list(FIN2016))
+FIN <- setNames(FIN, 2010:2016)
+
+
+
+
 
 # checks 2000-2009
-pb <- txtProgressBar(min=2000, max=2009, style=3)
+pb <- txtProgressBar(min=2000, max=2009, initial=2000, style=3)
 for (y in 2009:2000) {
       
       message(paste("Year:", y))
       # parse the event file
       TS <- Sys.time()
-      work_loc <- "C:/Users/siling/Desktop/DoesNotNeedContinuousBackup/2000seve"
+      # work_loc <- "C:/Users/siling/Desktop/DoesNotNeedContinuousBackup/2000seve"
       evn2000s <- list.files(work_loc)
       use_yr <- paste0("^", y)
       evn2000s <- evn2000s[grepl(use_yr, evn2000s)]
@@ -1351,12 +1355,12 @@ for (y in 2009:2000) {
 }
 
 # checks 1990-1999
-pb <- txtProgressBar(min=1990, max=1999, style=3)
+pb <- txtProgressBar(min=1990, max=1999, initial=1990, style=3)
 for (y in 1990:1999) {
       
       # parse the event file
       TS <- Sys.time()
-      work_loc <- "C:/Users/siling/Desktop/DoesNotNeedContinuousBackup/1990seve"
+      # work_loc <- "C:/Users/siling/Desktop/DoesNotNeedContinuousBackup/1990seve"
       evn1990s <- list.files(work_loc)
       use_yr <- paste0("^", y)
       evn1990s <- evn1990s[grepl(use_yr, evn1990s)]
@@ -1405,55 +1409,77 @@ for (y in 1990:1999) {
 
 
 
-
-
-
-
-
-
-#
-# - more than 3 outs - just filter
-      count(CLN$PE_Outs)
-      View(CLN[CLN$PE_Outs > 3,])
-      # === DONE === 2010-2016 - version 1.2.7
-      # == PENDING == < 2009 - version 1.2.7
-#
-# - runner advance/remove but no original runner! GHOST RUNNER LOL
-#     - ex) View(CLN[grepl("1(-|X)", CLN$Runners) & is.na(CLN$AB_1B),])
-#     - ex) test01 <- 2016222164
-#           View(CLN[CLN$ID %in% c(test01:(test01-10),test01:(test01+9)),])
-      View(CLN[grepl("1(-|X)", CLN$Runners) & is.na(CLN$AB_1B),])
-      View(CLN[grepl("2(-|X)", CLN$Runners) & is.na(CLN$AB_2B),])
-      View(CLN[grepl("3(-|X)", CLN$Runners) & is.na(CLN$AB_3B),])
-      nrow(CLN[grepl("1(-|X)", CLN$Runners) & is.na(CLN$AB_1B),])
-      nrow(CLN[grepl("2(-|X)", CLN$Runners) & is.na(CLN$AB_2B),])
-      nrow(CLN[grepl("3(-|X)", CLN$Runners) & is.na(CLN$AB_3B),])
-      # === DONE === 2010-2016 - version 1.2.7
-      # == PENDING == < 2009 - version 1.2.7
-# - duplicate runners check lol
-      View(CLN[compareNA(CLN$AB_1B, CLN$AB_2B) & !is.na(CLN$AB_1B),])
-      View(CLN[compareNA(CLN$AB_1B, CLN$AB_2B) & !is.na(CLN$AB_2B),])
-      View(CLN[compareNA(CLN$AB_2B, CLN$AB_3B) & !is.na(CLN$AB_2B),])
-      View(CLN[compareNA(CLN$AB_2B, CLN$AB_3B) & !is.na(CLN$AB_3B),])
-      View(CLN[compareNA(CLN$PE_1B, CLN$PE_2B) & !is.na(CLN$PE_1B),])
-      View(CLN[compareNA(CLN$PE_1B, CLN$PE_2B) & !is.na(CLN$PE_2B),])
-      View(CLN[compareNA(CLN$PE_2B, CLN$PE_3B) & !is.na(CLN$PE_3B),])
-      View(CLN[compareNA(CLN$PE_1B, CLN$PE_2B) & !is.na(CLN$PE_1B),])
-      View(CLN[compareNA(CLN$PE_2B, CLN$PE_3B) & !is.na(CLN$PE_2B),])
-      View(CLN[compareNA(CLN$PE_2B, CLN$PE_3B) & !is.na(CLN$PE_3B),])
-      nrow(CLN[compareNA(CLN$AB_1B, CLN$AB_2B) & !is.na(CLN$AB_1B),])
-      nrow(CLN[compareNA(CLN$AB_1B, CLN$AB_2B) & !is.na(CLN$AB_2B),])
-      nrow(CLN[compareNA(CLN$AB_2B, CLN$AB_3B) & !is.na(CLN$AB_2B),])
-      nrow(CLN[compareNA(CLN$AB_2B, CLN$AB_3B) & !is.na(CLN$AB_3B),])
-      nrow(CLN[compareNA(CLN$PE_1B, CLN$PE_2B) & !is.na(CLN$PE_1B),])
-      nrow(CLN[compareNA(CLN$PE_1B, CLN$PE_2B) & !is.na(CLN$PE_2B),])
-      nrow(CLN[compareNA(CLN$PE_2B, CLN$PE_3B) & !is.na(CLN$PE_3B),])
-      nrow(CLN[compareNA(CLN$PE_1B, CLN$PE_2B) & !is.na(CLN$PE_1B),])
-      nrow(CLN[compareNA(CLN$PE_2B, CLN$PE_3B) & !is.na(CLN$PE_2B),])
-      nrow(CLN[compareNA(CLN$PE_2B, CLN$PE_3B) & !is.na(CLN$PE_3B),])
-      # === DONE === 2010-2016 - version 1.2.7
-      # == PENDING == < 2009 - version 1.2.7
 # - final scores 
+
+
+
+
+# set up monthly and yearly table
+pb <- txtProgressBar(min=2010, max=2016)
+for (y in 2010:2016) {
+      
+      # concat playerID with the year+month
+      FIN[[as.character(y)]]$playerID_org <- FIN[[as.character(y)]]$playerID
+      FIN[[as.character(y)]]$playerID <- paste(FIN[[as.character(y)]]$playerID, 
+                                               sub("^[A-Z]{3}([0-9]{6}).*", "\\1", FIN[[as.character(y)]]$GP),
+                                               sep=";;")
+      # FIN[[as.character(y)]]$monthID <- sub(".*;;(.*)", "\\1", FIN[[as.character(y)]]$playerID)
+      
+}
+
+
+# - add to basic Stats
+pb <- txtProgressBar(min=2010, max=2016, initial=2010, style=3)
+for (y in 2010:2016) {
+      
+      ## generate stats and add to basic stats list
+      T1 <- Sys.time()
+      OUTPUT <- dv_sort(FIN[[as.character(y)]])
+      T2 <- Sys.time()
+      message("Divide & Sort:"); print(T2-T1)
+      
+      ## add month code for sorting
+      OUTPUT[[2]]$year_month <- sub(".*;;(.*)", "\\1", OUTPUT[[2]]$playerID)
+      
+      ## set the initital list for first iteration
+      if (y > 2010) {
+            BasicStats <- c(BasicStats, list(OUTPUT[[2]]))
+      } else {
+            BasicStats <- list(OUTPUT[[2]])
+      }
+      
+      
+      message(paste(y, " Completed!"))
+      setTxtProgressBar(pb, y)
+}
+BasicStats <- setNames(BasicStats, 2010:2016)
+
+# sort into a big data frame
+OneFrame <- ldply(BasicStats, data.frame)
+names(OneFrame)[1] <- "year"
+OneFrame <- OneFrame[,c(2:length(OneFrame), 1)]
+OneFrame$month <- sub(".*([0-9]{2})$", "\\1", OneFrame$year_month)
+# might want numeric later on...
+# TEST1 <- OneFrame
+# TEST1[,c("month", "year", "year_month")] <- as.numeric(TEST1[,c("month", "year", "year_month")])
+
+# fix playerID
+OneFrame$indexID <- OneFrame$playerID
+OneFrame$playerID <- sub(";;.*", "", OneFrame$playerID)
+OneFrame <- OneFrame[,c(length(OneFrame), 1:length(OneFrame)-1)]
+
+# add actual ID
+OneFrame$ID <- 1000000001:(1000000000+nrow(OneFrame))
+OneFrame <- OneFrame[,c(length(OneFrame), 1:length(OneFrame)-1)]
+
+# fix all the column names --- THIS IS QUICK FIX
+names(OneFrame)[4:17] <- c("plate_appearance", "at_bat", "hit", "single", "dou_ble", "triple", "home_run", 
+                           "walk", "intentional_walk", "hit_by_pitch", "strikeout", "sacrifice_hit", 
+                           "stolen_base", "caught_stealing")
+
+write.csv(OneFrame, "basic_hitting_month.csv", na="", row.names=FALSE)
+
+
 
 
 
