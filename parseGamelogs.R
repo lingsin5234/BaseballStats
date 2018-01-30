@@ -7,7 +7,7 @@
 ##                                                          ##
 ##    Sorts gamelogs into RStudio-friendly tables.          ##
 ##                                                          ##
-##    Version 1.4.9                                         ##
+##    Version 1.5.0                                         ##
 ##                                                          ##
 ##############################################################
 
@@ -63,7 +63,9 @@
 #           - compare for-loop vs. recursive method - January 9, 2018
 #     1.4.7 - ADD NEW rows rather than applying updates to LNP data frame - January 10, 2018
 #     1.4.8 - incorporate the fielding substitutions as well - January 10, 2018
-#     1.4.9 - fixed substitutions lineups - January 11, 2018
+#     1.4.9 - fixed substitutions lineups LNP - January 11, 2018
+#     1.5.0 - incorporated the substitutions into the adv_runnersNA function - January 11, 2018
+#           - also incorporated runs scored and rbis (but checks needed in future) - January 11, 2018
 ##
 ################################
 ################################
@@ -731,29 +733,6 @@ handle_subs <- function (INFO, CLN) {
             rbind(LNP, .) %>% 
             setorder(.,ID)
 
-
-      # pinch-hitter #
-      pn_ht <- grepl(".*;11$", CLN$SubCode)
-      CLN$pinch_hit <- FALSE
-      CLN$pinch_hit[pn_ht] <- TRUE # add column for stats side -> easier to track PH stats
-
-      # pinch_hitter <- function(LNP, ID, gameID, playerID, subcode) {
-      #
-      #
-      # }
-      # 1,ARI201505100,sub,middw001,"Will Middlebrooks",0,1,11
-      # 2,ARI201505100,sub,kempm001,"Matt Kemp",0,1,11
-
-
-      # pinch runner #
-
-
-      
-      
-      
-      
-      
-      
       ##########################
       ##########################
       
@@ -768,8 +747,8 @@ handle_subs <- function (INFO, CLN) {
       ##########################
       ##########################
       
-      # return CLN #
-      return(CLN)
+      # return Lineups #
+      return(LNP)
 }
 
 ################################
@@ -975,6 +954,80 @@ apply_sub <- function (LNP, ID, gameID, playerID, SubCode, rankd, rn) {
       return(LNP)
 }
 
+# assigning the subs during the recursive function - adv_runnersNA #
+## this function is NOT recursive but needed for adv_runnersNA ##
+asgn_subs <- function(CLN, LNP) {
+      
+      # pinch-hitter #
+      pn_ht <- grepl(".*;11$", CLN$SubCode)
+      CLN$pinch_hit <- FALSE
+      CLN$pinch_hit[pn_ht] <- TRUE # add column for stats side -> easier to track PH stats
+      
+      # pinch runner #
+      pn_rn <- grep(".*;12$", CLN$SubCode) # need the indices
+      
+      # need previous lineup's index IDs
+      pn_rn_id <- LNP$ID[which(LNP$ID %in% CLN$ID[grepl(".*;12$", CLN$SubCode)]) - 1]
+      pn_rn_lnp <- LNP$ID %in% pn_rn_id
+      
+      # batting order pinch runner is replacing
+      bat_ordr_rpl <- CLN$SubCode[pn_rn] %>% 
+            sub("[01];([1-9]);12$", "\\1", .) %>%
+            as.numeric(.) 
+      
+      # determine away or home and add as for concatenated batting lineups (away + home)
+      bat_reps <- CLN$SubCode[pn_rn] %>%
+            sub("^([01]).*", "\\1", .) %>% as.numeric(.) %>% # away or home
+            `*` (9) + bat_ordr_rpl
+      
+      # and generate the patterns for the regex sub
+      bat_pat <- paste0("^(", sapply(
+            lapply(bat_reps, function(x) rep("[a-zA-Z0-9]*;", x-1)), paste, 
+            collapse=""), ")([a-z0-9\\-]+)(;)?(.*)")
+      bat_sub <- rep("\\2", length(bat_pat)) # find just the player being replaced
+      
+      # find the player being replaced
+      rpm_playerID <- paste(LNP$away_bat, LNP$home_bat, sep=";") %>%
+            subset(., pn_rn_lnp) %>%
+            {sapply(seq_along(.), function(x) sub(bat_pat[x], bat_sub[x], .[x]))}
+      
+      ## replace the players in AB and PE ##
+      # now need pinch runner boolean #
+      pn_rn <- grepl(".*;12$", CLN$SubCode) # re-used variable
+      
+      # take out the rpm_playerID currently NA-ed #
+      AB_all <- paste(CLN$AB_1B, CLN$AB_2B, CLN$AB_3B, sep=";") %>%
+            subset(.,pn_rn)
+      AB_ind <- which(!grepl("^NA;NA;NA", AB_all))
+      AB_bool <- !grepl("^NA;NA;NA", AB_all) # to filter out NAs
+      
+      if (length(AB_all) > 0) {
+            ab_1b <- sapply(seq_along(rpm_playerID[AB_ind]), 
+                            function(x) grepl(rpm_playerID[AB_bool][x], CLN$AB_1B[pn_rn][AB_bool][x]))
+            ab_2b <- sapply(seq_along(rpm_playerID[AB_ind]), 
+                            function(x) grepl(rpm_playerID[AB_bool][x], CLN$AB_2B[pn_rn][AB_bool][x]))
+            ab_3b <- sapply(seq_along(rpm_playerID[AB_ind]), 
+                            function(x) grepl(rpm_playerID[AB_bool][x], CLN$AB_3B[pn_rn][AB_bool][x]))
+      }
+      
+      # filter & replace 1B runner if correct playerID #
+      if (length(ab_1b) > 0) {
+            CLN$PE_1B[pn_rn][AB_bool][ab_1b] <- CLN$playerID[pn_rn][AB_bool][ab_1b]
+      }
+      
+      # filter & replace 2B runner #
+      if (length(ab_2b) > 0) {
+            CLN$PE_2B[pn_rn][AB_bool][ab_2b] <- CLN$playerID[pn_rn][AB_bool][ab_2b]
+      }
+      
+      # filter & replace 3B runner #
+      if (length(ab_3b) > 0) {
+            CLN$PE_3B[pn_rn][AB_bool][ab_3b] <- CLN$playerID[pn_rn][AB_bool][ab_3b]
+      }
+      
+      # return CLN #
+      return(CLN)
+}
 
 ## Handling Runners ##
 # 1. Transfer runners to next at-bat
@@ -986,10 +1039,13 @@ apply_sub <- function (LNP, ID, gameID, playerID, SubCode, rankd, rn) {
 # 7. Check for recursive function ending
 
 # recursive function that will continue advancing (some removing) runners until inning complete.
-adv_runnersNA <- function (CLN) {
+adv_runnersNA <- function (CLN, LNP) {
       
       ## generate temp table to compare to after advancing runners ##
       TMP <- CLN
+      
+      ## handling substitutions ##
+      CLN <- asgn_subs(CLN, LNP)
       
       ## advance the runners per usual ##
 	all_plyExcp1st <- 2:nrow(CLN)
@@ -1037,8 +1093,9 @@ adv_runnersNA <- function (CLN) {
       CLN$PE_2B[R2_2] <- CLN$AB_2B[R2_2]
       CLN$PE_3B[R3_3] <- CLN$AB_3B[R3_3]
 	
-	## inherit runners on NP or SUBSTITUTION ##
-	NP_ST <- grepl("^(NP|SUBSTITUTION)", CLN$Event)
+	## inherit runners on NP only ##
+	# NP_ST <- grepl("^(NP|SUBSTITUTION)", CLN$Event)
+      NP_ST <- grepl("^NP", CLN$Event)
       # assign bases #
       CLN$PE_1B[NP_ST] <- CLN$AB_1B[NP_ST]
       CLN$PE_2B[NP_ST] <- CLN$AB_2B[NP_ST]
@@ -1401,7 +1458,7 @@ adv_runnersNA <- function (CLN) {
       CLN$AB_3B[chg_inning] <- NA
       
       if (!isTRUE(all.equal(TMP, CLN))) {
-            CLN <- adv_runnersNA(CLN)
+            CLN <- adv_runnersNA(CLN, LNP)
       }
       return (CLN)
 }
@@ -1554,28 +1611,30 @@ dv_sort <- function(CLN) {
       HTD <- aggregate(ID ~ playerID + HitType, HT[HT$HitType=="Double",], length)
       HTT <- aggregate(ID ~ playerID + HitType, HT[HT$HitType=="Triple",], length)
       HTH <- aggregate(ID ~ playerID + HitType, HT[HT$HitType=="HR",], length)
-      HT <- rename(merge(merge(rename(merge(HTS[!names(HTS) %in% "HitType"], HTD[!names(HTD) %in% "HitType"], 
-                                            by="playerID", all=TRUE), c("ID.x"="single", "ID.y"="dou_ble")), 
-                               HTT[!names(HTT) %in% "HitType"], by="playerID", all=TRUE), 
-                         HTH[!names(HTH) %in% "HitType"], by="playerID", all=TRUE), 
-                   c("ID.x"="triple", "ID.y"="home_run"))
+      HT <- plyr::rename(merge(merge(plyr::rename(merge(HTS[!names(HTS) %in% "HitType"], 
+                                                        HTD[!names(HTD) %in% "HitType"], 
+                                                        by="playerID", all=TRUE), 
+                                                  c("ID.x"="single", "ID.y"="dou_ble")), 
+                                     HTT[!names(HTT) %in% "HitType"], by="playerID", all=TRUE), 
+                               HTH[!names(HTH) %in% "HitType"], by="playerID", all=TRUE), 
+                         c("ID.x"="triple", "ID.y"="home_run"))
       # HT[is.na(HT)] <- 0
       
       ## add in the rest SB, WK, K, CS
-      HT <- merge(HT, rename(aggregate(ID ~ playerID, SB[names(SB) %in% c("ID", "playerID")], length),
-                             c("ID"="stolen_base")), by="playerID", all=TRUE)
+      HT <- merge(HT, plyr::rename(aggregate(ID ~ playerID, SB[names(SB) %in% c("ID", "playerID")], 
+                                             length), c("ID"="stolen_base")), by="playerID", all=TRUE)
       WKW <- aggregate(ID ~ playerID + WType, WK[WK$WType=="Walk",], length)
       WKI <- aggregate(ID ~ playerID + WType, WK[WK$WType=="Int. Walk",], length)
       WKH <- aggregate(ID ~ playerID + WType, WK[WK$WType=="Hit By Pitch",], length)
-      HT <- merge(HT, rename(
+      HT <- merge(HT, plyr::rename(
             merge(WKH[!names(WKH) %in% "WType"], 
-                  rename(merge(WKW[!names(WKW) %in% "WType"], WKI[!names(WKI) %in% "WType"], 
-                               by="playerID", all=TRUE), c("ID.x"="walk", "ID.y"="intentional_walk")), 
+                  plyr::rename(merge(WKW[!names(WKW) %in% "WType"], WKI[!names(WKI) %in% "WType"], 
+                                     by="playerID", all=TRUE), c("ID.x"="walk", "ID.y"="intentional_walk")), 
                   by="playerID", all=TRUE), c("ID"="hit_by_pitch")), by="playerID", all=TRUE)
-      HT <- merge(HT, rename(aggregate(ID ~ playerID, KS[names(KS) %in% c("ID", "playerID")], length),
-                             c("ID"="strikeout")), by="playerID", all=TRUE)
-      HT <- merge(HT, rename(aggregate(ID ~ playerID, CS[names(CS) %in% c("ID", "playerID")], length),
-                             c("ID"="caught_stealing")), by="playerID", all=TRUE)
+      HT <- merge(HT, plyr::rename(aggregate(ID ~ playerID, KS[names(KS) %in% c("ID", "playerID")], 
+                                             length), c("ID"="strikeout")), by="playerID", all=TRUE)
+      HT <- merge(HT, plyr::rename(aggregate(ID ~ playerID, CS[names(CS) %in% c("ID", "playerID")], 
+                                             length), c("ID"="caught_stealing")), by="playerID", all=TRUE)
       # HT[is.na(HT)] <- 0
       
       # types of balls in play
@@ -1584,39 +1643,35 @@ dv_sort <- function(CLN) {
       
       # plate appearances: incl. walks, errors, sac flies, etc.
       PA <- CLN[!grepl("^(FLE|PO|CS|SB|WP|OA|PB|BK|SUB|NP)", CLN$Play),]
-      HT <- merge(HT, rename(aggregate(ID ~ playerID, PA[names(PA) %in% c("ID", "playerID")], length),
-                             c("ID"="plate_appearance")), by="playerID", all=TRUE)
+      HT <- merge(HT, plyr::rename(aggregate(ID ~ playerID, PA[names(PA) %in% c("ID", "playerID")], 
+                                             length),c("ID"="plate_appearance")), by="playerID", all=TRUE)
       
       # at-bats: exclude walks, sac flies, sac hits
       AB <- PA[!grepl("^(W|IW|HP)", PA$Play) & !grepl("/(SF|SH)", PA$Event),]
-      HT <- merge(HT, rename(aggregate(ID ~ playerID, AB[names(AB) %in% c("ID", "playerID")], length),
-                             c("ID"="at_bat")), by="playerID", all=TRUE)
+      HT <- merge(HT, plyr::rename(aggregate(ID ~ playerID, AB[names(AB) %in% c("ID", "playerID")], 
+                                             length), c("ID"="at_bat")), by="playerID", all=TRUE)
       # sac hits/flies
       SH <- PA[grepl("/(SF|SH)", PA$Event),]
-      HT <- merge(HT, rename(aggregate(ID ~ playerID, SH[names(SH) %in% c("ID", "playerID")], length),
-                             c("ID"="sacrifice_hit")), by="playerID", all=TRUE)
+      HT <- merge(HT, plyr::rename(aggregate(ID ~ playerID, SH[names(SH) %in% c("ID", "playerID")], 
+                                             length), c("ID"="sacrifice_hit")), by="playerID", all=TRUE)
       
       HT[is.na(HT)] <- 0
       
       # total hits
-      HT$hit <- HT$singles+HT$doubles+HT$triples+HT$hr
+      HT$hit <- HT$single+HT$dou_ble+HT$triple+HT$home_run
       
       # aggregate and summarize by runs scored and rbis
       RNS <- aggregate(runs_scored ~ playerID, RN, sum)
       RBI <- aggregate(rbi ~ playerID, RB, sum)
       
-      HT <- rename(merge(merge(rename(merge(HTS[!names(HTS) %in% "HitType"], HTD[!names(HTD) %in% "HitType"], 
-                                            by="playerID", all=TRUE), c("ID.x"="single", "ID.y"="dou_ble")), 
-                               HTT[!names(HTT) %in% "HitType"], by="playerID", all=TRUE), 
-                         HTH[!names(HTH) %in% "HitType"], by="playerID", all=TRUE), 
-                   c("ID.x"="triple", "ID.y"="home_run"))
-      
+      # merge with HT
+      HT <- merge(HT, merge(RNS, RBI, by="playerID"), by="playerID")
       
       
       # rearrange columns
       HT <- HT[,c("playerID", "plate_appearance", "at_bat", "hit", "single", "dou_ble", "triple", 
                   "home_run", "walk", "intentional_walk", "hit_by_pitch", "strikeout", "sacrifice_hit", 
-                  "stolen_base", "caught_stealing")]
+                  "stolen_base", "caught_stealing", "runs_scored", "rbi")]
       
       # done. most basic stats :D
       
@@ -1664,6 +1719,7 @@ base_INFO <- EVN %>%
       init_state(.,posis) %>% 
       setNames(.,c("INFO", "ALLG"))
 CLN <- tidy_up(base_INFO[['ALLG']])
+LNP <- handle_subs(base_INFO[['INFO']], CLN)
 T2 <- Sys.time()
 message("Initial Setup:"); print(T2-T1)
 
@@ -1677,7 +1733,7 @@ message("Assign Outs:"); print(T2-T1)
 
 # run the recursive function to move / remove runners #
 T1 <- Sys.time()
-CLN <- adv_runnersNA(CLN)
+CLN <- adv_runnersNA(CLN, LNP)
 T2 <- Sys.time()
 message("Advance Runners:"); print(T2-T1)
 
@@ -1705,8 +1761,8 @@ FIN <- NULL
 
 
 ## pull out some tables for testing
-INFO <- base_INFO[['INFO']]
-ALLG <- base_INFO[['ALLG']]
+# INFO <- base_INFO[['INFO']]
+# ALLG <- base_INFO[['ALLG']]
 
 ################################
 ################################
@@ -1744,6 +1800,7 @@ for (y in 2010:2015) {
             init_state(.,posis) %>% 
             setNames(.,c("INFO", "ALLG"))
       CLN <- tidy_up(base_INFO[['ALLG']])
+      LNP <- handle_subs(base_INFO[['INFO']], CLN)
       T2 <- Sys.time()
       message("Initial Setup:"); print(T2-T1)
       
@@ -1757,7 +1814,7 @@ for (y in 2010:2015) {
       
       # run the recursive function to move / remove runners #
       T1 <- Sys.time()
-      CLN <- adv_runnersNA(CLN)
+      CLN <- adv_runnersNA(CLN, LNP)
       T2 <- Sys.time()
       message("Advance Runners:"); print(T2-T1)
       
@@ -1999,11 +2056,12 @@ OneFrame$ID <- 1000000001:(1000000000+nrow(OneFrame))
 OneFrame <- OneFrame[,c(length(OneFrame), 1:length(OneFrame)-1)]
 
 # fix all the column names --- THIS IS QUICK FIX
-names(OneFrame)[4:17] <- c("plate_appearance", "at_bat", "hit", "single", "dou_ble", "triple", "home_run", 
+names(OneFrame)[4:19] <- c("plate_appearance", "at_bat", "hit", "single", "dou_ble", "triple", "home_run", 
                            "walk", "intentional_walk", "hit_by_pitch", "strikeout", "sacrifice_hit", 
-                           "stolen_base", "caught_stealing")
+                           "stolen_base", "caught_stealing", "runs_scored", "rbi")
 
-write.csv(OneFrame, "basic_hitting_month.csv", na="", row.names=FALSE)
+# write.csv(OneFrame, "basic_hitting_month.csv", na="", row.names=FALSE)
+write.csv(OneFrame, "basic_hitting_month2.csv", na="", row.names=FALSE)
 
 
 
