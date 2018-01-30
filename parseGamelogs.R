@@ -7,7 +7,7 @@
 ##                                                          ##
 ##    Sorts gamelogs into RStudio-friendly tables.          ##
 ##                                                          ##
-##    Version 1.4.4                                         ##
+##    Version 1.4.5                                         ##
 ##                                                          ##
 ##############################################################
 
@@ -58,7 +58,8 @@
 #     1.4.2 - adjust the IDs for the tables - take out "2016" portion - January 4, 2018
 #     1.4.3 - fix some of the PE_Outs - January 4, 2018
 #     1.4.4 - Fixed all PE_Outs, generate basic stats by month - tables by year - January 7, 2018
-#     1.4.X - next issue, need to handle runs scored! - January ?
+#     1.4.5 - handle runs scored and rbis! - January 8, 2017
+#     1.4.6 - LOL OMG - NEED TO HANDLE THE SUBSTITUTIONS for more accurate data... 
 ##
 ################################
 ################################
@@ -1055,8 +1056,42 @@ dv_sort <- function(CLN) {
       SB$playerID <- paste(SB$playerID, sub("^[A-Z]{3}([0-9]{6}).*", "\\1", SB$GP), sep=";;")
       CS$playerID <- paste(CS$playerID, sub("^[A-Z]{3}([0-9]{6}).*", "\\1", CS$GP), sep=";;")
       
+      ## add runs scored and rbis ##
+      # scored from 3rd or stole home
+      RN_tmp <- CLN[grepl("(3-H)|(3XH(\\(UR\\))?(\\(NR\\))?\\([1-9]*E[1-9])", CLN$Runners) |
+                          grepl("(SBH)|(CSH(\\(UR\\))?(\\(NR\\))?\\([1-9]*E[1-9])", CLN$Event),]
+      RN <- data.frame(ID=RN_tmp$ID, GP=RN_tmp$GP, Inning=RN_tmp$Inning, Team=RN_tmp$Team,
+                       Outs=RN_tmp$Outs, runs_scored=1, playerID=RN_tmp$AB_3B, stringsAsFactors = FALSE)
       
+      # scored from 2nd
+      RN_tmp <- CLN[grepl("(2-H)|(2XH(\\(UR\\))?(\\(NR\\))?\\([1-9]*E[1-9])", CLN$Runners),]
+      RN <- rbind(RN, data.frame(ID=RN_tmp$ID, GP=RN_tmp$GP, Inning=RN_tmp$Inning, Team=RN_tmp$Team, 
+                                 Outs=RN_tmp$Outs, runs_scored=1, playerID=RN_tmp$AB_2B, 
+                                 stringsAsFactors = FALSE))
       
+      # scored from 1st
+      RN_tmp <- CLN[grepl("(1-H)|(1XH(\\(UR\\))?(\\(NR\\))?\\([1-9]*E[1-9])", CLN$Runners),]
+      RN <- rbind(RN, data.frame(ID=RN_tmp$ID, GP=RN_tmp$GP, Inning=RN_tmp$Inning, Team=RN_tmp$Team, 
+                                 Outs=RN_tmp$Outs, runs_scored=1, playerID=RN_tmp$AB_1B, 
+                                 stringsAsFactors = FALSE))
+      
+      # HR
+      RN_tmp <- CLN[grepl("(HR)|(B-H\\(UR\\))|(B-H\\([1-9]*E[1-9])", CLN$Event),]
+      RN <- rbind(RN, data.frame(ID=RN_tmp$ID, GP=RN_tmp$GP, Inning=RN_tmp$Inning, Team=RN_tmp$Team, 
+                                 Outs=RN_tmp$Outs, runs_scored=1, playerID=RN_tmp$playerID, 
+                                 stringsAsFactors = FALSE))
+      
+      # runs in - no-rbi runs = total rbis
+      RB_tmp <- CLN[grepl("-H|XH\\([1-9]*E[1-9]", CLN$Runners),]
+      RB <- data.frame(ID=RB_tmp$ID, GP=RB_tmp$GP, Inning=RB_tmp$Inning, Team=RB_tmp$Team,
+                       Outs=RB_tmp$Outs, rbi= str_count(RB_tmp$Runners, "-H|XH\\([1-9]*E[1-9]") -
+                             str_count(RB_tmp$Runners, "NR"), 
+                       playerID=RB_tmp$playerID, stringsAsFactors = FALSE)
+      # HR but no B-H
+      RB_tmp <- CLN[grepl("HR", CLN$Play) & !grepl("B(-|X)H", CLN$Runners),]
+      RB <- rbind(RB, data.frame(ID=RB_tmp$ID, GP=RB_tmp$GP, Inning=RB_tmp$Inning, Team=RB_tmp$Team, 
+                                 Outs=RB_tmp$Outs, rbi=1, playerID=RB_tmp$playerID, 
+                                 stringsAsFactors = FALSE))
       
       ## Aggregate and summarise by playerID & HitType ##
       HTS <- aggregate(ID ~ playerID + HitType, HT[HT$HitType=="Single",], length)
@@ -1064,27 +1099,27 @@ dv_sort <- function(CLN) {
       HTT <- aggregate(ID ~ playerID + HitType, HT[HT$HitType=="Triple",], length)
       HTH <- aggregate(ID ~ playerID + HitType, HT[HT$HitType=="HR",], length)
       HT <- rename(merge(merge(rename(merge(HTS[!names(HTS) %in% "HitType"], HTD[!names(HTD) %in% "HitType"], 
-                                            by="playerID", all=TRUE), c("ID.x"="singles", "ID.y"="doubles")), 
+                                            by="playerID", all=TRUE), c("ID.x"="single", "ID.y"="dou_ble")), 
                                HTT[!names(HTT) %in% "HitType"], by="playerID", all=TRUE), 
                          HTH[!names(HTH) %in% "HitType"], by="playerID", all=TRUE), 
-                   c("ID.x"="triples", "ID.y"="hr"))
+                   c("ID.x"="triple", "ID.y"="home_run"))
       # HT[is.na(HT)] <- 0
-      
+
       ## add in the rest SB, WK, K, CS
       HT <- merge(HT, rename(aggregate(ID ~ playerID, SB[names(SB) %in% c("ID", "playerID")], length),
-                             c("ID"="sb")), by="playerID", all=TRUE)
+                             c("ID"="stolen_base")), by="playerID", all=TRUE)
       WKW <- aggregate(ID ~ playerID + WType, WK[WK$WType=="Walk",], length)
       WKI <- aggregate(ID ~ playerID + WType, WK[WK$WType=="Int. Walk",], length)
       WKH <- aggregate(ID ~ playerID + WType, WK[WK$WType=="Hit By Pitch",], length)
       HT <- merge(HT, rename(
             merge(WKH[!names(WKH) %in% "WType"], 
                   rename(merge(WKW[!names(WKW) %in% "WType"], WKI[!names(WKI) %in% "WType"], 
-                               by="playerID", all=TRUE), c("ID.x"="w", "ID.y"="iw")), 
-                  by="playerID", all=TRUE), c("ID"="hp")), by="playerID", all=TRUE)
+                               by="playerID", all=TRUE), c("ID.x"="walk", "ID.y"="intentional_walk")), 
+                  by="playerID", all=TRUE), c("ID"="hit_by_pitch")), by="playerID", all=TRUE)
       HT <- merge(HT, rename(aggregate(ID ~ playerID, KS[names(KS) %in% c("ID", "playerID")], length),
-                             c("ID"="k")), by="playerID", all=TRUE)
+                             c("ID"="strikeout")), by="playerID", all=TRUE)
       HT <- merge(HT, rename(aggregate(ID ~ playerID, CS[names(CS) %in% c("ID", "playerID")], length),
-                             c("ID"="cs")), by="playerID", all=TRUE)
+                             c("ID"="caught_stealing")), by="playerID", all=TRUE)
       # HT[is.na(HT)] <- 0
       
       # types of balls in play
@@ -1094,26 +1129,38 @@ dv_sort <- function(CLN) {
       # plate appearances: incl. walks, errors, sac flies, etc.
       PA <- CLN[!grepl("^(FLE|PO|CS|SB|WP|OA|PB|BK|SUB|NP)", CLN$Play),]
       HT <- merge(HT, rename(aggregate(ID ~ playerID, PA[names(PA) %in% c("ID", "playerID")], length),
-                             c("ID"="pa")), by="playerID", all=TRUE)
+                             c("ID"="plate_appearance")), by="playerID", all=TRUE)
       
       # at-bats: exclude walks, sac flies, sac hits
       AB <- PA[!grepl("^(W|IW|HP)", PA$Play) & !grepl("/(SF|SH)", PA$Event),]
       HT <- merge(HT, rename(aggregate(ID ~ playerID, AB[names(AB) %in% c("ID", "playerID")], length),
-                             c("ID"="ab")), by="playerID", all=TRUE)
+                             c("ID"="at_bat")), by="playerID", all=TRUE)
       # sac hits/flies
       SH <- PA[grepl("/(SF|SH)", PA$Event),]
       HT <- merge(HT, rename(aggregate(ID ~ playerID, SH[names(SH) %in% c("ID", "playerID")], length),
-                             c("ID"="sh")), by="playerID", all=TRUE)
+                             c("ID"="sacrifice_hit")), by="playerID", all=TRUE)
       
       HT[is.na(HT)] <- 0
       
       # total hits
-      HT$hits <- HT$singles+HT$doubles+HT$triples+HT$hr
+      HT$hit <- HT$singles+HT$doubles+HT$triples+HT$hr
+      
+      # aggregate and summarize by runs scored and rbis
+      RNS <- aggregate(runs_scored ~ playerID, RN, sum)
+      RBI <- aggregate(rbi ~ playerID, RB, sum)
+      
+      HT <- rename(merge(merge(rename(merge(HTS[!names(HTS) %in% "HitType"], HTD[!names(HTD) %in% "HitType"], 
+                                            by="playerID", all=TRUE), c("ID.x"="single", "ID.y"="dou_ble")), 
+                               HTT[!names(HTT) %in% "HitType"], by="playerID", all=TRUE), 
+                         HTH[!names(HTH) %in% "HitType"], by="playerID", all=TRUE), 
+                   c("ID.x"="triple", "ID.y"="home_run"))
+      
       
       
       # rearrange columns
-      HT <- HT[,c("playerID", "pa", "ab", "hits", "singles", "doubles", "triples", "hr", 
-                  "w", "iw", "hp", "k", "sh", "sb", "cs")]
+      HT <- HT[,c("playerID", "plate_appearance", "at_bat", "hit", "single", "dou_ble", "triple", 
+                  "home_run", "walk", "intentional_walk", "hit_by_pitch", "strikeout", "sacrifice_hit", 
+                  "stolen_base", "caught_stealing")]
       
       # done. most basic stats :D
       
@@ -1409,7 +1456,7 @@ for (y in 1990:1999) {
 
 
 
-# - final scores 
+# - final scores
 
 
 
