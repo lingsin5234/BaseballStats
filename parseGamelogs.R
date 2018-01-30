@@ -7,7 +7,7 @@
 ##                                                          ##
 ##    Sorts gamelogs into RStudio-friendly tables.          ##
 ##                                                          ##
-##    Version 1.3.1                                         ##
+##    Version 1.4.0                                         ##
 ##                                                          ##
 ##############################################################
 
@@ -49,15 +49,18 @@
 #     1.3.0 - revampt needed!!! - OCTOBER 20, 2017
 #           - first look for the batter runner ONLY (ALL CASES) - October 20, 2017
 #     1.3.1 - verify the batter runners reaching base are all dealt with - October 30, 2017
-#           - then move the runners (no errors) - October 30, 2017
-#           - then move the runners (with errors)
+#           - then move the runners (no errors) - October 31, 2017
+#     1.3.2 - restyle the method handling Runners code - December 28, 2017
+#     1.3.3 - Problem: the order & inclusion of all the different "tags" tg_XX - January 2, 2018
+#	1.4.0 - revampt attempt #2 - see "New Plan of Attack" section - JANUARY 3, 2018
+#           - bug: search: ## might need more case(s) ## - January 3, 2018
 ##
 ################################
 ################################
 
 
 ################################
-##     Libraries & Setup      ##    
+##     Libraries & Setup      ##
 ################################
 
 library(plyr); library(stringr); library(data.table); library(reshape2)
@@ -67,6 +70,14 @@ posis <- c("P", "C", "1B", "2B", "3B", "SS", "LF", "CF", "RF", "DH")
 # library(stringr)
 # str_count and str_count_all <- useful for counting within string
 
+################################
+################################
+
+
+################################
+##         Functions          ##
+################################
+
 # function for comparing vectors while making NAs return FALSE (instead of NA)
 compareNA <- function(v1,v2) {
       # This function returns TRUE wherever elements are the same, including NA's,
@@ -74,238 +85,6 @@ compareNA <- function(v1,v2) {
       same <- (v1 == v2)  |  (is.na(v1) & is.na(v2))
       same[is.na(same)] <- FALSE
       return(same)
-}
-
-# recursive function that will continue advancing (some removing) runners until inning complete.
-adv_runnersNA <- function (CLN, vars) {
-      
-      # copy over variables
-      varNm <- c("all_plyExcp1st", "R1X1", "R1_2", "R2X2", "R1_3", "R2_3", "R3X3", "chg_inning", 
-                 "R1_1", "R2_2", "R3_3", "FO_B", "FO_1", "FO_2", "FO_3", "FC_B", "FC_1", "FC_2", 
-                 "FC_3", "FC_H", "DP_F1", "DP_F2", "DP_F3", "DP_1X", "DP_2X", "E_B", "E_1", 
-                 "E_2", "E_3", "WK_2B")
-      for (i in 1:length(vars)) {
-            eval(parse(text=paste0(varNm[i], " <- vars[[", i, "]]")))
-      }
-      
-      # generate temp table to compare to after advancing runners
-      TMP <- CLN
-      
-      # advance the runners per usual
-      CLN$AB_1B[all_plyExcp1st] <- CLN$PE_1B[all_plyExcp1st-1]
-      CLN$PE_1B[R1X1] <- CLN$AB_1B[R1X1]
-      CLN$PE_2B[R1_2] <- CLN$AB_1B[R1_2]
-      CLN$AB_2B[all_plyExcp1st] <- CLN$PE_2B[all_plyExcp1st-1]
-      CLN$PE_2B[R2X2] <- CLN$AB_2B[R2X2]
-      CLN$PE_3B[R1_3] <- CLN$AB_1B[R1_3]
-      CLN$PE_3B[R2_3] <- CLN$AB_2B[R2_3]
-      CLN$AB_3B[all_plyExcp1st] <- CLN$PE_3B[all_plyExcp1st-1]
-      CLN$PE_3B[R3X3] <- CLN$AB_3B[R3X3]
-      
-      # ignore the change of inning inheriting of runners
-      chg_inning <- data.table:::uniqlist(CLN[!is.na(CLN$Team),3:4])
-      CLN$PE_1B[chg_inning-1] <- NA
-      CLN$PE_2B[chg_inning-1] <- NA
-      CLN$PE_3B[chg_inning-1] <- NA
-      CLN$AB_1B[chg_inning] <- NA
-      CLN$AB_2B[chg_inning] <- NA
-      CLN$AB_3B[chg_inning] <- NA
-      
-      # inherit runners when they did not move -- when no runners advanced
-      CLN$PE_1B[is.na(CLN$Runners) & !is.na(CLN$AB_1B) & !grepl("SB|PO|CS|BK|DP|TP", CLN$Play)] <-
-            CLN$AB_1B[is.na(CLN$Runners) & !is.na(CLN$AB_1B) & !grepl("SB|PO|CS|BK|DP|TP", CLN$Play)]
-      CLN$PE_2B[is.na(CLN$Runners) & !is.na(CLN$AB_2B) & !grepl("SB|PO|CS|BK|DP|TP", CLN$Play)] <-
-            CLN$AB_2B[is.na(CLN$Runners) & !is.na(CLN$AB_2B) & !grepl("SB|PO|CS|BK|DP|TP", CLN$Play)]
-      CLN$PE_3B[is.na(CLN$Runners) & !is.na(CLN$AB_3B) & !grepl("SB|PO|CS|BK|DP|TP", CLN$Play)] <-
-            CLN$AB_3B[is.na(CLN$Runners) & !is.na(CLN$AB_3B) & !grepl("SB|PO|CS|BK|DP|TP", CLN$Play)]
-      
-      # inherit runners when explicity mentioned that they did not move
-      CLN$PE_1B[R1_1] <- CLN$AB_1B[R1_1]
-      CLN$PE_2B[R2_2] <- CLN$AB_2B[R2_2]
-      CLN$PE_3B[R3_3] <- CLN$AB_3B[R3_3]
-      
-      # inherit runners that did not score or get put out but there were runner advances
-      # need to exclude double / triple plays and force outs!
-      CLN$PE_1B[!is.na(CLN$Runners) & !compareNA(CLN$PE_1B, CLN$playerID) & !grepl("TP|DP|FO", CLN$Event) & 
-                      !grepl("1(-|X)[123H]", CLN$Runners) & !is.na(CLN$AB_1B)] <-
-            CLN$AB_1B[!is.na(CLN$Runners) & !compareNA(CLN$PE_1B, CLN$playerID) & !grepl("TP|DP|FO", CLN$Event) & 
-                            !grepl("1(-|X)[123H]", CLN$Runners) & !is.na(CLN$AB_1B)]
-      CLN$PE_2B[!is.na(CLN$Runners) & !compareNA(CLN$PE_2B, CLN$playerID) & !grepl("TP|DP|FO", CLN$Event) & 
-                      !grepl("2(-|X)[23H]", CLN$Runners) & !is.na(CLN$AB_2B)] <-
-            CLN$AB_2B[!is.na(CLN$Runners) & !compareNA(CLN$PE_2B, CLN$playerID) & !grepl("TP|DP|FO", CLN$Event) & 
-                            !grepl("2(-|X)[123H]", CLN$Runners) & !is.na(CLN$AB_2B)]
-      CLN$PE_3B[!is.na(CLN$Runners) & !compareNA(CLN$PE_3B, CLN$playerID) & !grepl("TP|DP|FO", CLN$Event) & 
-                      !grepl("3(-|X)[3H]", CLN$Runners) & !is.na(CLN$AB_3B)] <-
-            CLN$AB_3B[!is.na(CLN$Runners) & !compareNA(CLN$PE_3B, CLN$playerID) & !grepl("TP|DP|FO", CLN$Event) & 
-                            !grepl("3(-|X)[123H]", CLN$Runners) & !is.na(CLN$AB_3B)]
-      # not moving in defensive indifference done above ^
-      
-      # handle the force outs no advances
-      CLN$PE_1B[!is.na(CLN$Runners) & !compareNA(CLN$PE_1B, CLN$playerID) & !grepl("1(-|X)", CLN$Runners) & 
-                      grepl(".*FO", CLN$Event) & !grepl("^[1-9]+\\(1\\)", CLN$Event) & !is.na(CLN$AB_1B)] <- 
-            CLN$AB_1B[!is.na(CLN$Runners) & !compareNA(CLN$PE_1B, CLN$playerID) & grepl("1(-|X)", CLN$Runners) & 
-                            grepl(".*FO", CLN$Event) & !grepl("^[1-9]+\\(1\\)", CLN$Event) & !is.na(CLN$AB_1B)]
-      CLN$PE_2B[!is.na(CLN$Runners) & !compareNA(CLN$PE_2B, CLN$playerID) & !grepl("2(-|X)", CLN$Runners) & 
-                      grepl(".*FO", CLN$Event) & !grepl("^[1-9]+\\(2\\)", CLN$Event) & !is.na(CLN$AB_2B)] <- 
-            CLN$AB_2B[!is.na(CLN$Runners) & !compareNA(CLN$PE_2B, CLN$playerID) & !grepl("2(-|X)", CLN$Runners) & 
-                            grepl(".*FO", CLN$Event) & !grepl("^[1-9]+\\(2\\)", CLN$Event) & !is.na(CLN$AB_2B)]
-      CLN$PE_3B[!is.na(CLN$Runners) & !compareNA(CLN$PE_3B, CLN$playerID) & !grepl("3(-|X)", CLN$Runners) & 
-                      grepl(".*FO", CLN$Event) & !grepl("^[1-9]+\\(3\\)", CLN$Event) & !is.na(CLN$AB_3B)] <- 
-            CLN$AB_3B[!is.na(CLN$Runners) & !compareNA(CLN$PE_3B, CLN$playerID) & !grepl("3(-|X)", CLN$Runners) & 
-                            grepl(".*FO", CLN$Event) & !grepl("^[1-9]+\\(3\\)", CLN$Event) & !is.na(CLN$AB_3B)]
-      
-      # handle stolen bases
-      # okay to loop, the runner may not have stolen right arriving to that base
-      CLN$PE_2B[!compareNA(CLN$AB_1B,CLN$PE_2B) & grepl("SB2", CLN$Event) & !grepl("1(-|X)", CLN$Event)] <- 
-            CLN$AB_1B[!compareNA(CLN$AB_1B,CLN$PE_2B) & grepl("SB2", CLN$Event) & !grepl("1(-|X)", CLN$Event)]
-      CLN$PE_3B[!compareNA(CLN$AB_2B,CLN$PE_3B) & grepl("SB3", CLN$Event) & !grepl("2(-|X)", CLN$Event)] <- 
-            CLN$AB_2B[!compareNA(CLN$AB_2B,CLN$PE_3B) & grepl("SB3", CLN$Event) & !grepl("2(-|X)", CLN$Event)]
-      
-      # case where 1st base runner did not steal on a stolen base at 3B or H
-      CLN$PE_1B[(grepl("SB(3|H)", CLN$Event) | grepl("(PO2|PO3|CS3)", CLN$Event)) & !is.na(CLN$AB_1B) & 
-                      !grepl("SB2", CLN$Event) & !grepl("1(-|X)", CLN$Event)] <- 
-            CLN$AB_1B[(grepl("SB(3|H)", CLN$Event) | grepl("(PO2|PO3|CS3)", CLN$Event)) 
-                      & !is.na(CLN$AB_1B) & !grepl("SB2", CLN$Event) & !grepl("1(-|X)", CLN$Event)]
-      
-      # case where 3rd base runner did not steal on a stolen base at 2B
-      CLN$PE_3B[(grepl("SB2", CLN$Event) | grepl("(PO1|PO2|CS2)", CLN$Event)) & !is.na(CLN$AB_3B) & 
-                      !grepl("SB(3|H)", CLN$Event) & !grepl("3(-|X)", CLN$Event)] <- 
-            CLN$AB_3B[(grepl("SB2", CLN$Event) | grepl("(PO1|PO2|CS2)", CLN$Event)) & 
-                            !is.na(CLN$AB_3B) & !grepl("SB(3|H)", CLN$Event) & !grepl("3(-|X)", CLN$Event)]
-      
-      # double check bases when stealing lol #
-      CLN$PE_1B[CLN$PE_1B==CLN$PE_2B & grepl("SB2", CLN$Event) & !grepl("1(-|X)(3|H)", CLN$Event)] <- NA
-      CLN$PE_2B[CLN$PE_2B==CLN$PE_3B & grepl("SB3", CLN$Event) & !grepl("2(-|X)H", CLN$Event)] <- NA
-      CLN$PE_3B[CLN$PE_3B==CLN$AB_3B & grepl("SBH", CLN$Event)] <- NA
-      
-      # CLN$Runs[!is.na(CLN$AB_3B) & grepl("SBH", CLN$Event) & !grepl("3(-|X)", CLN$Event)] <- 
-      #       CLN$Runs[!is.na(CLN$AB_3B) & grepl("SBH", CLN$Event) & !grepl("3(-|X)", CLN$Event)] + 1
-      # ^ this will keep incrementing
-      
-      # handle pick offs and caught stealing
-      # inherit runners when they did not move
-      CLN$PE_1B[is.na(CLN$Runners) & !is.na(CLN$AB_1B) & grepl("PO|CS", CLN$Play) & 
-                      !grepl("PO1|CS2", CLN$Play) & !grepl("E[1-9]", CLN$Play)] <- 
-            CLN$AB_1B[is.na(CLN$Runners) & !is.na(CLN$AB_1B) & grepl("PO|CS", CLN$Play) & 
-                            !grepl("PO1|CS2", CLN$Play) & !grepl("E[1-9]", CLN$Play)]
-      CLN$PE_2B[is.na(CLN$Runners) & !is.na(CLN$AB_2B) & grepl("PO|CS", CLN$Play) & 
-                      !grepl("PO2|CS3", CLN$Play) & !grepl("E[1-9]", CLN$Play)] <- 
-            CLN$AB_2B[is.na(CLN$Runners) & !is.na(CLN$AB_2B) & grepl("PO|CS", CLN$Play) & 
-                            !grepl("PO2|CS3", CLN$Play) & !grepl("E[1-9]", CLN$Play)]
-      CLN$PE_3B[is.na(CLN$Runners) & !is.na(CLN$AB_3B) & grepl("PO|CS", CLN$Play) & 
-                      !grepl("PO3|CSH", CLN$Play) & !grepl("E[1-9]", CLN$Play)] <- 
-            CLN$AB_3B[is.na(CLN$Runners) & !is.na(CLN$AB_3B) & grepl("PO|CS", CLN$Play) & 
-                            !grepl("PO3|CSH", CLN$Play) & !grepl("E[1-9]", CLN$Play)]
-      # inherit runner when NOT picked off but did not advance
-      CLN$PE_1B[is.na(CLN$Runners) & !is.na(CLN$AB_1B) & grepl("PO1\\([1-9]*E", CLN$Play)] <- 
-            CLN$AB_1B[is.na(CLN$Runners) & !is.na(CLN$AB_1B) & grepl("PO1\\([1-9]*E", CLN$Play)]
-      CLN$PE_2B[is.na(CLN$Runners) & !is.na(CLN$AB_2B) & grepl("PO2\\([1-9]*E", CLN$Play)] <- 
-            CLN$AB_2B[is.na(CLN$Runners) & !is.na(CLN$AB_2B) & grepl("PO2\\([1-9]*E", CLN$Play)]
-      CLN$PE_3B[is.na(CLN$Runners) & !is.na(CLN$AB_3B) & grepl("PO3\\([1-9]*E", CLN$Play)] <- 
-            CLN$AB_3B[is.na(CLN$Runners) & !is.na(CLN$AB_3B) & grepl("PO3\\([1-9]*E", CLN$Play)]
-      
-      # fielders' choice / force outs
-      # batter makes it to first on force out, including on errors where B moves to 1-3/H
-      CLN$PE_1B[(FO_1 | FO_2 | FO_3 | FC_B) & !grepl("B(-|X)", CLN$Event)] <- 
-            CLN$playerID[(FO_1 | FO_2 | FO_3 | FC_B) & !grepl("B(-|X)", CLN$Event)]
-      CLN$PE_1B[(FO_1 | FO_2 | FO_3 | FC_1) & grepl("B(-|X)1", CLN$Event)] <- 
-            CLN$playerID[(FO_1 | FO_2 | FO_3 | FC_1) & grepl("B(-|X)1", CLN$Event)]
-      CLN$PE_2B[(FO_1 | FO_2 | FO_3 | FC_2) & grepl("B(-|X)2", CLN$Event)] <- 
-            CLN$playerID[(FO_1 | FO_2 | FO_3 | FC_2) & grepl("B(-|X)2", CLN$Event)]
-      CLN$PE_3B[(FO_1 | FO_2 | FO_3 | FC_3) & grepl("B(-|X)3", CLN$Event)] <- 
-            CLN$playerID[(FO_1 | FO_2 | FO_3 | FC_3) & grepl("B(-|X)3", CLN$Event)]
-      CLN$Runs[(FO_1 | FO_2 | FO_3 | FC_H) & grepl("B(-|X)H", CLN$Event)] <- 
-            CLN$Runs[(FO_1 | FO_2 | FO_3 | FC_H) & grepl("B(-|X)H", CLN$Event)]
-      
-      # routine double plays
-      CLN$PE_1B[DP_F1] <- NA
-      CLN$PE_2B[DP_F2] <- NA
-      CLN$PE_3B[DP_F3] <- NA
-      # 2nd & 3rd or 3rd and home or 2nd and home
-      CLN$PE_1B[(DP_F1 & DP_F2) | (DP_F2 & DP_F3) | (DP_F1 & DP_F3)] <- 
-            CLN$playerID[(DP_F1 & DP_F2) | (DP_F2 & DP_F3) | (DP_F1 & DP_F3)]
-      # 1B runner is safe at 2B if outs at 3rd and home
-      CLN$PE_2B[(DP_F2 & DP_F3)] <- CLN$AB_2B[(DP_F2 & DP_F3)]
-      # 2B runner is safe at 3B if outs are 2nd and home
-      CLN$PE_3B[(DP_F1 & DP_F3)] <- CLN$AB_3B[(DP_F1 & DP_F3)]
-      
-      # non-routine double plays
-      # batter is out, another runner is out
-      if (any(DP_1X)) {
-            # 1B runner is out
-            CLN$PE_1B[DP_1X & grepl("1X", CLN$Event)] <- NA
-            # 1B runner safe and did not advance
-            CLN$PE_1B[DP_1X & !grepl("1(-|X)", CLN$Event)] <- 
-                  CLN$AB_1B[DP_1X & !grepl("1(-|X)", CLN$Event)]
-            
-            # 2B runner is out
-            CLN$PE_2B[DP_1X & grepl("2X", CLN$Event) & !grepl("1-2", CLN$Event)] <- NA
-            # 2B runner safe and did not advance
-            CLN$PE_2B[DP_1X & !grepl("2(-|X)", CLN$Event) & !grepl("1-2", CLN$Event)] <- 
-                  CLN$AB_2B[DP_1X & !grepl("2(-|X)", CLN$Event) & !grepl("1-2", CLN$Event)]
-            
-            # 3B runner is out
-            CLN$PE_3B[DP_1X & grepl("3X", CLN$Event) & !grepl("(1|2)-3", CLN$Event)] <- NA
-            # 3B runner safe and did not advance
-            CLN$PE_3B[DP_1X & !grepl("3(-|X)", CLN$Event) & !grepl("(1|2)-3", CLN$Event)] <- 
-                  CLN$AB_3B[DP_1X & !grepl("3(-|X)", CLN$Event) & !grepl("(1|2)-3", CLN$Event)]
-      }
-      # batter is safe, but both runners are out!
-      if (any(DP_2X)) {
-            # 1B runner is out
-            CLN$PE_1B[DP_2X & grepl("1X", CLN$Event)] <- NA
-            # 1B runner safe and did not advance
-            CLN$PE_1B[DP_2X & !grepl("1(-|X)", CLN$Event)] <- CLN$AB_1B[DP_2X & !grepl("1(-|X)", CLN$Event)]
-            
-            # 2B runner is out
-            CLN$PE_2B[DP_2X & grepl("2(-|X)", CLN$Event)] <- NA
-            # 2B runner safe and did not advance
-            CLN$PE_2B[DP_1X & !grepl("2(-|X)", CLN$Event) & !grepl("1-", CLN$Event)] <- 
-                  CLN$AB_2B[DP_1X & !grepl("2(-|X)", CLN$Event) & !grepl("1-", CLN$Event)]
-            
-            # 3B runenr is out
-            CLN$PE_3B[DP_2X & grepl("3X", CLN$Event)] <- NA
-            # 3B runner safe and did not advance
-            CLN$PE_3B[DP_1X & !grepl("3(-|X)", CLN$Event) & !grepl("(1|2)-", CLN$Event)] <- 
-                  CLN$AB_3B[DP_1X & !grepl("3(-|X)", CLN$Event & !grepl("(1|2)-", CLN$Event))]
-            
-            # batter is safe
-            CLN$PE_1B[DP_2X] <- CLN$playerID[DP_2X]
-      }
-      
-      # errors
-      CLN$PE_1B[E_B | E_1] <- CLN$playerID[E_B | E_1]
-      CLN$PE_2B[E_2] <- CLN$playerID[E_2]
-      CLN$PE_3B[E_3] <- CLN$playerID[E_3]
-      
-      # WALK turned into double #
-      CLN$PE_2B[WK_2B] <- CLN$playerID[WK_2B]
-      CLN$PE_1B[WK_2B] <- NA # remove batter from 1st which is automatic from Walks above
-      
-      # strikeout turned bad lol...
-      CLN$PE_1B[grepl("^K.*BX1\\([1-9]*E[1-9]", CLN$Event)] <- 
-            CLN$playerID[grepl("^K.*BX1\\([1-9]*E[1-9]", CLN$Event)]
-      CLN$Outs[grepl("^K.*BX1\\([1-9]*E[1-9]", CLN$Event) & str_count(CLN$Event, "X") > 0] <-
-            str_count(CLN$Event[grepl("^K.*BX1\\([1-9]*E[1-9]", CLN$Event) & str_count(CLN$Event, "X") > 0], "X")-1
-      
-      CLN$PE_2B[grepl("^K.*B-2", CLN$Event)] <- CLN$playerID[grepl("^K.*B-2", CLN$Event)]
-      CLN$PE_3B[grepl("^K.*B-3", CLN$Event)] <- CLN$playerID[grepl("^K.*B-3", CLN$Event)]
-      CLN$Outs[(grepl("^K.*B-3", CLN$Event) | grepl("^K.*B-2", CLN$Event))] <- 
-            str_count(CLN$Event[(grepl("^K.*B-3", CLN$Event) | grepl("^K.*B-2", CLN$Event))], "X")
-      
-      # ignore the change of inning inheriting of runners
-      chg_inning <- data.table:::uniqlist(CLN[!is.na(CLN$Team),3:4])
-      CLN$PE_1B[chg_inning-1] <- NA
-      CLN$PE_2B[chg_inning-1] <- NA
-      CLN$PE_3B[chg_inning-1] <- NA
-      CLN$AB_1B[chg_inning] <- NA
-      CLN$AB_2B[chg_inning] <- NA
-      CLN$AB_3B[chg_inning] <- NA
-      
-      if (!isTRUE(all.equal(TMP, CLN))) {
-            CLN <- adv_runnersNA(CLN, vars)
-      }
-      return (CLN)
 }
 
 # recursive function to assign outs #
@@ -328,9 +107,74 @@ asgn_outs <- function(CLN, all_plyExcp1st, chg_inning) {
       return (CLN)
 }
 
+# assigning bases based on a single runner information #
+asgn_base <- function(CLN, id, rnnr) {
+
+	# check which base the runner came from
+	if (grepl("^B", rnnr)) {
+		player_id <- CLN$playerID[CLN$ID==id]
+	} else if (grepl("^1", rnnr)) {
+		player_id <- CLN$AB_1B[CLN$ID==id]
+	} else if (grepl("^2", rnnr)) {
+		player_id <- CLN$AB_2B[CLN$ID==id]
+	} else if (grepl("^3", rnnr)) {
+		player_id <- CLN$AB_3B[CLN$ID==id]
+	}
+	
+	# if player_id is NA, ignore for now. 
+	# the recursive advance runner script will update in later iteration
+	if (is.na(player_id)) {return (CLN)}
+	
+	# check which base the runner made it to
+	if (grepl("1$", rnnr)) {
+		CLN$PE_1B[CLN$ID==id] <- player_id
+	} else if (grepl("2$", rnnr)) {
+		CLN$PE_2B[CLN$ID==id] <- player_id
+	} else if (grepl("3$", rnnr)) {
+		CLN$PE_3B[CLN$ID==id] <- player_id
+	} else if (grepl("H$", rnnr)) {
+		CLN$Runs[CLN$ID==id] <- 1
+		
+		# in case double play but 2 runners scored
+		if (grepl("(-H.*-H)|(-H.*XH([1-9]*E[1-9]))|(XH([1-9]*E[1-9]).*XH([1-9]*E[1-9]))", CLN$Runners[CLN$ID==id])) {
+			CLN$Runs[CLN$ID==id] <- 2
+		}
+	}
+
+	return (CLN)
+}
+
+################################
+################################
+
+
+################################
+##     New Plan of Attack     ##
+################################
+
+###    Set Initial States    ###
+# 1. Assign all batters getting on base (exclude weird cases + errors)
+# 2. Assign all batters getting on base via weird cases + errors
+# 3. Calculate all runs and outs during each event
+
+###    Recursive Function    ###
+# 1. Assign all runners moving - include errors
+# 2. Assign all runners out - include errors
+# 3. Assign all runners not moved - include errors
+# 4. Transfer runners to next at-bat
+# 5. Account for end of inning
+# 6. Check for recursive function ending
+
+################################
+################################
+
+
+################################
+##   Initial State Function   ##
+################################
+
 # function for parsing and creating most basic stats. Export tables in a list!
-basic_stats <- function(EVN, posis) {
-      
+init_state <- function(EVN, posis) {
       
       # parse headers - this takes a while
       # hdrs <- scan(text = EVN, sep=",", what="", flush=TRUE, quiet=TRUE)
@@ -373,8 +217,9 @@ basic_stats <- function(EVN, posis) {
       TEMP$save <- sub("\\,$", ",NA", TEMP$save)
       INFO[,2:length(INFO)] <- lapply(TEMP[,1:length(TEMP)], function(x) sub(".*,", "", x))
       
-      ###################################################
-      ### add the START info -- WORK IN PROGRESS HERE ###
+	
+	
+      ### add the START info ###
       
       # check if AL game or NL game
       # sort two tables for this
@@ -488,10 +333,13 @@ basic_stats <- function(EVN, posis) {
       CLN$PE_3B <- CLN$PE_2B <- CLN$PE_1B <- CLN$AB_Outs <- CLN$AB_3B <- CLN$AB_2B <- CLN$AB_1B <- NA
       CLN$AB_Outs <- CLN$PE_Outs <- CLN$Runs <- 0
       
+      ## adding a backup here for manual runs ##
+      # BKUP <- CLN
+      
       # handle all regular hits, walks, strikeouts #
       tg_Ks <- grepl("^K", CLN$Play) & !grepl("(B-)|(BX[1-3H]\\([1-9]*E[1-9]*)", CLN$Runners)
       tg_Wk <- grepl("^(W|IW)", CLN$Play) & !grepl("^WP", CLN$Play) & !grepl("B-[2-H]", CLN$Runners) # allow redundant B-1
-      tg_Sng <- grepl("^S[1-9]", CLN$Play) & !grepl("B-[23H]|BX[123H])", CLN$Runners) # allow redundant B-1
+      tg_Sng <- grepl("^S[1-9]", CLN$Play) & !grepl("((B-[23H])|(BX[123H]))", CLN$Runners) # allow redundant B-1
       tg_Dbl <- grepl("^D([1-9]|GR)", CLN$Play) & !grepl("B-3|BX3|BX2", CLN$Runners) # allow redundant B-2
       tg_Trp <- grepl("^T[1-9]", CLN$Play) & !grepl("B-H|BXH|BX3", CLN$Runners) # allow redundant B-3
       tg_HR <- grepl("^HR", CLN$Play) & !grepl("B(-|X)", CLN$Runners)
@@ -538,6 +386,12 @@ basic_stats <- function(EVN, posis) {
       tg_F3 <- grepl("FC", CLN$Event) & grepl("(B-3)|(BX3\\([1-9]*E[1-9]*)", CLN$Runners)
       tg_FH <- grepl("FC", CLN$Event) & grepl("(B-H)|(BXH\\([1-9]*E[1-9]*)", CLN$Runners)
       
+      # handle all GDP where batter runner is safe
+      tg_P1 <- grepl("GDP.*(B-1|BX1\\([1-9]?E[1-9]\\))", CLN$Event)
+      tg_P2 <- grepl("GDP.*(BX2\\([1-9]?E[1-9]\\))", CLN$Event)
+      tg_P3 <- grepl("GDP.*(BX3\\([1-9]?E[1-9]\\))", CLN$Event)
+      tg_PH <- grepl("GDP.*(BXH\\([1-9]?E[1-9]\\))", CLN$Event)
+      
       # handle all ERRORS not FO or FC
       tg_1E <- grepl("^(E|[1-9]E)[1-9]", CLN$Event) & !grepl("FC|FO", CLN$Event) & !grepl("B(-|X)[2-3H]", CLN$Runners)
       tg_2E <- grepl("^(E|[1-9]E)[1-9]", CLN$Event) & !grepl("FC|FO", CLN$Event) & grepl("(B-2)|(BX2\\([1-9]*E[1-9]*)", CLN$Runners)
@@ -550,68 +404,151 @@ basic_stats <- function(EVN, posis) {
       # hit by pitch - also dead ball immediately.
       tg_HP <- grepl("^HP", CLN$Event)
       
+      # a runner is hit by batted ball ... wow lol #
+      tg_BR <- grepl("^S.*BR", CLN$Event) 
+      # single is still awarded, the out still recorded: [1-3]X[1-3H]
       
       # move the batter runner
-      CLN$PE_1B[tg_Wk | tg_Sng | tg_K1 | tg_FO | tg_FC | tg_1E | tg_CI | tg_HP] <- 
-            CLN$playerID[tg_Wk | tg_Sng | tg_K1 | tg_FO | tg_FC | tg_1E | tg_CI | tg_HP]
-      CLN$PE_2B[tg_Dbl | tg_H2 | tg_E2 | tg_K2 | tg_W2 | tg_2F | tg_F2 | tg_2E] <- 
-            CLN$playerID[tg_Dbl | tg_H2 | tg_E2 | tg_K2 | tg_W2 | tg_2F | tg_F2 | tg_2E]
-      CLN$PE_3B[tg_Trp | tg_S3 | tg_H3 | tg_ES | tg_E3 | tg_K3 | tg_W3 | tg_3F | tg_F3 | tg_3E] <- 
-            CLN$playerID[tg_Trp | tg_S3 | tg_H3 | tg_ES | tg_E3 | tg_K3 | tg_W3 | tg_3F | tg_F3 | tg_3E]
+      CLN$PE_1B[tg_Wk | tg_Sng | tg_K1 | tg_FO | tg_FC | tg_P1 | tg_1E | tg_CI | tg_HP | tg_BR] <- 
+            CLN$playerID[tg_Wk | tg_Sng | tg_K1 | tg_FO | tg_FC | tg_P1 | tg_1E | tg_CI | tg_HP | tg_BR]
+      CLN$PE_2B[tg_Dbl | tg_H2 | tg_E2 | tg_K2 | tg_W2 | tg_2F | tg_F2 | tg_P2 | tg_2E] <- 
+            CLN$playerID[tg_Dbl | tg_H2 | tg_E2 | tg_K2 | tg_W2 | tg_2F | tg_F2 | tg_P2 | tg_2E]
+      CLN$PE_3B[tg_Trp | tg_S3 | tg_H3 | tg_ES | tg_E3 | tg_K3 | tg_W3 | tg_3F | tg_F3 | tg_P3 | tg_3E] <- 
+            CLN$playerID[tg_Trp | tg_S3 | tg_H3 | tg_ES | tg_E3 | tg_K3 | tg_W3 | tg_3F | tg_F3 | tg_P3 | tg_3E]
       
       # score the batter runner
       CLN$Runs[tg_HR | tg_SH | tg_DH | tg_HH | tg_SE | tg_ED | tg_ET | 
-                     tg_KH | tg_W4 | tg_HF | tg_FH | tg_HE | tg_HU] <- 1
-      
-      ############################
-      ### UP TO HERE FOR 1.3.0 ###
-      ############################
+                     tg_KH | tg_W4 | tg_HF | tg_FH | tg_PH | tg_HE | tg_HU] <- 1
        
-      # check if other ways for batter to get on base that was missed
-      # print(unique(CLN$Event[!(tg_Wk | tg_Sng | tg_K1 | tg_FO | tg_FC | tg_1E | tg_CI | tg_HP | 
-      #                                tg_Dbl | tg_H2 | tg_E2 | tg_K2 | tg_W2 | tg_2F | tg_F2 | tg_2E |
-      #                                tg_Trp | tg_S3 | tg_H3 | tg_ES | tg_E3 | tg_K3 | tg_W3 | tg_3F | 
-      #                                tg_F3 | tg_3E) & grepl("B-[1-3]", CLN$Runners)]))
-      # output should be 0, nothing
-      
-      # print(unique(CLN$Event[!(tg_Wk | tg_Sng | tg_K1 | tg_FO | tg_FC | tg_1E | tg_CI | tg_HP | 
-      #                                tg_Dbl | tg_H2 | tg_E2 | tg_K2 | tg_W2 | tg_2F | tg_F2 | tg_2E |
-      #                                tg_Trp | tg_S3 | tg_H3 | tg_ES | tg_E3 | tg_K3 | tg_W3 | tg_3F | 
-      #                                tg_F3 | tg_3E) & grepl("BX[1-3]", CLN$Runners) & 
-      #                                !grepl("BX[1-3]\\([1-9TH/]+\\)", CLN$Runners)]))
+	# # check if other ways for batter to get on base that was missed
+	# print(unique(CLN$Event[!(tg_Wk | tg_Sng | tg_K1 | tg_FO | tg_FC | tg_P1 | tg_1E | tg_CI |  
+	#                                tg_HP | tg_BR | tg_Dbl | tg_H2 | tg_E2 | tg_K2 | tg_W2 | tg_2F | 
+	#                                tg_F2 | tg_P2 | tg_2E | tg_Trp | tg_S3 | tg_H3 | tg_ES | tg_E3 | 
+	#                                tg_K3 | tg_W3 | tg_3F | tg_F3 | tg_P3 | tg_3E) & 
+	#                              grepl("B-[1-3]", CLN$Runners)]))
+	# # output should be 0, nothing
+	# 
+	# print(unique(CLN$Event[!(tg_Wk | tg_Sng | tg_K1 | tg_FO | tg_FC | tg_P1 | tg_1E | tg_CI |  
+	#                                tg_HP | tg_BR | tg_Dbl | tg_H2 | tg_E2 | tg_K2 | tg_W2 | tg_2F | 
+	#                                tg_F2 | tg_P2 | tg_2E | tg_Trp | tg_S3 | tg_H3 | tg_ES | tg_E3 | 
+	#                                tg_K3 | tg_W3 | tg_3F | tg_F3 | tg_P3 | tg_3E) & 
+	#                              grepl("BX[1-3]", CLN$Runners) & 
+	#                              !grepl("BX[1-3]\\([1-9TH/]+\\)", CLN$Runners)]))
       # output should only be 0, ignoring all the outs
       
       
+	##########################################
+      # now deal with batters safe on errors   #
+      ##########################################
+	
+      # batter on base from error #
+	E_B <- grepl("^[1-9]*E[1-9]+", CLN$Event) & !grepl("B(-|X)", CLN$Event)
+	E_1 <- grepl("^[1-9]*E[1-9]+", CLN$Event) & grepl("B-1|BX1\\([1-9]*E[1-9]+", CLN$Event)
+	E_2 <- grepl("^[1-9]*E[1-9]+", CLN$Event) & grepl("B-2|BX2\\([1-9]*E[1-9]+", CLN$Event)
+	E_3 <- grepl("^[1-9]*E[1-9]+", CLN$Event) & grepl("B-3|BX3\\([1-9]*E[1-9]+", CLN$Event)
+	E_H <- grepl("^[1-9]*E[1-9]+", CLN$Event) & grepl("B-H|BXH\\([1-9]*E[1-9]+", CLN$Event)
+	CLN$PE_1B[E_B | E_1] <- CLN$playerID[E_B | E_1]
+	CLN$PE_2B[E_2] <- CLN$playerID[E_2]
+	CLN$PE_3B[E_3] <- CLN$playerID[E_3]
+	CLN$Runs[E_H] <- CLN$Runs[E_H] + 1
+	
+      # runner is hit by batted ball ... wow lol #
+      BR_scn <- grepl("^S.*BR", CLN$Event) # single is still awarded, the out still recorded: [1-3]X[1-3H]
+      CLN$PE_1B[BR_scn] <- CLN$playerID[BR_scn]
+      
+	# Catcher interference, redundant B-1 allowed. unless BX-ed
+      C_INT <- grepl("^C/E[1-9].*(B-1)?", CLN$Event)
+      CLN$PE_1B[C_INT] <- CLN$playerID[C_INT]
+      
+	# WALK turned into double #
+      WK_2B <- grepl("W.*B-2", CLN$Event)
+      CLN$PE_2B[WK_2B] <- CLN$playerID[WK_2B]
+      CLN$PE_1B[WK_2B] <- NA # remove batter from 1st which is automatic from Walks above
+      
+	# strikeout, batter makes it to first on error
+      K_BX1E <- grepl("^K.BX1\\([1-9]*E[1-9]*", CLN$Event)
+      CLN$PE_1B[K_BX1E] <- CLN$playerID[K_BX1E]
+      CLN$Outs[K_BX1E & CLN$Outs > 0] <- CLN$Outs[K_BX1E & CLN$Outs > 0] - 1      
+      
+      # PB / WP / HP / Error # NEGATE THE OUT ON K'S
+      No_K <- grepl("K(\\+)?(WP|PB|E[1-9])?.*B-1", CLN$Event) # only negate these outs; send batter to base
+      CLN$Outs[No_K] <- 0
+      CLN$PE_1B[No_K] <- CLN$playerID[No_K]
+      
+      # K/FO - this is a weird one, but probably a bounce to plate strike out and just force out @ home
+      K_FO <- grepl("K/FO\\.3XH", CLN$Event)
+      CLN$Outs[K_FO] <- 1
       
       
+	##########################
+      # now deal with all outs #
+      ##########################
+	
+	# batter outs
+	OB_K <- grepl("^K", CLN$Play) & !grepl("(B-|BX[1-H][1-9]*E[1-9])", CLN$Play)
+	FO_B <- grepl("^[1-9]+", CLN$Play) & !grepl("FO|DP|TP|E[1-9]", CLN$Event)
+	FC_B <- grepl("^FC", CLN$Play) & !grepl("B(-|X)", CLN$Event)
+	CLN$Outs[OB_K | FO_B | FC_B] <- CLN$Outs[OB_K | FO_B | FC_B] + 1
+	
+	# runner outs
+	ORUN <- grepl("[1-3]X[1-3H]", CLN$Runners) & !grepl("[1-3]X[1-3H]([\\(NUR\\)])*\\([1-9]*E[1-9]+", CLN$Runners)
+      CLN$Outs[ORUN] <- CLN$Outs[ORUN] + 1
       
+      # force outs / fielder's choice #
+      FO_R <- grepl("\\([1-3].*/FO", CLN$Event)
+      FC_R <- grepl("^FC", CLN$Play) & grepl("B-[1-3H]", CLN$Event)
+      FC_X <- grepl("^FC", CLN$Play) & grepl("BX", CLN$Event)
+      CLN$Outs[FO_R | FC_R] <- CLN$Outs[FO_R | FC_R] + 1
+      CLN$Outs[FC_X] <- CLN$Outs[FC_X] + str_count(CLN$Play[FC_X], "X")
       
+      # DOUBLE / TRIPLE PLAYS #
+      DP_F1 <- grepl("^[1-9]+.*\\(1.*DP", CLN$Event) & !grepl("[B1-3]X[1-3H]", CLN$Event)
+      DP_F2 <- grepl("^[1-9]+.*\\(2.*DP", CLN$Event) & !grepl("[B1-3]X[1-3H]", CLN$Event)
+      DP_F3 <- grepl("^[1-9]+.*\\(3.*DP", CLN$Event) & !grepl("[B1-3]X[1-3H]", CLN$Event)
+      CLN$Outs[grepl("DP", CLN$Event)] <- 2
+      CLN$Outs[grepl("TP", CLN$Event)] <- 3
+	
+	# Caught Stealing or Picked Off with on errors
+	CSPO <- grepl("^(CS|PO)", CLN$Play) & !grepl("[1-9]*E[1-9]", CLN$Play)
+	CLN$Outs[CSPO] <- CLN$Outs[CSPO] + 1
+	
+	# return CLN #
+      return(CLN)
       
-      # 
-      # CLN$Outs[tg_Ks] <- CLN$Outs[tg_Ks] + 1
-      # CLN$PE_1B[tg_Wk | tg_Sng] <- CLN$playerID[tg_Wk | tg_Sng]
-      # CLN$PE_2B[tg_Dbl | tg_H2] <- CLN$playerID[tg_Dbl | tg_H2]
-      # CLN$PE_3B[tg_Trp | tg_H3 | tg_S3] <- CLN$playerID[tg_Trp | tg_H3 | tg_S3]
-      # CLN$Runs[tg_HR | tg_HH | tg_DH] <- CLN$Runs[tg_HR | tg_HH | tg_DH] + 1
+}
+
+################################
+################################
+
+
+################################
+##     Recursive Function     ##
+################################
+
+# 1. Transfer runners to next at-bat
+# 2. Assign all runners moving - include errors
+# 3. Account for end of inning
+# 4. Assign all runners not moved - include errors
+# 5. Handle Stolen Bases - include errors
+# 6. Assign all runners out - include errors
+# 7. Check for recursive function ending
+
+# recursive function that will continue advancing (some removing) runners until inning complete.
+adv_runnersNA <- function (CLN) {
       
-      # inherit all these batters first handle errors later #
-      all_plyExcp1st <- 2:nrow(CLN)
-      CLN$AB_1B[all_plyExcp1st] <- CLN$PE_1B[all_plyExcp1st-1]
-      CLN$AB_2B[all_plyExcp1st] <- CLN$PE_2B[all_plyExcp1st-1]
-      CLN$AB_3B[all_plyExcp1st] <- CLN$PE_3B[all_plyExcp1st-1]
+      ## generate temp table to compare to after advancing runners ##
+      TMP <- CLN
       
-      # advance all runners based on Runners column only - includes errors #
-      Rn_H <- grepl("[1-3]-H", CLN$Runners)  | grepl("[1-3]XH([\\(NUR\\)])*\\([1-9]*E[1-9]+", CLN$Runners)
-      R1X1 <- grepl("1X1\\([1-9]*E[1-9]+", CLN$Runners) # error but no advance
+      ## advance the runners per usual ##
+	all_plyExcp1st <- 2:nrow(CLN)
+	R1X1 <- grepl("1X1\\([1-9]*E[1-9]+", CLN$Runners) # error but no advance
       R1_2 <- grepl("1-2", CLN$Runners) | grepl("1X2\\([1-9]*E[1-9]+", CLN$Runners)
       R1_3 <- grepl("1-3", CLN$Runners) | grepl("1X3\\([1-9]*E[1-9]+", CLN$Runners)
       R2X2 <- grepl("2X2\\([1-9]*E[1-9]+", CLN$Runners) # error but no advance
       R2_3 <- grepl("2-3", CLN$Runners) | grepl("2X3\\([1-9]*E[1-9]+", CLN$Runners)
       R3X3 <- grepl("3X3\\([1-9]*E[1-9]+", CLN$Runners) # error but no advance
-      CLN$Runs[Rn_H] <- CLN$Runs[Rn_H] + str_count(CLN$Runners[Rn_H], "[1-3]-H")
-      
-      ## === this portion repeated in recursive function == ##
-      CLN$AB_1B[all_plyExcp1st] <- CLN$PE_1B[all_plyExcp1st-1]
+      # assign bases #
+	CLN$AB_1B[all_plyExcp1st] <- CLN$PE_1B[all_plyExcp1st-1]
       CLN$PE_1B[R1X1] <- CLN$AB_1B[R1X1]
       CLN$PE_2B[R1_2] <- CLN$AB_1B[R1_2]
       CLN$AB_2B[all_plyExcp1st] <- CLN$PE_2B[all_plyExcp1st-1]
@@ -620,31 +557,122 @@ basic_stats <- function(EVN, posis) {
       CLN$PE_3B[R2_3] <- CLN$AB_2B[R2_3]
       CLN$AB_3B[all_plyExcp1st] <- CLN$PE_3B[all_plyExcp1st-1]
       CLN$PE_3B[R3X3] <- CLN$AB_3B[R3X3]
-      ## ================================================== ##
       
-      # runner doesn't go anywhere explicitly
-      R1_1 <- grepl("1-1", CLN$Runners)
+      ## ignore the change of inning inheriting of runners ##
+      chg_inning <- data.table:::uniqlist(CLN[!is.na(CLN$Team),3:4])
+	# assign bases #
+      CLN$PE_1B[chg_inning-1] <- NA
+      CLN$PE_2B[chg_inning-1] <- NA
+      CLN$PE_3B[chg_inning-1] <- NA
+      CLN$AB_1B[chg_inning] <- NA
+      CLN$AB_2B[chg_inning] <- NA
+      CLN$AB_3B[chg_inning] <- NA
+      
+      ## inherit runners when they did not move -- when no runners advanced ##
+      CLN$PE_1B[is.na(CLN$Runners) & !is.na(CLN$AB_1B) & !grepl("SB|PO|CS|BK|DP|TP", CLN$Play)] <-
+            CLN$AB_1B[is.na(CLN$Runners) & !is.na(CLN$AB_1B) & !grepl("SB|PO|CS|BK|DP|TP", CLN$Play)]
+      CLN$PE_2B[is.na(CLN$Runners) & !is.na(CLN$AB_2B) & !grepl("SB|PO|CS|BK|DP|TP", CLN$Play)] <-
+            CLN$AB_2B[is.na(CLN$Runners) & !is.na(CLN$AB_2B) & !grepl("SB|PO|CS|BK|DP|TP", CLN$Play)]
+      CLN$PE_3B[is.na(CLN$Runners) & !is.na(CLN$AB_3B) & !grepl("SB|PO|CS|BK|DP|TP", CLN$Play)] <-
+            CLN$AB_3B[is.na(CLN$Runners) & !is.na(CLN$AB_3B) & !grepl("SB|PO|CS|BK|DP|TP", CLN$Play)]
+      
+      ## inherit runners when explicity mentioned that they did not move ##
+	R1_1 <- grepl("1-1", CLN$Runners)
       R2_2 <- grepl("2-2", CLN$Runners)
       R3_3 <- grepl("3-3", CLN$Runners)
+	# assign bases #
       CLN$PE_1B[R1_1] <- CLN$AB_1B[R1_1]
       CLN$PE_2B[R2_2] <- CLN$AB_2B[R2_2]
       CLN$PE_3B[R3_3] <- CLN$AB_3B[R3_3]
+	
+	## inherit runners on NP or SUBSTITUTION ##
+	NP_ST <- grepl("^(NP|SUBSTITUTION)", CLN$Event)
+      # assign bases #
+      CLN$PE_1B[NP_ST] <- CLN$AB_1B[NP_ST]
+      CLN$PE_2B[NP_ST] <- CLN$AB_2B[NP_ST]
+      CLN$PE_3B[NP_ST] <- CLN$AB_3B[NP_ST]
+	
+	# WILD PITCH?#
+	
+      ## inherit runners that did not score or get put out but there were runner advances ##
+      # need to exclude double / triple plays and force outs!
+      CLN$PE_1B[!is.na(CLN$Runners) & !compareNA(CLN$PE_1B, CLN$playerID) & !grepl("TP|DP|FO", CLN$Event) & 
+                      !grepl("1(-|X)[123H]", CLN$Runners) & !is.na(CLN$AB_1B)] <-
+            CLN$AB_1B[!is.na(CLN$Runners) & !compareNA(CLN$PE_1B, CLN$playerID) & !grepl("TP|DP|FO", CLN$Event) & 
+                            !grepl("1(-|X)[123H]", CLN$Runners) & !is.na(CLN$AB_1B)]
+      CLN$PE_2B[!is.na(CLN$Runners) & !compareNA(CLN$PE_2B, CLN$playerID) & !grepl("TP|DP|FO", CLN$Event) & 
+                      !grepl("2(-|X)[23H]", CLN$Runners) & !is.na(CLN$AB_2B)] <-
+            CLN$AB_2B[!is.na(CLN$Runners) & !compareNA(CLN$PE_2B, CLN$playerID) & !grepl("TP|DP|FO", CLN$Event) & 
+                            !grepl("2(-|X)[23H]", CLN$Runners) & !is.na(CLN$AB_2B)]
+      CLN$PE_3B[!is.na(CLN$Runners) & !compareNA(CLN$PE_3B, CLN$playerID) & !grepl("TP|DP|FO", CLN$Event) & 
+                      !grepl("3(-|X)[3H]", CLN$Runners) & !is.na(CLN$AB_3B)] <-
+            CLN$AB_3B[!is.na(CLN$Runners) & !compareNA(CLN$PE_3B, CLN$playerID) & !grepl("TP|DP|FO", CLN$Event) & 
+                            !grepl("3(-|X)[3H]", CLN$Runners) & !is.na(CLN$AB_3B)]
+      # not moving in defensive indifference done above ^ #
       
-      # remove all runners based on runners column only - exclude error #
-      O1X1 <- grepl("1X1", CLN$Runners) & !grepl("1X1\\([1-9]*E[1-9]+", CLN$Runners)
-      O1X2 <- grepl("1X2", CLN$Runners) & !grepl("1X2\\([1-9]*E[1-9]+", CLN$Runners)
-      O1X3 <- grepl("1X3", CLN$Runners) & !grepl("1X3\\([1-9]*E[1-9]+", CLN$Runners)
-      O1XH <- grepl("1XH", CLN$Runners) & !grepl("1XH([\\(NUR\\)])*\\([1-9]*E[1-9]+", CLN$Runners)
-      O2X2 <- grepl("2X2", CLN$Runners) & !grepl("2X2\\([1-9]*E[1-9]+", CLN$Runners)
-      O2X3 <- grepl("2X3", CLN$Runners) & !grepl("2X3\\([1-9]*E[1-9]+", CLN$Runners)
-      O2XH <- grepl("2XH", CLN$Runners) & !grepl("2XH([\\(NUR\\)])*\\([1-9]*E[1-9]+", CLN$Runners)
-      O3X3 <- grepl("3X3", CLN$Runners) & !grepl("3X3\\([1-9]*E[1-9]+", CLN$Runners)
-      O3XH <- grepl("3XH", CLN$Runners) & !grepl("3XH([\\(NUR\\)])*\\([1-9]*E[1-9]+", CLN$Runners)
-      CLN$Outs[O1X1 | O1X2 | O1X3 | O1XH | O2X2 | O2X3 | O2XH | O3X3 | O3XH] <- 
-            CLN$Outs[O1X1 | O1X2 | O1X3 | O1XH | O2X2 | O2X3 | O2XH | O3X3 | O3XH] + 1
+      # handle the force outs no advances #
+      CLN$PE_1B[!is.na(CLN$Runners) & !compareNA(CLN$PE_1B, CLN$playerID) & !grepl("1(-|X)", CLN$Runners) & 
+                      grepl(".*FO", CLN$Event) & !grepl("^[1-9]+\\(1\\)", CLN$Event) & !is.na(CLN$AB_1B)] <- 
+            CLN$AB_1B[!is.na(CLN$Runners) & !compareNA(CLN$PE_1B, CLN$playerID) & grepl("1(-|X)", CLN$Runners) & 
+                            grepl(".*FO", CLN$Event) & !grepl("^[1-9]+\\(1\\)", CLN$Event) & !is.na(CLN$AB_1B)]
+      CLN$PE_2B[!is.na(CLN$Runners) & !compareNA(CLN$PE_2B, CLN$playerID) & !grepl("2(-|X)", CLN$Runners) & 
+                      grepl(".*FO", CLN$Event) & !grepl("^[1-9]+\\(2\\)", CLN$Event) & !is.na(CLN$AB_2B)] <- 
+            CLN$AB_2B[!is.na(CLN$Runners) & !compareNA(CLN$PE_2B, CLN$playerID) & !grepl("2(-|X)", CLN$Runners) & 
+                            grepl(".*FO", CLN$Event) & !grepl("^[1-9]+\\(2\\)", CLN$Event) & !is.na(CLN$AB_2B)]
+      CLN$PE_3B[!is.na(CLN$Runners) & !compareNA(CLN$PE_3B, CLN$playerID) & !grepl("3(-|X)", CLN$Runners) & 
+                      grepl(".*FO", CLN$Event) & !grepl("^[1-9]+\\(3\\)", CLN$Event) & !is.na(CLN$AB_3B)] <- 
+            CLN$AB_3B[!is.na(CLN$Runners) & !compareNA(CLN$PE_3B, CLN$playerID) & !grepl("3(-|X)", CLN$Runners) & 
+                            grepl(".*FO", CLN$Event) & !grepl("^[1-9]+\\(3\\)", CLN$Event) & !is.na(CLN$AB_3B)]
       
-      # force outs / fielder's choice #
-      FO_B <- grepl("^[1-9]+", CLN$Play) & !grepl("FO|DP|TP|E[1-9]", CLN$Event)
+      ## handle stolen bases ##
+      # okay to loop, the runner may not have stolen right arriving to that base #
+      CLN$PE_2B[!compareNA(CLN$AB_1B,CLN$PE_2B) & grepl("SB2", CLN$Event) & !grepl("1(-|X)", CLN$Event)] <- 
+            CLN$AB_1B[!compareNA(CLN$AB_1B,CLN$PE_2B) & grepl("SB2", CLN$Event) & !grepl("1(-|X)", CLN$Event)]
+      CLN$PE_3B[!compareNA(CLN$AB_2B,CLN$PE_3B) & grepl("SB3", CLN$Event) & !grepl("2(-|X)", CLN$Event)] <- 
+            CLN$AB_2B[!compareNA(CLN$AB_2B,CLN$PE_3B) & grepl("SB3", CLN$Event) & !grepl("2(-|X)", CLN$Event)]
+      
+      # case where 1st base runner did not steal on a stolen base at 3B or H #
+      CLN$PE_1B[(grepl("SB(3|H)", CLN$Event) | grepl("(PO2|PO3|CS3)", CLN$Event)) & !is.na(CLN$AB_1B) & 
+                      !grepl("SB2", CLN$Event) & !grepl("1(-|X)", CLN$Event)] <- 
+            CLN$AB_1B[(grepl("SB(3|H)", CLN$Event) | grepl("(PO2|PO3|CS3)", CLN$Event)) 
+                      & !is.na(CLN$AB_1B) & !grepl("SB2", CLN$Event) & !grepl("1(-|X)", CLN$Event)]
+      
+      # case where 3rd base runner did not steal on a stolen base at 2B #
+      CLN$PE_3B[(grepl("SB2", CLN$Event) | grepl("(PO1|PO2|CS2)", CLN$Event)) & !is.na(CLN$AB_3B) & 
+                      !grepl("SB(3|H)", CLN$Event) & !grepl("3(-|X)", CLN$Event)] <- 
+            CLN$AB_3B[(grepl("SB2", CLN$Event) | grepl("(PO1|PO2|CS2)", CLN$Event)) & 
+                            !is.na(CLN$AB_3B) & !grepl("SB(3|H)", CLN$Event) & !grepl("3(-|X)", CLN$Event)]
+      
+      # double check bases when stealing lol #
+      CLN$PE_1B[CLN$PE_1B==CLN$PE_2B & grepl("SB2", CLN$Event) & !grepl("1(-|X)(3|H)", CLN$Event)] <- NA
+      CLN$PE_2B[CLN$PE_2B==CLN$PE_3B & grepl("SB3", CLN$Event) & !grepl("2(-|X)H", CLN$Event)] <- NA
+      CLN$PE_3B[CLN$PE_3B==CLN$AB_3B & grepl("SBH", CLN$Event)] <- NA
+      
+      ## handle pick offs and caught stealing ##
+      # inherit runners when they did not move #
+      CLN$PE_1B[is.na(CLN$Runners) & !is.na(CLN$AB_1B) & grepl("PO|CS", CLN$Play) & 
+                      !grepl("PO1|CS2", CLN$Play) & !grepl("E[1-9]", CLN$Play)] <- 
+            CLN$AB_1B[is.na(CLN$Runners) & !is.na(CLN$AB_1B) & grepl("PO|CS", CLN$Play) & 
+                            !grepl("PO1|CS2", CLN$Play) & !grepl("E[1-9]", CLN$Play)]
+      CLN$PE_2B[is.na(CLN$Runners) & !is.na(CLN$AB_2B) & grepl("PO|CS", CLN$Play) & 
+                      !grepl("PO2|CS3", CLN$Play) & !grepl("E[1-9]", CLN$Play)] <- 
+            CLN$AB_2B[is.na(CLN$Runners) & !is.na(CLN$AB_2B) & grepl("PO|CS", CLN$Play) & 
+                            !grepl("PO2|CS3", CLN$Play) & !grepl("E[1-9]", CLN$Play)]
+      CLN$PE_3B[is.na(CLN$Runners) & !is.na(CLN$AB_3B) & grepl("PO|CS", CLN$Play) & 
+                      !grepl("PO3|CSH", CLN$Play) & !grepl("E[1-9]", CLN$Play)] <- 
+            CLN$AB_3B[is.na(CLN$Runners) & !is.na(CLN$AB_3B) & grepl("PO|CS", CLN$Play) & 
+                            !grepl("PO3|CSH", CLN$Play) & !grepl("E[1-9]", CLN$Play)]
+      # inherit runner when NOT picked off but did not advance #
+      CLN$PE_1B[is.na(CLN$Runners) & !is.na(CLN$AB_1B) & grepl("PO1\\([1-9]*E", CLN$Play)] <- 
+            CLN$AB_1B[is.na(CLN$Runners) & !is.na(CLN$AB_1B) & grepl("PO1\\([1-9]*E", CLN$Play)]
+      CLN$PE_2B[is.na(CLN$Runners) & !is.na(CLN$AB_2B) & grepl("PO2\\([1-9]*E", CLN$Play)] <- 
+            CLN$AB_2B[is.na(CLN$Runners) & !is.na(CLN$AB_2B) & grepl("PO2\\([1-9]*E", CLN$Play)]
+      CLN$PE_3B[is.na(CLN$Runners) & !is.na(CLN$AB_3B) & grepl("PO3\\([1-9]*E", CLN$Play)] <- 
+            CLN$AB_3B[is.na(CLN$Runners) & !is.na(CLN$AB_3B) & grepl("PO3\\([1-9]*E", CLN$Play)]
+      
+      ## fielders' choice / force outs ##
+      # batter makes it to first on force out, including on errors where B moves to 1-3/H #
+	FO_B <- grepl("^[1-9]+", CLN$Play) & !grepl("FO|DP|TP|E[1-9]", CLN$Event)
       FO_1 <- grepl("\\(1.*/FO", CLN$Event)
       FO_2 <- grepl("\\(2.*/FO", CLN$Event)
       FO_3 <- grepl("\\(3.*/FO", CLN$Event)
@@ -654,10 +682,7 @@ basic_stats <- function(EVN, posis) {
       FC_3 <- grepl("^FC", CLN$Play) & grepl("B-3", CLN$Event)
       FC_H <- grepl("^FC", CLN$Play) & grepl("B-H", CLN$Event)
       FC_X <- grepl("^FC", CLN$Play) & grepl("BX", CLN$Event)
-      CLN$Outs[FO_B | FO_1 | FO_2 | FO_3] <- CLN$Outs[FO_B | FO_1 | FO_2 | FO_3] + 1
-      CLN$Outs[FC_X] <- CLN$Outs[FC_X] + str_count(CLN$Play[FC_X], "X")
-      
-      # batter makes it to first on force out, including on errors where B moves to 1-3/H
+	# assign bases #
       CLN$PE_1B[(FO_1 | FO_2 | FO_3 | FC_B) & !grepl("B(-|X)", CLN$Event)] <- 
             CLN$playerID[(FO_1 | FO_2 | FO_3 | FC_B) & !grepl("B(-|X)", CLN$Event)]
       CLN$PE_1B[(FO_1 | FO_2 | FO_3 | FC_1) & grepl("B(-|X)1", CLN$Event)] <- 
@@ -669,52 +694,60 @@ basic_stats <- function(EVN, posis) {
       CLN$Runs[(FO_1 | FO_2 | FO_3 | FC_H) & grepl("B(-|X)H", CLN$Event)] <- 
             CLN$Runs[(FO_1 | FO_2 | FO_3 | FC_H) & grepl("B(-|X)H", CLN$Event)]
       
-      # DOUBLE / TRIPLE PLAYS #
-      DP_F1 <- grepl("^[1-9]+.*\\(1.*DP", CLN$Event) & !grepl("[B1-3]X[1-3H]", CLN$Event)
+      ## routine double plays ##
+	DP_F1 <- grepl("^[1-9]+.*\\(1.*DP", CLN$Event) & !grepl("[B1-3]X[1-3H]", CLN$Event)
       DP_F2 <- grepl("^[1-9]+.*\\(2.*DP", CLN$Event) & !grepl("[B1-3]X[1-3H]", CLN$Event)
       DP_F3 <- grepl("^[1-9]+.*\\(3.*DP", CLN$Event) & !grepl("[B1-3]X[1-3H]", CLN$Event)
-      CLN$Outs[grepl("DP", CLN$Event)] <- 2
-      CLN$Outs[grepl("TP", CLN$Event)] <- 3
+	# assign bases #
       CLN$PE_1B[DP_F1] <- NA
       CLN$PE_2B[DP_F2] <- NA
       CLN$PE_3B[DP_F3] <- NA
-      # 2nd & 3rd or 3rd and home or 2nd and home
+      # 2nd & 3rd or 3rd and home or 2nd and home #
       CLN$PE_1B[(DP_F1 & DP_F2) | (DP_F2 & DP_F3) | (DP_F1 & DP_F3)] <- 
             CLN$playerID[(DP_F1 & DP_F2) | (DP_F2 & DP_F3) | (DP_F1 & DP_F3)]
-      # 1B runner is safe at 2B if outs at 3rd and home
+      # 1B runner is safe at 2B if outs at 3rd and home #
       CLN$PE_2B[(DP_F2 & DP_F3)] <- CLN$AB_2B[(DP_F2 & DP_F3)]
-      # 2B runner is safe at 3B if outs are 2nd and home
+      # 2B runner is safe at 3B if outs are 2nd and home #
       CLN$PE_3B[(DP_F1 & DP_F3)] <- CLN$AB_3B[(DP_F1 & DP_F3)]
-      # handle DP_X & TP_X
-      # DP_X <- grepl("^[1-9]+.*DP", CLN$Event) & grepl("[B1-3]X[1-3H]", CLN$Event)
-      # TP_X <- grepl("^[1-9]+.*TP", CLN$Event) & grepl("[B1-3]X[1-3H]", CLN$Event)
-      DP_1X <- grepl("^[1-9]+.*DP.*X", CLN$Event) & !grepl("X.*X", CLN$Event)
+      
+      ## non-routine double plays ## ## might need more case(s) ##
+	DP_1X <- grepl("^[1-9]+.*DP.*X", CLN$Event) & !grepl("X.*X", CLN$Event)
       DP_2X <- grepl("^[1-9]+.*DP.*X", CLN$Event) & grepl("X.*X", CLN$Event)
-      ### triple plays end inning anyway LOL ###
-      # TP_1X <- grepl("^[1-9]+.*TP.*X", CLN$Event) & !grepl("X.*X", CLN$Event)
-      # TP_2X <- grepl("^[1-9]+.*TP.*X", CLN$Event) & grepl("X.*X", CLN$Event) & !grepl("X.*X.*X", CLN$Event)
-      # TP_3X <- grepl("^[1-9]+.*TP.*X", CLN$Event) & grepl("X.*X.*X", CLN$Event)
-      # batter is out and a runner is out
+      # batter is out, another runner is out #
       if (any(DP_1X)) {
             # 1B runner is out
-            CLN$PE_1B[DP_1X & grepl("1X", CLN$Event)] <- NA
+            CLN$PE_1B[DP_1X & grepl("(^[1-9]+\\(1\\))|(1X)", CLN$Event)] <- NA
             # 1B runner safe and did not advance
-            CLN$PE_1B[DP_1X & !grepl("1(-|X)", CLN$Event)] <- 
-                  CLN$AB_1B[DP_1X & !grepl("1(-|X)", CLN$Event)]
+            CLN$PE_1B[DP_1X & !grepl("(^[1-9]+\\(1\\))|(1(-|X))", CLN$Event)] <- 
+                  CLN$AB_1B[DP_1X & !grepl("(^[1-9]+\\(1\\))|(1(-|X))", CLN$Event)]
             
             # 2B runner is out
-            CLN$PE_2B[DP_1X & grepl("2X", CLN$Event) & !grepl("1-2", CLN$Event)] <- NA
+            CLN$PE_2B[DP_1X & grepl("(^[1-9]+\\(2\\))|(2X)", CLN$Event) & !grepl("1-2", CLN$Event)] <- NA
             # 2B runner safe and did not advance
-            CLN$PE_2B[DP_1X & !grepl("2(-|X)", CLN$Event) & !grepl("1-2", CLN$Event)] <- 
-                  CLN$AB_2B[DP_1X & !grepl("2(-|X)", CLN$Event) & !grepl("1-2", CLN$Event)]
+            CLN$PE_2B[DP_1X & !grepl("(^[1-9]+\\(2\\))|(2(-|X))", CLN$Event) & !grepl("1-2", CLN$Event)] <- 
+                  CLN$AB_2B[DP_1X & !grepl("(^[1-9]+\\(2\\))|(2(-|X))", CLN$Event) & !grepl("1-2", CLN$Event)]
             
             # 3B runner is out
-            CLN$PE_3B[DP_1X & grepl("3X", CLN$Event) & !grepl("(1|2)-3", CLN$Event)] <- NA
+            CLN$PE_3B[DP_1X & grepl("(^[1-9]+\\(3\\))|(3X)", CLN$Event) & !grepl("(1|2)-3", CLN$Event)] <- NA
             # 3B runner safe and did not advance
-            CLN$PE_3B[DP_1X & !grepl("3(-|X)", CLN$Event) & !grepl("(1|2)-3", CLN$Event)] <- 
-                  CLN$AB_3B[DP_1X & !grepl("3(-|X)", CLN$Event) & !grepl("(1|2)-3", CLN$Event)]
+            CLN$PE_3B[DP_1X & !grepl("(^[1-9]+\\(3\\))|(3(-|X))", CLN$Event) & !grepl("(1|2)-3", CLN$Event)] <- 
+                  CLN$AB_3B[DP_1X & !grepl("(^[1-9]+\\(3\\))|(3(-|X))", CLN$Event) & !grepl("(1|2)-3", CLN$Event)]
+			
+		# assign any runners that are still safe!
+		TEM <- CLN$ID[DP_1X][str_count(CLN$Event[DP_1X], "-")==1]
+		if (length(TEM) > 0) {
+		
+			for (tm in 1:length(TEM)) {
+				
+				# find the from and to bases
+				rnnr <- sub(".*([B123]-[123H]).*", "\\1", CLN$Runners[CLN$ID==TEM[tm]])
+				
+				# assign the base via function 
+				asgn_base(CLN, TEM[tm], rnnr)
+			}
+		}
       }
-      # batter is safe, but both runners are out!
+      # batter is safe, but both runners are out! #
       if (any(DP_2X)) {
             # 1B runner is out
             CLN$PE_1B[DP_2X & grepl("1X", CLN$Event)] <- NA
@@ -735,56 +768,43 @@ basic_stats <- function(EVN, posis) {
             
             # batter is safe
             CLN$PE_1B[DP_2X] <- CLN$playerID[DP_2X]
+		
+		# assign any runners that are still safe!
+		TEM <- CLN$ID[DP_2X][str_count(CLN$Event[DP_2X], "-")==1]
+		if (length(TEM) > 0) {
+		
+			for (tm in 1:length(TEM)) {
+				
+				# find the from and to bases
+				rnnr <- sub(".*([B123]-[123H]).*", "\\1", CLN$Runners[CLN$ID==TEM[tm]])
+				
+				# assign the base via function 
+				asgn_base(CLN, TEM[tm], rnnr)
+			}
+		}
       }
       
+      # # errors
+      # CLN$PE_1B[E_B | E_1] <- CLN$playerID[E_B | E_1]
+      # CLN$PE_2B[E_2] <- CLN$playerID[E_2]
+      # CLN$PE_3B[E_3] <- CLN$playerID[E_3]
       
-      # batter on base from error #
-      E_B <- grepl("^[1-9]*E[1-9]+", CLN$Event) & !grepl("B(-|X)", CLN$Event)
-      E_1 <- grepl("^[1-9]*E[1-9]+", CLN$Event) & grepl("B-1|BX1\\([1-9]*E[1-9]+", CLN$Event)
-      E_2 <- grepl("^[1-9]*E[1-9]+", CLN$Event) & grepl("B-2|BX2\\([1-9]*E[1-9]+", CLN$Event)
-      E_3 <- grepl("^[1-9]*E[1-9]+", CLN$Event) & grepl("B-3|BX3\\([1-9]*E[1-9]+", CLN$Event)
-      E_H <- grepl("^[1-9]*E[1-9]+", CLN$Event) & grepl("B-H|BXH\\([1-9]*E[1-9]+", CLN$Event)
-      CLN$PE_1B[E_B | E_1] <- CLN$playerID[E_B | E_1]
-      CLN$PE_2B[E_2] <- CLN$playerID[E_2]
-      CLN$PE_3B[E_3] <- CLN$playerID[E_3]
-      CLN$Runs[E_H] <- CLN$Runs[E_H] + 1
+      # # WALK turned into double #
+      # CLN$PE_2B[WK_2B] <- CLN$playerID[WK_2B]
+      # CLN$PE_1B[WK_2B] <- NA # remove batter from 1st which is automatic from Walks above
+	
+      ## strikeout turned bad lol... ##
+      CLN$PE_1B[grepl("^K.*BX1\\([1-9]*E[1-9]", CLN$Event)] <- 
+            CLN$playerID[grepl("^K.*BX1\\([1-9]*E[1-9]", CLN$Event)]
+      CLN$Outs[grepl("^K.*BX1\\([1-9]*E[1-9]", CLN$Event) & str_count(CLN$Event, "X") > 0] <-
+            str_count(CLN$Event[grepl("^K.*BX1\\([1-9]*E[1-9]", CLN$Event) & str_count(CLN$Event, "X") > 0], "X")-1
       
-      ### Weird scenarios start here lol ###
+      CLN$PE_2B[grepl("^K.*B-2", CLN$Event)] <- CLN$playerID[grepl("^K.*B-2", CLN$Event)]
+      CLN$PE_3B[grepl("^K.*B-3", CLN$Event)] <- CLN$playerID[grepl("^K.*B-3", CLN$Event)]
+      CLN$Outs[(grepl("^K.*B-3", CLN$Event) | grepl("^K.*B-2", CLN$Event))] <- 
+            str_count(CLN$Event[(grepl("^K.*B-3", CLN$Event) | grepl("^K.*B-2", CLN$Event))], "X")
       
-      # PB / WP / HP / Error # NEGATE THE OUT ON K'S
-      No_K <- grepl("K(\\+)?(WP|PB|E[1-9])?.*B-1", CLN$Event) # only negate these outs; send batter to base
-      HBYP <- grepl("^HP", CLN$Play)
-      CLN$Outs[No_K] <- 0
-      CLN$PE_1B[No_K | HBYP] <- CLN$playerID[No_K | HBYP]
-      
-      # K/FO - this is a weird one, but probably a bounce to plate strike out and just force out @ home
-      K_FO <- grepl("K/FO\\.3XH", CLN$Event)
-      CLN$Outs[K_FO] <- 1
-      
-      # Catcher interference, redundant B-1 allowed. unless BX-ed
-      C_INT <- grepl("^C/E[1-9].*(B-1)?", CLN$Event)
-      CLN$PE_1B[C_INT] <- CLN$playerID[C_INT]
-      
-      # runner is hit by batted ball ... wow lol #
-      BR_scn <- grepl("^S.*BR", CLN$Event) # single is still awarded, the out still recorded: [1-3]X[1-3H]
-      CLN$PE_1B[BR_scn] <- CLN$playerID[BR_scn]
-      
-      # WALK turned into double #
-      WK_2B <- grepl("W.*B-2", CLN$Event)
-      CLN$PE_2B[WK_2B] <- CLN$playerID[WK_2B]
-      CLN$PE_1B[WK_2B] <- NA # remove batter from 1st which is automatic from Walks above
-      
-      # strikeout, batter makes it to first on error
-      K_BX1E <- grepl("^K.BX1\\([1-9]*E[1-9]*", CLN$Event)
-      CLN$PE_1B[K_BX1E] <- CLN$playerID[K_BX1E]
-      CLN$Outs[K_BX1E & CLN$Outs > 0] <- CLN$Outs[K_BX1E & CLN$Outs > 0] - 1
-      
-      # # fielder's choice / force out error
-      # FCFOE <- grepl("(FO|FC).*[1-3]X[1-3H]\\([1-9]*E[1-9]*", CLN$Event)
-      # 
-      
-      
-      # ignore the change of inning inheriting of runners
+      ## ignore the change of inning inheriting of runners again, in case of any changes ##
       chg_inning <- data.table:::uniqlist(CLN[!is.na(CLN$Team),3:4])
       CLN$PE_1B[chg_inning-1] <- NA
       CLN$PE_2B[chg_inning-1] <- NA
@@ -793,29 +813,14 @@ basic_stats <- function(EVN, posis) {
       CLN$AB_2B[chg_inning] <- NA
       CLN$AB_3B[chg_inning] <- NA
       
-      # group together the variables to pass along
-      vars <- list(all_plyExcp1st, R1X1, R1_2, R2X2, R1_3, R2_3, R3X3, chg_inning, R1_1, R2_2, R3_3,
-                   FO_B, FO_1, FO_2, FO_3, FC_B, FC_1, FC_2, FC_3, FC_H, DP_F1, DP_F2, DP_F3,
-                   DP_1X, DP_2X, E_B, E_1, E_2, E_3, WK_2B)
-      
-      # run the recursive function to move / remove runners
-      T1 <- Sys.time()
-      CLN <- adv_runnersNA(CLN, vars)
-      T2 <- Sys.time()
-      print(T2 - T1)
-      # 24.23818 seconds for recursive function
-      
-      
-      # Assigning Outs #
-      T1 <- Sys.time()
-      CLN <- asgn_outs(CLN, all_plyExcp1st, chg_inning)
-      T2 <- Sys.time()
-      print(T2 - T1)
-      
-      
-      ################################
-      ################################
-      
+      if (!isTRUE(all.equal(TMP, CLN))) {
+            CLN <- adv_runnersNA(CLN)
+      }
+      return (CLN)
+}
+
+# divide and sort the data
+dv_sort <- function(CLN) {
       
       ################################
       ##   Divide & Sort the Data   ## - BASIC
@@ -983,7 +988,7 @@ basic_stats <- function(EVN, posis) {
 ################################
 
 # simple set up, read. scan for line headers
-setwd("~/Personal/Practice")
+setwd("~/Personal/Practice/MLB")
 # setwd("~/Data-4fun/Baseball")
 # EVN <- readLines("C:/Users/siling/Desktop/DoesNotNeedContinuousBackup/2010seve/2016TOR.EVA")
 # CWS stadium had 3 triple plays in 2016.
@@ -1006,6 +1011,42 @@ for (e in 1:length(evn2016)) {
 	EVN <- c(EVN, ENS)
 }
 
+# parse for initial setup state #
+T1 <- Sys.time()
+CLN <- init_state(EVN, posis)
+T2 <- Sys.time()
+message("Initial Setup:"); print(T2-T1)
+
+# recursively assign outs #
+all_plyExcp1st <- 2:nrow(CLN)
+chg_inning <- data.table:::uniqlist(CLN[!is.na(CLN$Team),3:4])
+T1 <- Sys.time()
+CLN <- asgn_outs(CLN, all_plyExcp1st, chg_inning)
+T2 <- Sys.time()
+message("Assign Outs:"); print(T2-T1)
+
+# run the recursive function to move / remove runners #
+T1 <- Sys.time()
+CLN <- adv_runnersNA(CLN)
+T2 <- Sys.time()
+message("Advance Runners:"); print(T2-T1)
+
+message("2016 completed!")
+x <- c(nrow(CLN[grepl("1(-|X)", CLN$Runners) & is.na(CLN$AB_1B),]),
+       nrow(CLN[grepl("2(-|X)", CLN$Runners) & is.na(CLN$AB_2B),]),
+       nrow(CLN[grepl("3(-|X)", CLN$Runners) & is.na(CLN$AB_3B),]),
+       nrow(CLN[compareNA(CLN$AB_1B, CLN$AB_2B) & !is.na(CLN$AB_1B),]),
+       nrow(CLN[compareNA(CLN$AB_1B, CLN$AB_2B) & !is.na(CLN$AB_2B),]),
+       nrow(CLN[compareNA(CLN$AB_2B, CLN$AB_3B) & !is.na(CLN$AB_2B),]),
+       nrow(CLN[compareNA(CLN$AB_2B, CLN$AB_3B) & !is.na(CLN$AB_3B),]),
+       nrow(CLN[compareNA(CLN$PE_1B, CLN$PE_2B) & !is.na(CLN$PE_1B),]),
+       nrow(CLN[compareNA(CLN$PE_1B, CLN$PE_2B) & !is.na(CLN$PE_2B),]),
+       nrow(CLN[compareNA(CLN$PE_2B, CLN$PE_3B) & !is.na(CLN$PE_3B),]),
+       nrow(CLN[compareNA(CLN$PE_1B, CLN$PE_2B) & !is.na(CLN$PE_1B),]),
+       nrow(CLN[compareNA(CLN$PE_2B, CLN$PE_3B) & !is.na(CLN$PE_2B),]),
+       nrow(CLN[compareNA(CLN$PE_2B, CLN$PE_3B) & !is.na(CLN$PE_3B),]))
+print(x)
+message(paste("Total errors:", sum(x)))
 
 ################################
 ################################
@@ -1026,6 +1067,7 @@ for (e in 1:length(evn2016)) {
 pb <- txtProgressBar(min = 2010, max = 2015, style=3)
 for (y in 2010:2015) {
       
+      message(paste("Year:", y))
       # parse the event file
       TS <- Sys.time()
       evn2010s <- list.files(work_loc)
@@ -1043,14 +1085,25 @@ for (y in 2010:2015) {
             EVN <- c(EVN, ENS)
       }
       
-      TM <- Sys.time()
-      OUTPUT <- basic_stats(EVN, posis)
-      CLN <- OUTPUT[[1]]
-      TE <- Sys.time()
-      message("Initial Load:")
-      print(TM-TS)
-      message("Processing:")
-      print(TE-TM)
+      # parse for initial setup state #
+      T1 <- Sys.time()
+      CLN <- init_state(EVN, posis)
+      T2 <- Sys.time()
+      message("Initial Setup:"); print(T2-T1)
+      
+      # recursively assign outs #
+      all_plyExcp1st <- 2:nrow(CLN)
+      chg_inning <- data.table:::uniqlist(CLN[!is.na(CLN$Team),3:4])
+      T1 <- Sys.time()
+      CLN <- asgn_outs(CLN, all_plyExcp1st, chg_inning)
+      T2 <- Sys.time()
+      message("Assign Outs:"); print(T2-T1)
+      
+      # run the recursive function to move / remove runners #
+      T1 <- Sys.time()
+      CLN <- adv_runnersNA(CLN)
+      T2 <- Sys.time()
+      message("Advance Runners:"); print(T2-T1)
       
       # error checks
       x <- c(nrow(CLN[grepl("1(-|X)", CLN$Runners) & is.na(CLN$AB_1B),]),
@@ -1070,8 +1123,10 @@ for (y in 2010:2015) {
             eval(parse(text=paste0("ERR",y, " <- CLN")))
       }
       
-      setTxtProgressBar(pb, y)
       message(paste(y, "completed!"))
+      print(x)
+      message(paste("Total errors:", sum(x)))
+      setTxtProgressBar(pb, y)
 }
 
 # checks 2000-2009
