@@ -7,7 +7,7 @@
 ##                                                          ##
 ##    Sorts gamelogs into RStudio-friendly tables.          ##
 ##                                                          ##
-##    Version 1.4.1                                         ##
+##    Version 1.4.3                                         ##
 ##                                                          ##
 ##############################################################
 
@@ -56,7 +56,7 @@
 #           - bug: search: ## might need more case(s) ## - January 3, 2018
 #     1.4.1 - fixing runners moving bugs, mostly on DPs, some POCS-err; etc. - January 4, 2018
 #     1.4.2 - adjust the IDs for the tables - take out "2016" portion - January 4, 2018
-#     
+#     1.4.3 - fix some of the PE_Outs - January 4, 2018
 #     1.4.X - next issue, need to handle runs scored! - January ?
 ##
 ################################
@@ -492,7 +492,8 @@ init_state <- function(EVN, posis) {
 	# batter outs
 	OB_K <- grepl("^K", CLN$Play) & !grepl("(B-|BX[1-H][1-9]*E[1-9])", CLN$Play)
 	FO_B <- grepl("^[1-9]+", CLN$Play) & !grepl("FO|DP|TP|E[1-9]", CLN$Event)
-	FC_B <- grepl("^FC", CLN$Play) & !grepl("B(-|X)", CLN$Event)
+	FC_B <- grepl("^FC.*X[1-3H]", CLN$Play) & !grepl("B(-|X)", CLN$Event) & 
+	      !grepl("X[1-3H]\\([1-9]*E[1-9]", CLN$Event) # ignore fielder's choice where no one is out
 	CLN$Outs[OB_K | FO_B | FC_B] <- CLN$Outs[OB_K | FO_B | FC_B] + 1
 	
 	# runner outs
