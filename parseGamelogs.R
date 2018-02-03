@@ -7,7 +7,7 @@
 ##                                                          ##
 ##    Sorts gamelogs into RStudio-friendly tables.          ##
 ##                                                          ##
-##    Version 1.5.9                                         ##
+##    Version 1.6.0                                         ##
 ##                                                          ##
 ##############################################################
 
@@ -84,6 +84,7 @@
 #           - fixed wrong assumption w/ normal FOs not specifically indicated - February 2, 2018
 #           - no RBI for double plays - February 2, 2018
 #     1.5.9 - integrate the fielding stats generator - basic_field-v3.R - February 2, 2018
+#     1.6.0 - fix fielderID bug - February 3, 2018
 ##
 ################################
 ################################
@@ -3065,16 +3066,16 @@ basic_field_sort <- function(CLN, LNP) {
       
       ### fielding stats table ###
       FTB <- TP %>% extract(., c("ID", "gameID", "fielderID")) %>%
-            mutate(fielderID=paste0(fielderID, sub("^[A-Z]{3}([0-9]{6}).*", "\\1", gameID))) %>%
+            mutate(fielderID=paste(fielderID, sub("^[A-Z]{3}([0-9]{6}).*", "\\1", gameID), sep=";;")) %>%
             aggregate(ID ~ fielderID, ., length) %>%
             plyr::rename(., c("ID"="putout")) %>%
             merge(., TA %>% extract(., c("ID", "gameID", "fielderID")) %>%
-                        mutate(fielderID=paste0(fielderID, sub("^[A-Z]{3}([0-9]{6}).*", "\\1", gameID))) %>%
+                        mutate(fielderID=paste(fielderID, sub("^[A-Z]{3}([0-9]{6}).*", "\\1", gameID), sep=";;")) %>%
                         aggregate(ID ~ fielderID, ., length) %>%
                         plyr::rename(., c("ID"="assist")),
                   by="fielderID", all=TRUE) %>%
             merge(., TE %>% extract(., c("ID", "gameID", "fielderID")) %>%
-                        mutate(fielderID=paste0(fielderID, sub("^[A-Z]{3}([0-9]{6}).*", "\\1", gameID))) %>%
+                        mutate(fielderID=paste(fielderID, sub("^[A-Z]{3}([0-9]{6}).*", "\\1", gameID), sep=";;")) %>%
                         aggregate(ID ~ fielderID, ., length) %>%
                         plyr::rename(., c("ID"="error")),
                   by="fielderID", all=TRUE) %>%
@@ -3507,7 +3508,7 @@ for (y in 2010:2016) {
 }
 BasicHit <- setNames(BasicHit, 2010:2016)
 BasicPitch <- setNames(BasicPitch, 2010:2016)
-BasicField <- setNames(BasicField, 2010:2016) # v1.5.9
+BasicField <- setNames(BasicField, 2010:2016) # v1.5.9, 1.6.0 fixed bug
 
 ## send to output function ##
 final_outputs(BasicHit, 1)
