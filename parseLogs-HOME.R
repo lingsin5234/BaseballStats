@@ -7,7 +7,7 @@
 ##                                                          ##
 ##    Sorts gamelogs into RStudio-friendly tables.          ##
 ##                                                          ##
-##    Version 1.7.0                                         ##
+##    Version 1.5.9                                         ##
 ##                                                          ##
 ##############################################################
 
@@ -22,6 +22,7 @@
 #           - added "games_played" and "games_started" - January 14, 2018
 #     1.6   - Version 1.5.6 of parser from work - January 23, 2018
 #     1.7   - Version 1.5.7 of parser from work - January 28, 2018
+#     1.8   - Version 1.5.9 of parser from work - February 2, 2018
 ##
 
 ################################
@@ -91,6 +92,11 @@
 #     1.5.6 - incorporate the Basic Pitching Stats - January 23, 2018
 #           - exports for Basic Hitting & Pitching - January 23, 2018
 #     1.5.7 - generate a table with playerID and player names - January 24, 2018
+#     1.5.8 - caught stealing / thrown out bug -- escalated to fielding too - February 2, 2018
+#           - fixed wrong assumption w/ BR on fielder's choices for OUTS - February 2, 2018
+#           - fixed wrong assumption w/ normal FOs not specifically indicated - February 2, 2018
+#           - no RBI for double plays - February 2, 2018
+#     1.5.9 - integrate the fielding stats generator - basic_field-v3.R - February 2, 2018
 ##
 ################################
 ################################
@@ -548,19 +554,25 @@ tidy_up <- function (ALLG) {
       
       # batter outs / force out / fielder's choice outs #
       OB_K <- grepl("^K", CLN$Play) & !grepl("(B-|BX[1-H]\\([1-9]*E[1-9])", CLN$Runners) & !grepl("K\\/FO", CLN$Event)
-      FO_B <- grepl("^[1-9]+", CLN$Play) & !grepl("FO|DP|TP|E[1-9]", CLN$Event)
-      FC_B <- grepl("^FC.*X[1-3H]", CLN$Event) & !grepl("B(-|X)", CLN$Event) & 
-            !grepl("X[1-3H]\\([1-9]*E[1-9]", CLN$Event) # ignore fielder's choice where no one is out
+      # the \\/ ignores all the instances of "error" tag
+      FO_B <- grepl("^[1-9]+\\/", CLN$Event) & !grepl("FO|DP|TP", CLN$Event) #!grepl("FO|DP|TP|E[1-9]", CLN$Event)
+      FC_B <- grepl("^FC.*X[1-3H]", CLN$Event) & # !grepl("B(-|X)", CLN$Event) & 
+            !grepl("X[1-3H](\\([UNR]+\\))?\\([1-9]*E[1-9]", CLN$Event) # ignore fielder's choice where no one is out
       FO_R <- grepl("\\([1-3].*/FO", CLN$Event)
       CLN$Outs[OB_K | FO_B | FC_B | FO_R] <- CLN$Outs[OB_K | FO_B | FC_B | FO_R] + 1
       
-      # runner outs #
-      ORUN <- grepl("[1-3]X[1-3H]", CLN$Runners) & !grepl("[1-3]X[1-3H]([\\(NUR\\)])*\\([1-9]*E[1-9]+", CLN$Runners) &
+      # any runner outs #
+      ORUN <- grepl("[B1-3]X[1-3H]", CLN$Runners) & !grepl("[B1-3]X[1-3H]([\\(NUR\\)])*\\([1-9]*E[1-9]+", CLN$Runners) &
             !grepl("^((K\\/FO)|FO|FC)", CLN$Event)
       CLN$Outs[ORUN] <- CLN$Outs[ORUN] + 1
       
+      # fix the rare K marked as 2 outs on BX[123H]
+      KN_2 <- grepl("^K.*BX[123H]", CLN$Event) & !grepl("BX[123H](\\([UNR]+\\))?\\([1-9]*E[1-9]", CLN$Event) &
+            !grepl("X[123H]\\([1-9]+\\);.*X[123H]\\([1-9]+\\)", CLN$Event)
+      CLN$Outs[KN_2] <- 1 # should be just 1 out
+      
       # Caught Stealing or Picked Off with no errors
-      CSPO <- grepl("^(CS|PO)", CLN$Play) & !grepl("[1-9]*E[1-9]", CLN$Play)
+      CSPO <- grepl("(CS|PO)", CLN$Play) & !grepl("[1-9]*E[1-9]", CLN$Play)
       CLN$Outs[CSPO] <- CLN$Outs[CSPO] + 1
       
       # DOUBLE / TRIPLE PLAYS #
@@ -2330,8 +2342,8 @@ dv_sort <- function(CLN, LNP) {
             paste(RN$playerID[!grepl(";;", RN$playerID)], 
                   sub("^[A-Z]{3}([0-9]{6}).*", "\\1", RN$gameID[!grepl(";;", RN$playerID)]), sep=";;")
       
-      # runs in - no-rbi runs = total rbis
-      RB_tmp <- CLN[grepl("-H|XH\\([1-9]*E[1-9]", CLN$Runners),]
+      # runs in - no-rbi runs = total rbis;; exclude double plays!
+      RB_tmp <- CLN[grepl("-H|XH\\([1-9]*E[1-9]", CLN$Runners) & !grepl("DP", CLN$Event),]
       RB <- data.frame(ID=RB_tmp$ID, gameID=RB_tmp$gameID, Inning=RB_tmp$Inning, Team=RB_tmp$Team,
                        Outs=RB_tmp$Outs, rbi= str_count(RB_tmp$Runners, "-H|XH\\([1-9]*E[1-9]") -
                              str_count(RB_tmp$Runners, "NR"), 
@@ -2761,6 +2773,8 @@ final_outputs <- function(bt, typ) {
       # check if pitching data #
       if (typ==2) {
             bt <- bt %>% plyr::rename(., c("pitcherID"="playerID"))
+      } else if (typ==3) {
+            bt <- bt %>% plyr::rename(., c("fielderID"="playerID")) # v1.5.9
       }
       
       # sort data frame: add year & month, fix indexID, playerID #
@@ -2782,11 +2796,15 @@ final_outputs <- function(bt, typ) {
       OneFrame[is.na(OneFrame)] <- 0
       
       if (typ==1) {
-            write.csv(OneFrame, "basic_hitting_month3.csv", na="", row.names=FALSE)
+            write.csv(OneFrame, "basic_hitting_month4.csv", na="", row.names=FALSE)
       }
       else if (typ==2) {
             OneFrame <- OneFrame %>% plyr::rename(., c("playerID"="pitcherID"))
-            write.csv(OneFrame, "basic_pitching_month.csv", na="", row.names=FALSE)
+            write.csv(OneFrame, "basic_pitching_month2.csv", na="", row.names=FALSE)
+      }
+      else if (typ==3) {
+            OneFrame <- OneFrame %>% plyr::rename(., c("playerID"="fielderID"))  # v1.5.9
+            write.csv(OneFrame, "basic_fielding_month.csv", na="", row.names=FALSE)
       }
 }
 
@@ -2802,6 +2820,283 @@ handle_playerInfo <- function (EVN) {
       
       # return stt_ply
       return(stt_ply)
+}
+
+# divide and sort the data - BASIC Fielding #
+basic_field_sort <- function(CLN, LNP) {
+
+      
+      ## assign the fielding by ID / gameID ##
+      FLD <- CLN %>% left_join(., LNP %>% extract(., c("ID", "gameID", "away_def", "home_def")), 
+                               by=c("ID", "gameID"))
+      
+      # now assign all blanks -- na.locf #
+      FLD <- FLD %>% {na.locf(.[grepl("_def", names(.))])} %>% cbind(CLN, .)
+      
+      # keep only defense that is actually on #
+      FLD[FLD$Team==0,c("away_def")] <- NA
+      FLD[FLD$Team==1,c("home_def")] <- NA
+      
+      # combine to reflect one set of defensive unit only #
+      FLD <- FLD %>% {cbind.data.frame(., defense_str=c(na.omit(c(t(.[grepl("_def", names(.))])))))} %>%
+            extract(., c(names(.)[!grepl("_def", names(.))]))
+      
+      # split defensive assignments #
+      FLD <- FLD %>% {str_split_fixed(.$defense_str, ";", 10)} %>%
+            data.frame(., stringsAsFactors=FALSE) %>%
+            setNames(., paste0("def_", 1:10)) %>% cbind(FLD, .)
+      
+      
+      ## how to sort these... ##
+      # need to figure out the format you want first #
+      
+      # finding fielding situations for outs only that are not strikeouts #
+      TEST <- FLD %>% subset(., FLD$Outs > 0 & !FLD$Event=="K") 
+      
+      
+      ## sort the out styles ##
+      # number first events #
+      T1 <- TEST %>% subset(., grepl("^[1-9]", Event)) %>% 
+            mutate(putout=sub(".*([1-9])$", "\\1", Play)) %>%
+            mutate(assist=sub(".*([1-9])([1-9])$", "\\1", Play))
+      # take out bad translations #
+      T1$putout[T1$putout==T1$Play & nchar(T1$putout) > 1] <- NA
+      T1$assist[T1$assist==T1$Play] <- NA
+      
+      # fix those translations #
+      # handle 1 outs #
+      T1$putout[is.na(T1$putout) & T1$Outs==1] <- 
+            sub("^.*([1-9])\\(.*", "\\1", T1$Play[is.na(T1$putout) & T1$Outs==1])
+      T1$assist[is.na(T1$assist) & nchar(T1$Play) > 4 & T1$Outs==1] <- 
+            sub("^([1-9]+)([1-9])\\(.*", "\\1", 
+                T1$Play[is.na(T1$assist) & nchar(T1$Play) > 4 & T1$Outs==1])
+      
+      # handle 2 outs, replace whatever was put there previously #
+      # ending with ) without X #
+      T1$putout[nchar(T1$Event) > 4 & T1$Outs==2 & grepl(")$", T1$Play) & !grepl("X", T1$Runners)] <- 
+            sub("^.*([1-9])\\([B123]\\)[1-9]*([1-9])\\([B123]\\)$", "\\1\\2", 
+                T1$Play[nchar(T1$Event) > 4 & T1$Outs==2 & grepl(")$", T1$Play) & !grepl("X", T1$Runners)])
+      # player who got first putout always included as assist in next putout #
+      T1$assist[nchar(T1$Event) > 4 & T1$Outs==2 & grepl(")$", T1$Play) & !grepl("X", T1$Runners)] <-
+            sub("^([1-9]*)\\([B123]\\)([1-9]*)[1-9]\\([B123]\\)$", "\\1\\2",
+                T1$Play[nchar(T1$Event) > 4 & T1$Outs==2 & grepl(")$", T1$Play) & !grepl("X", T1$Runners)])
+      
+      # not ending in ) without X #
+      T1$putout[nchar(T1$Event) > 4 & T1$Outs==2 & !grepl(")$", T1$Play) & !grepl("X", T1$Runners)] <- 
+            sub("^.*([1-9])\\([B123]\\)[1-9]*([1-9])$", "\\1\\2",
+                T1$Play[nchar(T1$Event) > 4 & T1$Outs==2 & !grepl(")$", T1$Play) & !grepl("X", T1$Runners)])
+      T1$assist[nchar(T1$Event) > 4 & T1$Outs==2 & !grepl(")$", T1$Play) & !grepl("X", T1$Runners)] <-
+            sub("^([1-9]*)\\([B123]\\)([1-9]*)[1-9]$", "\\1\\2", 
+                T1$Play[nchar(T1$Event) > 4 & T1$Outs==2 & !grepl(")$", T1$Play) & !grepl("X", T1$Runners)])
+      
+      # with X #
+      T1$putout[nchar(T1$Event) > 4 & T1$Outs==2 & grepl("X", T1$Runners)] <- 
+            sub("^.*([1-9])\\/.*X[123H]\\([1-9]*([1-9])(\\/TH)?\\).*", "\\1\\2", 
+                T1$Event[nchar(T1$Event) > 4 & T1$Outs==2 & grepl("X", T1$Runners)])
+      T1$assist[nchar(T1$Event) > 4 & T1$Outs==2 & grepl("X", T1$Runners)] <- 
+            sub("^([1-9]*)[1-9]\\/.*X[123H]\\(([1-9]*)[1-9](\\/TH)?\\).*", "\\1\\2", 
+                T1$Event[nchar(T1$Event) > 4 & T1$Outs==2 & grepl("X", T1$Runners)])
+      
+      
+      # handling 3 outs! :) #
+      # no X #
+      T1$putout[T1$Outs==3 & !grepl("X", T1$Runners)] <- 
+            sub("^.*([1-9])\\([B123]\\)[1-9]*([1-9])\\([B123]\\)[1-9]*([1-9])$", "\\1\\2\\3", 
+                T1$Play[T1$Outs==3 & !grepl("X", T1$Runners)])
+      # player who got first putout always included as assist in next putout #
+      T1$assist[T1$Outs==3 & !grepl("X", T1$Runners)] <-
+            sub("^([1-9]*)\\([B123]\\)([1-9]*)\\([B123]\\)([1-9]*)[1-9]$", "\\1\\2\\3",
+                T1$Play[T1$Outs==3 & !grepl("X", T1$Runners)])
+      
+      # 1 X #
+      T1$putout[T1$Outs==3 & grepl("X", T1$Runners) & !grepl("X.*X", T1$Runners)] <- 
+            sub("^.*([1-9])\\([B123]\\)[1-9]*([1-9]).*X[123H]\\([1-9]*([1-9])(\\/TH)?\\).*", "\\1\\2\\3",
+                T1$Event[T1$Outs==3 & grepl("X", T1$Runners) & !grepl("X.*X", T1$Runners)])
+      T1$assist[T1$Outs==3 & grepl("X", T1$Runners) & !grepl("X.*X", T1$Runners)] <-
+            sub("^([1-9]*)[1-9]\\([B123]\\)([1-9]*)[1-9].*X[123H]\\(([1-9]*)[1-9](\\/TH)?\\).*", "\\1\\2\\3", 
+                T1$Event[T1$Outs==3 & grepl("X", T1$Runners) & !grepl("X.*X", T1$Runners)])
+      
+      # 2 X #
+      T1$putout[T1$Outs==3 & grepl("X.*X", T1$Runners) & !grepl("X.*X.*X", T1$Runners)] <- 
+            sub("^[1-9]*([1-9])\\/.*X[123H]\\([1-9]*([1-9])(\\/TH)?\\).*X[123H]\\([1-9]*([1-9])(\\/TH)?\\).*", 
+                "\\1\\2\\4", T1$Event[T1$Outs==3 & grepl("X.*X", T1$Runners) & !grepl("X.*X.*X", T1$Runners)])
+      T1$assist[T1$Outs==3 & grepl("X.*X", T1$Runners) & !grepl("X.*X.*X", T1$Runners)] <-
+            sub("^([1-9]*)[1-9]\\/.*X[123H]\\(([1-9]*)[1-9](\\/TH)?\\).*X[123H]\\(([1-9]*)[1-9](\\/TH)?\\).*", 
+                "\\1\\2\\4", T1$Event[T1$Outs==3 & grepl("X.*X", T1$Runners) & !grepl("X.*X.*X", T1$Runners)])
+      
+      # 3 X #
+      T1$putout[T1$Outs==3 & grepl("X.*X.*X", T1$Runners)] <- 
+            sub(".*X[123H]\\([1-9]*([1-9])(\\/TH)?\\).*X[123H]\\([1-9]*([1-9])(\\/TH)?\\).*X[123H]\\([1-9]*([1-9])(\\/TH)?\\).*", 
+                "\\1\\3\\5", T1$Event[T1$Outs==3 & grepl("X.*X.*X", T1$Runners)])
+      T1$assist[T1$Outs==3 & grepl("X.*X.*X", T1$Runners)] <-
+            sub(".*X[123H]\\(([1-9]*)[1-9](\\/TH)?\\).*X[123H]\\(([1-9]*)[1-9](\\/TH)?\\).*X[123H]\\(([1-9]*)[1-9](\\/TH)?\\).*", 
+                "\\1\\3\\5", T1$Event[T1$Outs==3 & grepl("X.*X.*X", T1$Runners)])
+      
+      
+      ## sort out strikeouts with throw ## -- ignore the caught stealing DP -- will deal with in T3 below.
+      T2 <- TEST %>% subset(., grepl("K|(K23)", Event)) %>%
+            mutate(putout=sub(".*\\(([1-9]*)([1-9])(\\/TH)?\\).*", "\\2", Event)) %>%
+            mutate(assist=sub(".*\\(([1-9]*)([1-9])(\\/TH)?\\).*", "\\1", Event))
+      # fix the bad translations
+      T2$putout[nchar(T2$putout) > 1] <- NA
+      T2$assist[is.na(T2$putout) | T2$assist==""] <- NA
+      
+      # any thrown batter out at first on the strikeout #
+      T2$putout[grepl("^K[1-9]+", T2$Event)] <- 
+            sub("^K([1-9]*)([1-9]).*", "\\2", T2$Event[grepl("K[1-9]+", T2$Event)])
+      T2$assist[grepl("^K[1-9]+", T2$Event)] <- 
+            sub("^K([1-9]*)([1-9]).*", "\\1", T2$Event[grepl("K[1-9]+", T2$Event)])
+      
+      # any double plays with K[1-9] and X #
+      T2$putout[grepl("^K[1-9]+.*X", T2$Event)] <-
+            sub("^K([1-9]*)([1-9]).*X[123H]\\(([1-9]*)([1-9])(\\/TH)?\\).*", "\\2\\4", 
+                T2$Event[grepl("^K[1-9]+.*X", T2$Event)])
+      T2$assist[grepl("^K[1-9]+.*X", T2$Event)] <-
+            sub("^K([1-9]*)([1-9]).*X[123H]\\(([1-9]*)([1-9])(\\/TH)?\\).*", "\\1\\3", 
+                T2$Event[grepl("^K[1-9]+.*X", T2$Event)])
+      
+      # remove NA putouts #
+      T2 <- T2[!is.na(T2$putout),]
+      
+      
+      ## picked off or caught stealing ##
+      T3 <- TEST %>% subset(., grepl("(PO)|(CS)", Event)) %>%
+            mutate(putout=sub(".*(PO[123]|CS[23H])\\(([1-9]*)([1-9])\\).*", "\\3", Event)) %>%
+            mutate(assist=sub(".*(PO[123]|CS[23H])\\(([1-9]*)([1-9])\\).*", "\\2", Event))
+      # fix the bad translations -- errors #
+      T3$putout[nchar(T3$putout) > 1] <- NA
+      T3$assist[is.na(T3$putout) | T3$assist==""] <- NA
+      
+      # find double plays and handle those too (i.e. if double CS) #
+      T3$putout[!grepl("^K", T3$Event) & T3$Outs==2] <- 
+            sub(".*\\(([1-9]*)([1-9])\\).*\\(([1-9]*)([1-9])\\).*", "\\2\\4", 
+                T3$Event[!grepl("^K", T3$Event) & T3$Outs==2])
+      T3$assist[!grepl("^K", T3$Event) & T3$Outs==2] <- 
+            sub(".*\\(([1-9]*)([1-9])\\).*\\(([1-9]*)([1-9])\\).*", "\\1\\3", 
+                T3$Event[!grepl("^K", T3$Event) & T3$Outs==2])
+      
+      # if there is a triple play ... which totally sucks ...
+      T3$putout[!grepl("^K", T3$Event) & T3$Outs==3] <- 
+            sub(".*\\(([1-9]*)([1-9])\\).*\\(([1-9]*)([1-9])\\).*\\(([1-9]*)([1-9])\\).*", "\\2\\4\\6", 
+                T3$Event[!grepl("^K", T3$Event) & T3$Outs==3])
+      T3$assist[!grepl("^K", T3$Event) & T3$Outs==3] <- 
+            sub(".*\\(([1-9]*)([1-9])\\).*\\(([1-9]*)([1-9])\\).*\\(([1-9]*)([1-9])\\).*", "\\1\\3\\5", 
+                T3$Event[!grepl("^K", T3$Event) & T3$Outs==3])
+      T3$putout[grepl("^K", T3$Event) & T3$Outs==3] <- 
+            sub(".*\\(([1-9]*)([1-9])\\).*\\(([1-9]*)([1-9])\\).*", "\\2\\4", 
+                T3$Event[grepl("^K", T3$Event) & T3$Outs==3])
+      T3$assist[grepl("^K", T3$Event) & T3$Outs==3] <- 
+            sub(".*\\(([1-9]*)([1-9])\\).*\\(([1-9]*)([1-9])\\).*", "\\1\\3", 
+                T3$Event[grepl("^K", T3$Event) & T3$Outs==3])
+      # remove NA putouts #
+      T3 <- T3[!is.na(T3$putout),]
+      
+      
+      ## sort all the other outs, which are baserunner thrown/tagged outs ##
+      T4 <- TEST %>% subset(., !grepl("^[1-9]", Event) & !grepl("^K|(K23)|(PO)|(CS)", Event)) %>% 
+            mutate(putout=sub(".*[B123]X[123H]\\(([1-9]*)([1-9])(\\/TH)?\\).*", "\\2", Runners)) %>%
+            mutate(assist=sub(".*[B123]X[123H]\\(([1-9]*)([1-9])(\\/TH)?\\).*", "\\1", Runners))
+      T4$putout[T4$Outs==2] <- 
+            sub(".*\\(([1-9]*)([1-9])\\).*\\(([1-9]*)([1-9])\\).*", "\\2\\4", T4$Event[T4$Outs==2])
+      T4$assist[T4$Outs==2] <- 
+            sub(".*\\(([1-9]*)([1-9])\\).*\\(([1-9]*)([1-9])\\).*", "\\1\\3", T4$Event[T4$Outs==2])
+      T4$putout[T4$Outs==3] <- 
+            sub(".*\\(([1-9]*)([1-9])\\).*\\(([1-9]*)([1-9])\\).*\\(([1-9]*)([1-9])\\).*", "\\2\\4\\6", 
+                T4$Event[T4$Outs==3])
+      T4$assist[T4$Outs==3] <- 
+            sub(".*\\(([1-9]*)([1-9])\\).*\\(([1-9]*)([1-9])\\).*\\(([1-9]*)([1-9])\\).*", "\\1\\3\\5", 
+                T4$Event[T4$Outs==3])
+      
+      # remove no assists (usually FC) #
+      T4$assist[T4$assist==""] <- NA
+      # remove NAs #
+      T4 <- T4[!is.na(T4$putout),]
+      
+      
+      ## now handle all errors + any assists in between ##
+      ER <- FLD %>% subset(., grepl("E[1-9]", Event)) %>%
+            mutate(Errors=str_count(Event, "E[1-9]")) %>%
+            mutate(Err_pos=sub(".*E([1-9]).*", "\\1", Event))
+      
+      # fix double & triple errors #
+      ER$Err_pos[ER$Errors==2] <- sub(".*E([1-9]).*E([1-9]).*", "\\1\\2", ER$Event[ER$Errors==2])
+      ER$Err_pos[ER$Errors==3] <- sub(".*E([1-9]).*E([1-9]).*E([1-9])", "\\1\\2\\3", ER$Event[ER$Errors==3])
+      
+      # put in the assists associated with the errors #
+      # - deal with cases that start with number - #
+      ER$assist[ER$Errors==1 & grepl("^[1-9]E", ER$Event)] <-
+            sub("^([1-9]*)E.*", "\\1", ER$Event[ER$Errors==1 & grepl("^[1-9]E", ER$Event)])
+      ER$assist[ER$Errors==2 & grepl("^[1-9]E", ER$Event)] <-
+            sub("^([1-9]*)E.*[^1-9]([1-9]*)E.*", "\\1\\2", 
+                ER$Event[ER$Errors==2 & grepl("^[1-9]E", ER$Event)])
+      ER$assist[ER$Errors==3 & grepl("^[1-9]E", ER$Event)] <-
+            sub("^([1-9]*)E.*[^1-9]([1-9]*)E.*[^1-9]([1-9]*)E.*", "\\1\\2\\3", 
+                ER$Event[ER$Errors==3 & grepl("^[1-9]E", ER$Event)])
+      
+      # - deal with all other cases - #
+      ER$assist[ER$Errors==1 & grepl("^(.+)[1-9]E", ER$Event)] <- 
+            sub(".*[^1-9]([1-9]*)E[1-9].*", "\\1", ER$Event[ER$Errors==1 & grepl("^(.+)[1-9]E", ER$Event)])
+      ER$assist[ER$Errors==2 & grepl("^(.+)[1-9]E", ER$Event)] <- 
+            sub(".*[^1-9]([1-9]*)E[1-9].*[^1-9]([1-9]*)E[1-9].*", "\\1\\2", 
+                ER$Event[ER$Errors==2 & grepl("^(.+)[1-9]E", ER$Event)])
+      ER$assist[ER$Errors==3 & grepl("^(.+)[1-9]E", ER$Event)] <- 
+            sub(".*[^1-9]([1-9]*)E[1-9].*[^1-9]([1-9]*)E[1-9].*[^1-9]([1-9]*)E[1-9].*", "\\1\\2\\3", 
+                ER$Event[ER$Errors==3 & grepl("^(.+)[1-9]E", ER$Event)])
+      # any blanks are NA
+      ER$assist[ER$assist==""] <- NA
+      
+      
+      ### now sort stats by all T's ###
+      # get list of players who recorded the putouts!
+      TP <- rbind(T1,T2,T3,T4) %>% extract(., c(names(.)[grepl("def_", names(.))], "putout", "ID")) %>%
+            mutate(putout_pos=strsplit(.$putout, "")) %>%
+            tidyr::unnest(putout_pos) %>%
+            mutate(putout_pos=as.numeric(putout_pos)) %>%
+            mutate(fielderID=.[cbind(1:nrow(.),putout_pos)]) %>%
+            merge(FLD[!grepl("^def_", names(FLD))], ., by="ID")
+      
+      # get list of players who recorded the assists, include the errors table!
+      TA <- rbind.fill(T1,T2,T3,T4,ER[!is.na(ER$assist),]) %>% 
+            extract(., c(names(.)[grepl("def_", names(.))], "assist", "ID")) %>%
+            mutate(assist_pos=strsplit(.$assist, "")) %>%
+            tidyr::unnest(assist_pos) %>%
+            mutate(assist_pos=as.numeric(assist_pos)) %>%
+            mutate(fielderID=.[cbind(1:nrow(.), assist_pos)]) %>%
+            subset(., !is.na(assist)) %>% # take out NAs
+            unique(.) %>% # take out multi-assist in same play, only get credit for 1
+            merge(FLD[!grepl("^def_", names(FLD))], ., by="ID")
+      
+      # get list of players who recorded the errors.
+      TE <- ER %>% extract(., c(names(.)[grepl("def_", names(.))], "Err_pos", "ID")) %>%
+            mutate(error_pos=strsplit(.$Err_pos, "")) %>%
+            tidyr::unnest(error_pos) %>%
+            mutate(error_pos=as.numeric(error_pos)) %>%
+            mutate(fielderID=.[cbind(1:nrow(.),error_pos)]) %>%
+            merge(FLD[!grepl("^def_", names(FLD))], ., by="ID")
+      
+      
+      
+      ### fielding stats table ###
+      FTB <- TP %>% extract(., c("ID", "gameID", "fielderID")) %>%
+            mutate(fielderID=paste0(fielderID, sub("^[A-Z]{3}([0-9]{6}).*", "\\1", gameID))) %>%
+            aggregate(ID ~ fielderID, ., length) %>%
+            plyr::rename(., c("ID"="putout")) %>%
+            merge(., TA %>% extract(., c("ID", "gameID", "fielderID")) %>%
+                        mutate(fielderID=paste0(fielderID, sub("^[A-Z]{3}([0-9]{6}).*", "\\1", gameID))) %>%
+                        aggregate(ID ~ fielderID, ., length) %>%
+                        plyr::rename(., c("ID"="assist")),
+                  by="fielderID", all=TRUE) %>%
+            merge(., TE %>% extract(., c("ID", "gameID", "fielderID")) %>%
+                        mutate(fielderID=paste0(fielderID, sub("^[A-Z]{3}([0-9]{6}).*", "\\1", gameID))) %>%
+                        aggregate(ID ~ fielderID, ., length) %>%
+                        plyr::rename(., c("ID"="error")),
+                  by="fielderID", all=TRUE) %>%
+            mutate(ID=(99000000+1):(99000000+nrow(.)))
+      
+      # rearrange columns # 
+      FTB <- FTB[c("ID", "fielderID", "putout", "assist", "error")]
+      
+      return(FTB)
 }
 
 ################################
@@ -3166,7 +3461,7 @@ for (y in 2010:2016) {
 
 
 # - add to basic Stats
-BasicHit <- BasicPitch <- NULL
+BasicHit <- BasicPitch <- BasicField <- NULL
 pb <- txtProgressBar(min=2010, max=2016, initial=2010, style=3)
 for (y in 2010:2016) {
       
@@ -3204,15 +3499,33 @@ for (y in 2010:2016) {
             BasicPitch <- list(OUTPUT)
       }
       
+      ## FIELDING ## - v1.5.9
+      T1 <- Sys.time()
+      OUTPUT <- basic_field_sort(FIN[[as.character(y)]], LNP[[as.character(y)]])
+      T2 <- Sys.time()
+      message("Sort Fielding:"); print(T2-T1)
+      
+      # add month code for sorting #
+      OUTPUT$year_month <- sub(".*;;(.*)", "\\1", OUTPUT$fielderID)
+      
+      # set the initital list for first iteration #
+      if (y > 2010) {
+            BasicField <- c(BasicField, list(OUTPUT))
+      } else {
+            BasicField <- list(OUTPUT)
+      }
+      
       message(paste(y, " Completed!"))
       setTxtProgressBar(pb, y)
 }
 BasicHit <- setNames(BasicHit, 2010:2016)
 BasicPitch <- setNames(BasicPitch, 2010:2016)
+BasicField <- setNames(BasicField, 2010:2016) # v1.5.9
 
 ## send to output function ##
 final_outputs(BasicHit, 1)
 final_outputs(BasicPitch, 2)
+final_outputs(BasicField, 3) # v1.5.9
 
 
 ### COMPLETED UP TO HERE FOR version 1.5.6 ###
@@ -3243,6 +3556,29 @@ for (y in 2010:2016) {
       print(TE-TS)
 }
 write.csv(PYR, "player_names.csv", na="", row.names=FALSE)
+
+
+# ## offense player checks ##
+# BH <- BasicHit[[1]]
+# donaj <- BH[grepl("^donaj001", BH$playerID),] %>% 
+#       extract(., c(names(.)[!names(.) %in% c("playerID", "year_month")])) %>% 
+#       summarize_all(sum, na.rm=TRUE)
+# donaj_log <- FIN2016[FIN2016$playerID=="donaj001",] %>%
+#       mutate(rbi=Runs)
+# # adjust for no rbis #
+# donaj_log$rbi[grepl("NR", donaj_log$Event)] <- donaj_log$rbi[grepl("NR", donaj_log$Event)] - 
+#       str_count(donaj_log$Event[grepl("NR", donaj_log$Event)], "NR")
+# sum(donaj_log$rbi)
+# # [1] 100 
+# # should be 99??
+# 
+# # get gamelog then
+# donaj_rbi <- donaj_log %>% aggregate(rbi ~ gameID, ., sum)
+
+### COMPLETED UP TO HERE FOR version 1.5.8 ###
+
+
+
 
 
 # - final scores #
