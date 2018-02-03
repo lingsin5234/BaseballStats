@@ -7,7 +7,7 @@
 ##                                                          ##
 ##    Sorts gamelogs into RStudio-friendly tables.          ##
 ##                                                          ##
-##    Version 1.5.7                                         ##
+##    Version 1.5.8                                         ##
 ##                                                          ##
 ##############################################################
 
@@ -79,6 +79,10 @@
 #     1.5.6 - incorporate the Basic Pitching Stats - January 23, 2018
 #           - exports for Basic Hitting & Pitching - January 23, 2018
 #     1.5.7 - generate a table with playerID and player names - January 24, 2018
+#     1.5.8 - caught stealing / thrown out bug -- escalated to fielding too - February 2, 2018
+#           - fixed wrong assumption w/ BR on fielder's choices for OUTS - February 2, 2018
+#           - fixed wrong assumption w/ normal FOs not specifically indicated - February 2, 2018
+#           - no RBI for double plays - February 2, 2018
 ##
 ################################
 ################################
@@ -536,19 +540,20 @@ tidy_up <- function (ALLG) {
       
       # batter outs / force out / fielder's choice outs #
       OB_K <- grepl("^K", CLN$Play) & !grepl("(B-|BX[1-H]\\([1-9]*E[1-9])", CLN$Runners) & !grepl("K\\/FO", CLN$Event)
-      FO_B <- grepl("^[1-9]+", CLN$Play) & !grepl("FO|DP|TP|E[1-9]", CLN$Event)
-      FC_B <- grepl("^FC.*X[1-3H]", CLN$Event) & !grepl("B(-|X)", CLN$Event) & 
+      # the \\/ ignores all the instances of "error" tag
+      FO_B <- grepl("^[1-9]+\\/", CLN$Event) & !grepl("FO|DP|TP", CLN$Event) #!grepl("FO|DP|TP|E[1-9]", CLN$Event)
+      FC_B <- grepl("^FC.*X[1-3H]", CLN$Event) & # !grepl("B(-|X)", CLN$Event) & 
             !grepl("X[1-3H]\\([1-9]*E[1-9]", CLN$Event) # ignore fielder's choice where no one is out
       FO_R <- grepl("\\([1-3].*/FO", CLN$Event)
       CLN$Outs[OB_K | FO_B | FC_B | FO_R] <- CLN$Outs[OB_K | FO_B | FC_B | FO_R] + 1
       
-      # runner outs #
-      ORUN <- grepl("[1-3]X[1-3H]", CLN$Runners) & !grepl("[1-3]X[1-3H]([\\(NUR\\)])*\\([1-9]*E[1-9]+", CLN$Runners) &
+      # any runner outs #
+      ORUN <- grepl("[B1-3]X[1-3H]", CLN$Runners) & !grepl("[B1-3]X[1-3H]([\\(NUR\\)])*\\([1-9]*E[1-9]+", CLN$Runners) &
             !grepl("^((K\\/FO)|FO|FC)", CLN$Event)
       CLN$Outs[ORUN] <- CLN$Outs[ORUN] + 1
       
       # Caught Stealing or Picked Off with no errors
-      CSPO <- grepl("^(CS|PO)", CLN$Play) & !grepl("[1-9]*E[1-9]", CLN$Play)
+      CSPO <- grepl("(CS|PO)", CLN$Play) & !grepl("[1-9]*E[1-9]", CLN$Play)
       CLN$Outs[CSPO] <- CLN$Outs[CSPO] + 1
       
       # DOUBLE / TRIPLE PLAYS #
@@ -2318,8 +2323,8 @@ dv_sort <- function(CLN, LNP) {
             paste(RN$playerID[!grepl(";;", RN$playerID)], 
                   sub("^[A-Z]{3}([0-9]{6}).*", "\\1", RN$gameID[!grepl(";;", RN$playerID)]), sep=";;")
       
-      # runs in - no-rbi runs = total rbis
-      RB_tmp <- CLN[grepl("-H|XH\\([1-9]*E[1-9]", CLN$Runners),]
+      # runs in - no-rbi runs = total rbis;; exclude double plays!
+      RB_tmp <- CLN[grepl("-H|XH\\([1-9]*E[1-9]", CLN$Runners) & !grepl("DP", CLN$Event),]
       RB <- data.frame(ID=RB_tmp$ID, gameID=RB_tmp$gameID, Inning=RB_tmp$Inning, Team=RB_tmp$Team,
                        Outs=RB_tmp$Outs, rbi= str_count(RB_tmp$Runners, "-H|XH\\([1-9]*E[1-9]") -
                              str_count(RB_tmp$Runners, "NR"), 
@@ -3231,6 +3236,29 @@ for (y in 2010:2016) {
       print(TE-TS)
 }
 write.csv(PYR, "player_names.csv", na="", row.names=FALSE)
+
+
+# ## offense player checks ##
+# BH <- BasicHit[[1]]
+# donaj <- BH[grepl("^donaj001", BH$playerID),] %>% 
+#       extract(., c(names(.)[!names(.) %in% c("playerID", "year_month")])) %>% 
+#       summarize_all(sum, na.rm=TRUE)
+# donaj_log <- FIN2016[FIN2016$playerID=="donaj001",] %>%
+#       mutate(rbi=Runs)
+# # adjust for no rbis #
+# donaj_log$rbi[grepl("NR", donaj_log$Event)] <- donaj_log$rbi[grepl("NR", donaj_log$Event)] - 
+#       str_count(donaj_log$Event[grepl("NR", donaj_log$Event)], "NR")
+# sum(donaj_log$rbi)
+# # [1] 100 
+# # should be 99??
+# 
+# # get gamelog then
+# donaj_rbi <- donaj_log %>% aggregate(rbi ~ gameID, ., sum)
+
+### COMPLETED UP TO HERE FOR version 1.5.8 ###
+
+
+
 
 
 # - final scores #
