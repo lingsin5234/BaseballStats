@@ -1,0 +1,7 @@
+# exclude .idea and data files
+**/retrodata
+**/retrodata/*
+**/venv
+**/venv/*
+**/.idea
+**/.idea/*
