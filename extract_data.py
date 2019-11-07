@@ -17,17 +17,15 @@ f1 = f.readlines()
 
 # collect id and group the games
 games = []
-id = 0
 i = -1
 j = 0
-while i < len(f1):
-    print(f1[i])
+game_play = []
+while i < 10:
     if f1[i][:2] == 'id':
-        ++j
-        games[j] = f1[i][3:]
-    else:
-        print(j)
+        j += 1
+        game_play.append(f1[i][3:])
+    
+    i += 1
 
-    ++i
 
-print(games[0])
+print(game_play[0])
