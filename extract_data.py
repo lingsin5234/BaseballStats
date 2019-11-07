@@ -17,16 +17,19 @@ f1 = f.readlines()
 
 # collect id and group the games
 games = []
+game_info = []
 game_play = []
 for line_item in f1:
     if line_item[:2] == "id":
-        if len(game_play) > 0:
-            games.append(game_play.copy())
-        game_play.clear()
+        if len(game_info) > 0:
+            game_info.append(game_play.copy())
+            games.append(game_info.copy())
+        game_info.clear()
+        game_info.append(line_item)
+    elif line_item[:4] == "play" or line_item[:4] == "sub":
         game_play.append(line_item)
     else:
-        game_play.append(line_item)
+        game_info.append(line_item)
 
-print(games[0])
-print(games[10])
-print(games[79])
+# get last item in list, which is the entire game_play
+print(games[0][-1])
