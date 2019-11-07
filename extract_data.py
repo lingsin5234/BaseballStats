@@ -32,4 +32,8 @@ for line_item in f1:
         game_info.append(line_item)
 
 # get last item in list, which is the entire game_play
-print(games[0][-1])
+# print(games[0][-1])
+
+# loop through 1 game
+for line_item in games[0][-1]:
+    print(line_item)
