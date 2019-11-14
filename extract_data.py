@@ -4,7 +4,7 @@
 
 
 # open and read data
-f = open("retrodata/2010TOR.EVA","r")
+f = open("retrodata/2015TOR.EVA","r")
 f1 = f.readlines()
 
 # test print
