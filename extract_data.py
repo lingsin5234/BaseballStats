@@ -1,7 +1,7 @@
 # extracting the data
 
 # libraries
-
+import numpy as np
 
 # open and read data
 f = open("retrodata/2015TOR.EVA","r")
@@ -35,5 +35,9 @@ for line_item in f1:
 # print(games[0][-1])
 
 # loop through 1 game
-for line_item in games[0][-1]:
-    print(line_item)
+# for line_item in games[0][-1]:
+#    print(line_item)
+
+# use pandas library to convert play-by-play to table
+df = pd.DataFrame(games[0][-1])
+print(df)
