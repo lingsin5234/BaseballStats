@@ -82,32 +82,42 @@ df1.insert(14, '3B', None)
 
 # determine outs
 out_plays = tuple(''.join(map(str, list(range(1, 10))))) + ('K',)
-df1.loc[(df1.inning == '1') & df1.play.str.startswith(out_plays, na=False), 'outs'] += 1
-# print(df1[df1.inning == '1'])
-# print("get outs!\n")
-# print(df1.loc[(df1.inning == '1') & df1.play.str.startswith(out_plays, na=False), 'play'])
+
+# put the outs in
+df1.loc[df1.play.str.startswith(out_plays, na=False), 'outs'] += 1
 
 # insert half innings
 df1.insert(3, 'half_innings', None)
 df1.half_innings = df1.inning + '_' + df1.half
 
 # get all half innings in the game
-all_half = df1.half_innings.unique()
-print(all_half)
+# all_half = df1.half_innings.unique()
 
-df_10 = df1[(df1.inning == '1') & (df1.half == '0')]
-df_11 = df1[(df1.inning == '1') & (df1.half == '1')]
 
-total_outs = 0
-for i, d in df_10.iterrows():
-    if d['outs'] == 1:
-        total_outs += 1
-        print(total_outs)
-        df_10.at[i, 'outs'] = total_outs
+# function to process all half innings in a game
+def half_inning_process(the_df):
+    # get all half innings in the game
+    all_half = the_df.half_innings.unique()
+    full_df = pd.DataFrame()
+    for half in all_half:
+        print(half)
+        total_outs = 0
+        half_df = the_df[the_df.half_innings == half]
+        for i, d in half_df.iterrows():
+            if d['outs'] == 1:
+                total_outs += 1
+                print(total_outs)
+                half_df.at[i, 'outs'] = total_outs
+        print(half_df, '\nNext\n')
+        full_df = full_df.append(half_df)
+    return full_df
+
+
+output_df = half_inning_process(df1)
 
 # print(df1[df1.type == 'sub'])
 # print(df1[df1.inning == '1'])
 
-print(df_10)
+print(output_df)
 # print(df1)
 
