@@ -81,7 +81,7 @@ df1.insert(13, '2B', None)
 df1.insert(14, '3B', None)
 
 # determine outs
-i = (1,2,3,4,5,6,7,8,9)
+i = tuple(''.join(map(str, list(range(1, 10)))))
 # cond1 = (df1.inning == '1')
 # print(type(df1.loc[df1.inning == '1', 'play']))
 # print('test\n')
@@ -89,7 +89,8 @@ i = (1,2,3,4,5,6,7,8,9)
 # print(type(df1.loc[df1.play.str.startswith('8', na=False), 'play']))
 # print('test2\n')
 # print(cond1 & cond2)
-print(df1.loc[(df1.inning == '1') & df1.play.str.startswith('8', na=False), 'play'])
+print(i, '\n')
+print(df1.loc[(df1.inning == '1') & df1.play.str.startswith(i, na=False), 'play'])
 # print(df1.loc[df1.inning == '1' & df1.play[:1].tolist().isdigit(), 'play'])
 
 # print(df1[df1.type == 'sub'])
