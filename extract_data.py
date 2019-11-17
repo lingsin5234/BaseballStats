@@ -87,7 +87,16 @@ df1.loc[(df1.inning == '1') & df1.play.str.startswith(out_plays, na=False), 'out
 # print("get outs!\n")
 # print(df1.loc[(df1.inning == '1') & df1.play.str.startswith(out_plays, na=False), 'play'])
 
+# insert half innings
+df1.insert(3, 'half_innings', None)
+df1.half_innings = df1.inning + '_' + df1.half
+
+# get all half innings in the game
+all_half = df1.half_innings.unique()
+print(all_half)
+
 df_10 = df1[(df1.inning == '1') & (df1.half == '0')]
+df_11 = df1[(df1.inning == '1') & (df1.half == '1')]
 
 total_outs = 0
 for i, d in df_10.iterrows():
