@@ -2,6 +2,7 @@
 
 # libraries
 import numpy as np
+import pandas as pd
 
 # open and read data
 f = open("retrodata/2015TOR.EVA","r")
@@ -40,4 +41,5 @@ for line_item in f1:
 
 # use pandas library to convert play-by-play to table
 df = pd.DataFrame(games[0][-1])
-print(df)
+df1 = pd.concat([df[0].str.split(',', expand=True)], axis=1)
+print(df1)
