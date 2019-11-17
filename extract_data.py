@@ -71,7 +71,28 @@ previous_index = df1[df1.type == 'sub'].index.values - 1
 df1.loc[df1.type == 'sub', 'inning'] = df1.loc[previous_index, 'inning'].tolist()
 df1.loc[df1.type == 'sub', 'half'] = df1.loc[previous_index, 'half'].tolist()
 
-print(df1[df1.type == 'sub'])
+# remove line break in last column for subs
+df1.loc[df1.type=='sub', 'fielding'] = df1.loc[df1.type=='sub', 'fielding'].str.replace('\n', '').tolist()
+
+# add outs and baserunners columns
+df1.insert(11, 'outs', 0)
+df1.insert(12, '1B', None)
+df1.insert(13, '2B', None)
+df1.insert(14, '3B', None)
+
+# determine outs
+i = (1,2,3,4,5,6,7,8,9)
+# cond1 = (df1.inning == '1')
+# print(type(df1.loc[df1.inning == '1', 'play']))
+# print('test\n')
+# cond2 = df1.play.str.startswith('8', na=False)
+# print(type(df1.loc[df1.play.str.startswith('8', na=False), 'play']))
+# print('test2\n')
+# print(cond1 & cond2)
+print(df1.loc[(df1.inning == '1') & df1.play.str.startswith('8', na=False), 'play'])
+# print(df1.loc[df1.inning == '1' & df1.play[:1].tolist().isdigit(), 'play'])
+
+# print(df1[df1.type == 'sub'])
 # print(df1[df1.inning == '1'])
 
 # print(df1)
