@@ -83,14 +83,22 @@ df1.insert(14, '3B', None)
 # determine outs
 out_plays = tuple(''.join(map(str, list(range(1, 10))))) + ('K',)
 df1.loc[(df1.inning == '1') & df1.play.str.startswith(out_plays, na=False), 'outs'] += 1
-print(df1[df1.inning == '1'])
-print("get outs!\n")
-print(df1.loc[(df1.inning == '1') & df1.play.str.startswith(out_plays, na=False), 'play'])
+# print(df1[df1.inning == '1'])
+# print("get outs!\n")
+# print(df1.loc[(df1.inning == '1') & df1.play.str.startswith(out_plays, na=False), 'play'])
 
+df_10 = df1[(df1.inning == '1') & (df1.half == '0')]
 
+total_outs = 0
+for i, d in df_10.iterrows():
+    if d['outs'] == 1:
+        total_outs += 1
+        print(total_outs)
+        df_10.at[i, 'outs'] = total_outs
 
 # print(df1[df1.type == 'sub'])
 # print(df1[df1.inning == '1'])
 
+print(df_10)
 # print(df1)
 
