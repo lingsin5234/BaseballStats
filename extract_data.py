@@ -27,7 +27,7 @@ for line_item in f1:
             games.append(game_info.copy())
         game_info.clear()
         game_info.append(line_item)
-    elif line_item[:4] == "play" or line_item[:4] == "sub":
+    elif line_item[:4] == "play" or line_item[:3] == "sub":
         game_play.append(line_item)
     else:
         game_info.append(line_item)
