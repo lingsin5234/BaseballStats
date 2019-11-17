@@ -42,4 +42,37 @@ for line_item in f1:
 # use pandas library to convert play-by-play to table
 df = pd.DataFrame(games[0][-1])
 df1 = pd.concat([df[0].str.split(',', expand=True)], axis=1)
-print(df1)
+
+# remove line break in last column
+df1[6] = df1[6].str.replace('\n', '')
+
+# add some column names with some extra ones too
+df1.columns = ['type', 'inning', 'half', 'playerID', 'count', 'pitches', 'play']
+
+# add newer columns
+df1.insert(7, 'name', None)
+df1.insert(8, 'team', None)
+df1.insert(9, 'batting', None)
+df1.insert(10, 'fielding', None)
+
+# shift the substitutions into newer columns
+df1.loc[df1.type == 'sub', 'name'] = df1.loc[df1.type == 'sub', 'half']
+df1.loc[df1.type == 'sub', 'team'] = df1.loc[df1.type == 'sub', 'playerID']
+df1.loc[df1.type == 'sub', 'batting'] = df1.loc[df1.type == 'sub', 'count']
+df1.loc[df1.type == 'sub', 'fielding'] = df1.loc[df1.type == 'sub', 'pitches']
+
+# correct the remaining columns
+df1.loc[df1.type == 'sub', 'playerID'] = df1.loc[df1.type == 'sub', 'inning']
+df1.loc[df1.type == 'sub', 'count'] = None
+df1.loc[df1.type == 'sub', 'pitches'] = None
+
+# using current index to retrieve and replace with -1 index with inning and half inning values
+previous_index = df1[df1.type == 'sub'].index.values - 1
+df1.loc[df1.type == 'sub', 'inning'] = df1.loc[previous_index, 'inning'].tolist()
+df1.loc[df1.type == 'sub', 'half'] = df1.loc[previous_index, 'half'].tolist()
+
+print(df1[df1.type == 'sub'])
+# print(df1[df1.inning == '1'])
+
+# print(df1)
+
