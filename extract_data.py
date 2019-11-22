@@ -90,7 +90,7 @@ df1.insert(3, 'half_innings', None)
 df1.half_innings = df1.inning + '_' + df1.half
 
 
-# a play processor
+# batch play processor
 def play_processor(the_play):
 
     # determine if out(s)
@@ -106,34 +106,24 @@ def play_processor(the_play):
     if the_play['play'].startswith(out_plays):
         if the_play['play'].endswith('DP'):
             the_play.at['outs'] += 2
-        elif the_play.play.str.endswith('TP'):
+        elif the_play['play'].endswith('TP'):
             the_play.at['outs'] += 3
         else:
             the_play.at['outs'] += 1
 
-    # process runners
+    # process batter ONLY
     if the_play['play'].startswith(b1_plays):
-        if the_play['1B_before'] is None:
-            the_play.at['1B_after'] = the_play['playerID']
+        the_play.at['1B_after'] = the_play['playerID']
+    elif the_play['play'].startswith(b2_plays):
+        the_play.at['2B_after'] = the_play['playerID']
+    elif the_play['play'].startswith(b3_plays):
+        the_play.at['3B_after'] = the_play['playerID']
+    # process HR runs_scored ONLY
+    elif the_play['play'].startswith(hr_plays):
+        the_play.at['runs_scored'] += 1
 
     # return
     return the_play
-
-
-print("Play #1: \n", play_processor(df1.loc[88]))
-print("Play #2: \n", play_processor(df1.loc[89]))
-
-
-# process the play by plays
-def play_process(the_df):
-
-    # determine outs
-    out_plays = tuple(''.join(map(str, list(range(1, 10))))) + ('K',)
-
-    # put the outs in
-    the_df.loc[the_df.play.str.startswith(out_plays, na=False), 'outs'] += 1
-
-    return the_df
 
 
 # function to process all half innings in a game
@@ -170,7 +160,11 @@ def half_inning_process(the_df):
 
 
 # run the functions
-df1 = play_process(df1)
+for i, d in df1.iterrows():
+    # print(type(d))
+    if d['type'] == 'play':
+        d = play_processor(d)
+        df1.loc[i] = d
 output_df = half_inning_process(df1)
 
 # print(df1[df1.type == 'sub'])
@@ -178,4 +172,7 @@ output_df = half_inning_process(df1)
 
 # print(output_df)
 # print(df1)
+
+# write to file
+output_df.to_csv('OUTPUT.csv', sep=',', index=False)
 
