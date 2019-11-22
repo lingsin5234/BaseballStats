@@ -97,16 +97,10 @@ def play_processor(the_play):
     out_plays = tuple(''.join(map(str, list(range(1, 10))))) + ('K',)
 
     # determine hits/walks
-    b1_plays = tuple('SW')
+    b1_plays = tuple(''.join('SW'))
     b2_plays = tuple('D')
     b3_plays = tuple('T')
     hr_plays = tuple('H')
-
-    print(out_plays)
-    print(type(out_plays))
-    print(the_play['play'].startswith(out_plays))
-    # print(the_play['play'].startswith(out_plays, na=False))
-    print(type(the_play['play']))
 
     # put out(s)
     if the_play['play'].startswith(out_plays):
@@ -119,14 +113,15 @@ def play_processor(the_play):
 
     # process runners
     if the_play['play'].startswith(b1_plays):
-        if the_play['1B_before'].isEmpty():
+        if the_play['1B_before'] is None:
             the_play.at['1B_after'] = the_play['playerID']
 
     # return
     return the_play
 
 
-print(play_processor(df1.loc[89]))
+print("Play #1: \n", play_processor(df1.loc[88]))
+print("Play #2: \n", play_processor(df1.loc[89]))
 
 
 # process the play by plays
