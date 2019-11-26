@@ -3,6 +3,7 @@
 # libraries
 import numpy as np
 import pandas as pd
+import re
 
 # open and read data
 f = open("retrodata/2015TOR.EVA","r")
@@ -126,6 +127,25 @@ def play_processor(the_play):
     return the_play
 
 
+# process the baserunners
+def baserunner_processor(the_df):
+    # get all half innings in the game
+    all_half = the_df.half_innings.unique()
+    full_df = pd.DataFrame()
+
+    # process by half innings at a time
+    for half in all_half:
+        # each half inning
+        half_df = the_df[the_df.half_innings == half]
+        for i, d in half_df.iterrows():
+            # move the runners
+            if d['play'] is not None:
+                if re.search(r"\.", d['play']):
+                    print(d['play'])
+
+    return full_df
+
+
 # function to process all half innings in a game
 def half_inning_process(the_df):
     # get all half innings in the game
@@ -165,6 +185,7 @@ for i, d in df1.iterrows():
     if d['type'] == 'play':
         d = play_processor(d)
         df1.loc[i] = d
+baserunner_processor(df1)
 output_df = half_inning_process(df1)
 
 # print(df1[df1.type == 'sub'])
