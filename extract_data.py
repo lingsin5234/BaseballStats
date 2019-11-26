@@ -137,12 +137,31 @@ def baserunner_processor(the_df):
     for half in all_half:
         # each half inning
         half_df = the_df[the_df.half_innings == half]
+        prev_row = half_df.loc[0]
+        print("x: ", half)
         for i, d in half_df.iterrows():
+
+            # carry-over runners from previous line
+            if i > 0:
+                print("i: ", i)
+                if prev_row['1B_after'] is not None:
+                    half_df.at[i, '1B_before'] = prev_row['1B_after']
+                if prev_row['2B_after'] is not None:
+                    half_df.at[i, '2B_before'] = prev_row['1B_after']
+                if prev_row['3B_after'] is not None:
+                    half_df.at[i, '3B_before'] = prev_row['1B_after']
+
             # move the runners
             if d['play'] is not None:
                 if re.search(r"\.", d['play']):
                     print(d['play'])
 
+            # save as previous row
+            prev_row = half_df.loc[i]
+
+        # append half inning to full game
+        # print(half_df, '\nNext\n')
+        full_df = full_df.append(half_df)
     return full_df
 
 
@@ -185,7 +204,7 @@ for i, d in df1.iterrows():
     if d['type'] == 'play':
         d = play_processor(d)
         df1.loc[i] = d
-baserunner_processor(df1)
+df1 = baserunner_processor(df1)
 output_df = half_inning_process(df1)
 
 # print(df1[df1.type == 'sub'])
