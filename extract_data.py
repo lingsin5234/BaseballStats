@@ -114,7 +114,11 @@ def play_processor(the_play):
 
     # process batter ONLY
     if the_play['play'].startswith(b1_plays):
-        the_play.at['1B_after'] = the_play['playerID']
+        # except WP - wild pitch
+        if re.search(r'^WP|SB', the_play['play']):
+            pass
+        else:
+            the_play.at['1B_after'] = the_play['playerID']
     elif the_play['play'].startswith(b2_plays):
         the_play.at['2B_after'] = the_play['playerID']
     elif the_play['play'].startswith(b3_plays):
@@ -137,7 +141,7 @@ def baserunner_processor(the_df):
     for half in all_half:
         # each half inning
         half_df = the_df[the_df.half_innings == half]
-        half_df = half_df.reset_index(drop=True) # index needs to be reset to ref 0
+        half_df = half_df.reset_index(drop=True)  # index needs to be reset to ref 0
         prev_row = half_df.loc[0]
         for i, d in half_df.iterrows():
 
@@ -146,14 +150,101 @@ def baserunner_processor(the_df):
                 if prev_row['1B_after'] is not None:
                     half_df.at[i, '1B_before'] = prev_row['1B_after']
                 if prev_row['2B_after'] is not None:
-                    half_df.at[i, '2B_before'] = prev_row['1B_after']
+                    half_df.at[i, '2B_before'] = prev_row['2B_after']
                 if prev_row['3B_after'] is not None:
-                    half_df.at[i, '3B_before'] = prev_row['1B_after']
+                    half_df.at[i, '3B_before'] = prev_row['3B_after']
 
             # move the runners
             if d['play'] is not None:
-                if re.search(r"\.", d['play']):
-                    print(d['play'])
+                if re.search(r'\.', d['play']):
+                    if re.search(r'1-2', d['play']):
+                        half_df.at[i, '2B_after'] = half_df.loc[i, '1B_before']
+                    if re.search(r'1-3', d['play']):
+                        half_df.at[i, '3B_after'] = half_df.loc[i, '1B_before']
+                    if re.search(r'1-H', d['play']):
+                        half_df.at[i, 'runs_scored'] += 1
+                    if re.search(r'2-3', d['play']):
+                        half_df.at[i, '3B_after'] = half_df.loc[i, '2B_before']
+                    if re.search(r'2-H', d['play']):
+                        half_df.at[i, 'runs_scored'] += 1
+                    if re.search(r'3-H', d['play']):
+                        half_df.at[i, 'runs_scored'] += 1
+
+                    # check for non-moving runners that did not get out
+                    if half_df.loc[i, '1B_before'] is not None and not re.search(r'1-|1X', d['play']):
+                        half_df.at[i, '1B_after'] = half_df.loc[i, '1B_before']
+                    if half_df.loc[i, '2B_before'] is not None and not re.search(r'2-|2X', d['play']):
+                        half_df.at[i, '2B_after'] = half_df.loc[i, '2B_before']
+                    if half_df.loc[i, '3B_before'] is not None and not re.search(r'3-|3X', d['play']):
+                        half_df.at[i, '3B_after'] = half_df.loc[i, '3B_before']
+
+                elif re.search(r'^SB', d['play']):
+
+                    # stealing 2nd
+                    if re.search(r'^SB2', d['play']):
+                        half_df.at[i, '2B_after'] = half_df.loc[i, '1B_before']
+                        if re.search(r'\.', d['play']):
+                            if re.search(r'2-3', d['play']):
+                                half_df.at[i, '3B_after'] = half_df.loc[i, '2B_before']
+                            if re.search(r'2-H', d['play']):
+                                half_df.at[i, 'runs_scored'] += 1
+                            if re.search(r'3-H', d['play']):
+                                half_df.at[i, 'runs_scored'] += 1
+                        else:
+                            if half_df.loc[i, '3B_before'] is not None:
+                                half_df.at[i, '3B_after'] = half_df.loc[i, '3B_before']
+
+                    # stealing 3rd
+                    if re.search(r'^SB3', d['play']):
+                        half_df.at[i, '3B_after'] = half_df.loc[i, '2B_before']
+                        if re.search(r'\.', d['play']):
+                            if re.search(r'3-H', d['play']):
+                                half_df.at[i, 'runs_scored'] += 1
+                            if re.search(r'1-2', d['play']):
+                                half_df.at[i, '2B_after'] = half_df.loc[i, '1B_before']
+                            if re.search(r'1-3', d['play']):
+                                half_df.at[i, '3B_after'] = half_df.loc[i, '1B_before']
+                            if re.search(r'1-H', d['play']):
+                                half_df.at[i, 'runs_scored'] += 1
+                        else:
+                            if half_df.loc[i, '1B_before'] is not None:
+                                half_df.at[i, '1B_after'] = half_df.loc[i, '1B_before']
+
+                    # stealing home
+                    if re.search(r'^SBH', d['play']):
+                        half_df.at[i, 'runs_scored'] += 1
+                        if re.search(r'\.', d['play']):
+                            if re.search(r'1-2', d['play']):
+                                half_df.at[i, '2B_after'] = half_df.loc[i, '1B_before']
+                            if re.search(r'1-3', d['play']):
+                                half_df.at[i, '3B_after'] = half_df.loc[i, '1B_before']
+                            if re.search(r'1-H', d['play']):
+                                half_df.at[i, 'runs_scored'] += 1
+                            if re.search(r'2-3', d['play']):
+                                half_df.at[i, '3B_after'] = half_df.loc[i, '2B_before']
+                            if re.search(r'2-H', d['play']):
+                                half_df.at[i, 'runs_scored'] += 1
+                        else:
+                            if half_df.loc[i, '1B_before'] is not None:
+                                half_df.at[i, '1B_after'] = half_df.loc[i, '1B_before']
+                            if half_df.loc[i, '2B_before'] is not None:
+                                half_df.at[i, '2B_after'] = half_df.loc[i, '2B_before']
+
+                else:
+                    # if not 3 outs yet, and some runners did not move, find and keep them.
+                    if i > 0 and half_df.loc[i, 'outs'] < 3:
+                        if half_df.loc[i, '1B_before'] is not None:
+                            half_df.at[i, '1B_after'] = half_df.loc[i, '1B_before']
+                        if half_df.loc[i, '2B_before'] is not None:
+                            half_df.at[i, '2B_after'] = half_df.loc[i, '2B_before']
+                        if half_df.loc[i, '3B_before'] is not None:
+                            half_df.at[i, '3B_after'] = half_df.loc[i, '3B_before']
+
+            # for sub lines, copy all baserunners
+            elif d['type'] == 'sub':
+                half_df.at[i, '1B_after'] = half_df.loc[i, '1B_before']
+                half_df.at[i, '2B_after'] = half_df.loc[i, '2B_before']
+                half_df.at[i, '3B_after'] = half_df.loc[i, '3B_before']
 
             # save as previous row
             prev_row = half_df.loc[i]
