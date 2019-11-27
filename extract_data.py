@@ -137,13 +137,12 @@ def baserunner_processor(the_df):
     for half in all_half:
         # each half inning
         half_df = the_df[the_df.half_innings == half]
+        half_df = half_df.reset_index(drop=True) # index needs to be reset to ref 0
         prev_row = half_df.loc[0]
-        print("x: ", half)
         for i, d in half_df.iterrows():
 
             # carry-over runners from previous line
             if i > 0:
-                print("i: ", i)
                 if prev_row['1B_after'] is not None:
                     half_df.at[i, '1B_before'] = prev_row['1B_after']
                 if prev_row['2B_after'] is not None:
