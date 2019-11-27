@@ -91,6 +91,12 @@ df1.insert(3, 'half_innings', None)
 df1.half_innings = df1.inning + '_' + df1.half
 
 
+# re-write the processor based on re.search/re.findall grep searching
+def play_processor2(the_df):
+
+    return the_df
+
+
 # batch play processor
 def play_processor(the_play):
 
