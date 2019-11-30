@@ -40,60 +40,73 @@ for line_item in f1:
 # for line_item in games[0][-1]:
 #    print(line_item)
 
-# use pandas library to convert play-by-play to table
-df = pd.DataFrame(games[0][-1])
-df1 = pd.concat([df[0].str.split(',', expand=True)], axis=1)
 
-# remove line break in last column
-df1[6] = df1[6].str.replace('\n', '')
+# convert play by play to tables
+def convert_games(all_games):
 
-# add some column names with some extra ones too
-df1.columns = ['type', 'inning', 'half', 'playerID', 'count', 'pitches', 'play']
+    games_dfs = []
+    for g in range(len(all_games)):
 
-# add newer columns
-df1.insert(7, 'name', None)
-df1.insert(8, 'team', None)
-df1.insert(9, 'batting', None)
-df1.insert(10, 'fielding', None)
+        # convert to table
+        pdf = pd.DataFrame(all_games[g][-1])  # last item is entire game_play
+        df1 = pd.concat([pdf[0].str.split(',', expand=True)], axis=1)
 
-# shift the substitutions into newer columns
-df1.loc[df1.type == 'sub', 'name'] = df1.loc[df1.type == 'sub', 'half'].tolist()
-df1.loc[df1.type == 'sub', 'team'] = df1.loc[df1.type == 'sub', 'playerID'].tolist()
-df1.loc[df1.type == 'sub', 'batting'] = df1.loc[df1.type == 'sub', 'count'].tolist()
-df1.loc[df1.type == 'sub', 'fielding'] = df1.loc[df1.type == 'sub', 'pitches'].tolist()
+        # remove line break in last column
+        df1[6] = df1[6].str.replace('\n', '')
 
-# correct the remaining columns
-df1.loc[df1.type == 'sub', 'playerID'] = df1.loc[df1.type == 'sub', 'inning']
-df1.loc[df1.type == 'sub', 'count'] = None
-df1.loc[df1.type == 'sub', 'pitches'] = None
+        # add some column names with some extra ones too
+        df1.columns = ['type', 'inning', 'half', 'playerID', 'count', 'pitches', 'play']
 
-# using current index to retrieve and replace with -1 index with inning and half inning values
-previous_index = df1[df1.type == 'sub'].index.values - 1
-df1.loc[df1.type == 'sub', 'inning'] = df1.loc[previous_index, 'inning'].tolist()
-df1.loc[df1.type == 'sub', 'half'] = df1.loc[previous_index, 'half'].tolist()
+        # add newer columns
+        df1.insert(7, 'name', None)
+        df1.insert(8, 'team', None)
+        df1.insert(9, 'batting', None)
+        df1.insert(10, 'fielding', None)
 
-# remove line break in last column for subs
-df1.loc[df1.type=='sub', 'fielding'] = df1.loc[df1.type=='sub', 'fielding'].str.replace('\n', '').tolist()
+        # shift the substitutions into newer columns
+        df1.loc[df1.type == 'sub', 'name'] = df1.loc[df1.type == 'sub', 'half'].tolist()
+        df1.loc[df1.type == 'sub', 'team'] = df1.loc[df1.type == 'sub', 'playerID'].tolist()
+        df1.loc[df1.type == 'sub', 'batting'] = df1.loc[df1.type == 'sub', 'count'].tolist()
+        df1.loc[df1.type == 'sub', 'fielding'] = df1.loc[df1.type == 'sub', 'pitches'].tolist()
 
-# add outs and baserunners columns
-df1.insert(11, 'outs', 0)
-df1.insert(12, '1B_before', None)
-df1.insert(13, '2B_before', None)
-df1.insert(14, '3B_before', None)
-df1.insert(15, '1B_after', None)
-df1.insert(16, '2B_after', None)
-df1.insert(17, '3B_after', None)
-df1.insert(18, 'runs_scored', 0)
-df1.insert(19, 'total_runs', 0)
+        # correct the remaining columns
+        df1.loc[df1.type == 'sub', 'playerID'] = df1.loc[df1.type == 'sub', 'inning']
+        df1.loc[df1.type == 'sub', 'count'] = None
+        df1.loc[df1.type == 'sub', 'pitches'] = None
 
-# insert half innings
-df1.insert(3, 'half_innings', None)
-df1.half_innings = df1.inning + '_' + df1.half
+        # using current index to retrieve and replace with -1 index with inning and half inning values
+        previous_index = df1[df1.type == 'sub'].index.values - 1
+        df1.loc[df1.type == 'sub', 'inning'] = df1.loc[previous_index, 'inning'].tolist()
+        df1.loc[df1.type == 'sub', 'half'] = df1.loc[previous_index, 'half'].tolist()
+
+        # remove line break in last column for subs
+        df1.loc[df1.type == 'sub', 'fielding'] = df1.loc[df1.type == 'sub', 'fielding'].str.replace('\n', '').tolist()
+
+        # add outs and baserunners columns
+        df1.insert(11, 'outs', 0)
+        df1.insert(12, '1B_before', None)
+        df1.insert(13, '2B_before', None)
+        df1.insert(14, '3B_before', None)
+        df1.insert(15, '1B_after', None)
+        df1.insert(16, '2B_after', None)
+        df1.insert(17, '3B_after', None)
+        df1.insert(18, 'runs_scored', 0)
+        df1.insert(19, 'total_runs', 0)
+
+        # insert half innings
+        df1.insert(3, 'half_innings', None)
+        df1.half_innings = df1.inning + '_' + df1.half
+
+        # add to full game_dfs list
+        games_dfs.append(df1.copy())
+
+    return games_dfs
 
 
 # re-write the processor based on re.search/re.findall grep searching
 def play_processor2(the_df):
 
+    ln = None
     # process would go line by line.
     for i, ln in the_df.iterrows():
 
@@ -101,68 +114,84 @@ def play_processor2(the_df):
         if ln['type'] == 'play':
 
             # Case 1: regular single out plays
-            if re.search(r'^[1-9]([1-9]+)?/(G|F|L|P)', ln['play']):
-                print('Routine Put Out: ', ln['play'])
+            if re.search(r'^[1-9]([1-9]+)?(!)?/(G|F|L|P|BG|BP|BL)', ln['play']):
+                # print('Routine Put Out: ', ln['play'])
+                pass
 
             # Case 2: irregular put-outs, runner is specified
-            elif re.search(r'^[1-9]([1-9]+)?\([B123]\)/BG', ln['play']):
-                print('Irregular Put Out: ', ln['play'])
+            elif re.search(r'^[1-9]([1-9]+)?(\([B123]\))', ln['play']):
+                # print('Irregular Put Out: ', ln['play'])
+                pass
 
             # Case 3: explicit force out plays
             elif re.search(r'^[1-9]([1-9]+)?\([B123]\)/FO', ln['play']):
-                print('Force Out: ', ln['play'])
+                # print('Force Out: ', ln['play'])
+                pass
 
             # Case 4: sacrifice hit / fly
             elif re.search(r'^[1-9]([1-9]+)?/(SH|SF)', ln['play']):
-                print('Sac Hit/Fly: ', ln['play'])
+                # print('Sac Hit/Fly: ', ln['play'])
+                pass
 
             # Case 5: fielders' choice
             elif re.search(r'FC[1-9]', ln['play']):
-                print('Fielders\' Choice: ', ln['play'])
+                # print('Fielders\' Choice: ', ln['play'])
+                pass
 
             # Case 6: strike out
             elif re.search(r'^K([1-9]+)?', ln['play']):
-                print('STRIKEOUT: ', ln['play'])
+                # print('STRIKEOUT: ', ln['play'])
+                pass
 
             # Case 7: strike out + event
             elif re.search(r'^K\+', ln['play']):
-                print('Strikeout + Event: ', ln['play'])
+                # print('Strikeout + Event: ', ln['play'])
+                pass
 
             # Case 8: routine double plays
             elif re.search(r'.*DP', ln['play']):
-                print('DOUBLE PLAY: ', ln['play'])
+                # print('DOUBLE PLAY: ', ln['play'])
+                pass
 
             # Case 9: triple plays
             elif re.search(r'.*TP', ln['play']):
-                print('TRIPLE PLAY: ', ln['play'])
+                # print('TRIPLE PLAY: ', ln['play'])
+                pass
 
             # Case 10: catcher interference or pitcher/1B interference
             elif re.search(r'^C/E[1-9]', ln['play']):
-                print('Catcher Int.: ', ln['play'])
+                # print('Catcher Int.: ', ln['play'])
+                pass
 
             # Case 11: Hit!
             elif re.search(r'^((S|D|T)[1-9]|H/|HR|DGR)', ln['play']):
-                print('A Hit!: ', ln['play'])
+                # print('A Hit!: ', ln['play'])
+                pass
 
             # Case 12: Walk / HP
             elif re.search(r'^(HP|IW|W)(?!\+)', ln['play']):
-                print('Walk / Hit By Pitch: ', ln['play'])
+                # print('Walk / Hit By Pitch: ', ln['play'])
+                pass
 
             # Case 13: Walk + event
             elif re.search(r'^(IW|W)\+', ln['play']):
-                print('Walk + Event: ', ln['play'])
+                # print('Walk + Event: ', ln['play'])
+                pass
 
             # Case 14: fly ball error
             elif re.search(r'^FLE[1-9]', ln['play']):
-                print('Fly ball Error: ', ln['play'])
+                # print('Fly ball Error: ', ln['play'])
+                pass
 
             # Case 15: error
-            elif re.search(r'^E[1-9]', ln['play']):
-                print('Error: ', ln['play'])
+            elif re.search(r'^([1-9])?E[1-9]', ln['play']):
+                # print('Error: ', ln['play'])
+                pass
 
             # Case 16: wild pitch or balk
             elif re.search(r'^(WP|BK)', ln['play']):
-                print('Wild Pitch: ', ln['play'])
+                # print('Wild Pitch: ', ln['play'])
+                pass
 
             # Case 17: no pitch
             elif re.search(r'^NP$', ln['play']):
@@ -170,15 +199,33 @@ def play_processor2(the_df):
 
             # Case 18: stolen base
             elif re.search(r'^SB', ln['play']):
-                print('Stolen Base: ', ln['play'])
+                # print('Stolen Base: ', ln['play'])
+                pass
 
-            # Case 19: caught stealing
-            elif re.search(r'^CS', ln['play']):
-                print('Caught Stealing: ', ln['play'])
-
-            # Case 20: defensive indifference
+            # Case 19: defensive indifference
             elif re.search(r'^DI', ln['play']):
-                print('Defensive Indiff.: ', ln['play'])
+                # print('Defensive Indiff.: ', ln['play'])
+                pass
+
+            # Case 20: caught stealing
+            elif re.search(r'^CS', ln['play']):
+                # print('Caught Stealing: ', ln['play'])
+                pass
+
+            # Case 21: pick off and/or caught stealing
+            elif re.search(r'^PO(CS)?[123]', ln['play']):
+                # print('Picked Off &/ Caught Stealing: ', ln['play'])
+                pass
+
+            # Case 22: passed ball
+            elif re.search(r'^PB', ln['play']):
+                # print('Passed Ball: ', ln['play'])
+                pass
+
+            # Case 23: unexpected runner advance
+            elif re.search(r'^OA', ln['play']):
+                # print('Unexpected Runner Adv.: ', ln['play'])
+                pass
 
             # Case 20: ELSE
             else:
@@ -384,17 +431,24 @@ def half_inning_process(the_df):
     return full_df
 
 
+# convert all games for 1 file
+a_full_df = convert_games(games)
+
 # test the play_processor2 function
-new_output = play_processor2(df1)
+# new_output = play_processor2(df1)
+# print(len(a_full_df))
+for e in range(len(a_full_df)):
+    print('game #: ', e+1)
+    play_processor2(a_full_df[e])
 
 # run the functions
-for i, d in df1.iterrows():
-    # print(type(d))
-    if d['type'] == 'play':
-        d = play_processor(d)
-        df1.loc[i] = d
-df1 = baserunner_processor(df1)
-output_df = half_inning_process(df1)
+# for i, d in df1.iterrows():
+#     # print(type(d))
+#     if d['type'] == 'play':
+#         d = play_processor(d)
+#         df1.loc[i] = d
+# df1 = baserunner_processor(df1)
+# output_df = half_inning_process(df1)
 
 # print(df1[df1.type == 'sub'])
 # print(df1[df1.inning == '1'])
@@ -403,4 +457,4 @@ output_df = half_inning_process(df1)
 # print(df1)
 
 # write to file
-output_df.to_csv('OUTPUT.csv', sep=',', index=False)
+# output_df.to_csv('OUTPUT.csv', sep=',', index=False)
