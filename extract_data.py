@@ -27,6 +27,7 @@ for line_item in f1:
             game_info.append(game_play.copy())
             games.append(game_info.copy())
         game_info.clear()
+        game_play.clear()  # Needed to clear this so it doesn't tack on for all remaining games!
         game_info.append(line_item)
     elif line_item[:4] == "play" or line_item[:3] == "sub":
         game_play.append(line_item)
@@ -34,7 +35,7 @@ for line_item in f1:
         game_info.append(line_item)
 
 # get last item in list, which is the entire game_play
-# print(games[0][-1])
+# print(len(games[79][-1]))
 
 # loop through 1 game
 # for line_item in games[0][-1]:
@@ -99,6 +100,7 @@ def convert_games(all_games):
 
         # add to full game_dfs list
         games_dfs.append(df1.copy())
+        # print(g, ': ', len(games_dfs), ' df: ', len(df1))
 
     return games_dfs
 
@@ -106,6 +108,7 @@ def convert_games(all_games):
 # re-write the processor based on re.search/re.findall grep searching
 def play_processor2(the_df):
 
+    print(the_df.index)
     # process would go line by line.
     for i in the_df.index:
 
@@ -222,9 +225,9 @@ def play_processor2(the_df):
                 pass
 
             # Case 23: unexpected runner advance
-            elif re.search(r'^OA', the_df.at[i, 'play']):
+            # elif re.search(r'^OA', the_df.at[i, 'play']):
                 # print('Unexpected Runner Adv.: ', the_df.at[i, 'play'])
-                pass
+                # pass
 
             # Case 20: ELSE
             else:
@@ -437,8 +440,16 @@ a_full_df = convert_games(games)
 # new_output = play_processor2(df1)
 # print(len(a_full_df))
 for e, each_game in enumerate(a_full_df):
-    print('game #: ', e+1)
-    new_output = play_processor2(each_game)
+    # print('game #: ', e+1)
+    # print(each_game.index)
+    # print(a_full_df[e].index)
+    pass
+    # df = a_full_df[e].copy()
+    # print(df.index)
+    # print(len(df))
+    # new_output = play_processor2(each_game)
+
+# print(a_full_df[79])
 
 # run the functions
 # for i, d in df1.iterrows():
