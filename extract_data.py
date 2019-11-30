@@ -6,7 +6,7 @@ import pandas as pd
 import re
 
 # open and read data
-f = open("retrodata/2015TOR.EVA","r")
+f = open("retrodata/2015ARI.EVN", "r")
 f1 = f.readlines()
 
 # test print
@@ -163,17 +163,17 @@ def play_processor2(the_df):
                 # print('Catcher Int.: ', ln['play'])
                 pass
 
-            # Case 11: Hit!
-            elif re.search(r'^((S|D|T)[1-9]|H/|HR|DGR)', ln['play']):
+            # Case 11: hit! -- the fielder(s) after letter is optional
+            elif re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', ln['play']):
                 # print('A Hit!: ', ln['play'])
                 pass
 
-            # Case 12: Walk / HP
+            # Case 12: walk or hit by pitch
             elif re.search(r'^(HP|IW|W)(?!\+)', ln['play']):
                 # print('Walk / Hit By Pitch: ', ln['play'])
                 pass
 
-            # Case 13: Walk + event
+            # Case 13: walk + event
             elif re.search(r'^(IW|W)\+', ln['play']):
                 # print('Walk + Event: ', ln['play'])
                 pass
@@ -184,7 +184,7 @@ def play_processor2(the_df):
                 pass
 
             # Case 15: error
-            elif re.search(r'^([1-9])?E[1-9]', ln['play']):
+            elif re.search(r'^([1-9]+)?E[1-9]', ln['play']):
                 # print('Error: ', ln['play'])
                 pass
 
@@ -213,7 +213,7 @@ def play_processor2(the_df):
                 pass
 
             # Case 21: pick off and/or caught stealing
-            elif re.search(r'^PO(CS)?[123]', ln['play']):
+            elif re.search(r'^PO(CS)?[123H]', ln['play']):
                 # print('Picked Off &/ Caught Stealing: ', ln['play'])
                 pass
 
@@ -439,7 +439,7 @@ a_full_df = convert_games(games)
 # print(len(a_full_df))
 for e in range(len(a_full_df)):
     print('game #: ', e+1)
-    play_processor2(a_full_df[e])
+    new_output = play_processor2(a_full_df[e])
 
 # run the functions
 # for i, d in df1.iterrows():
