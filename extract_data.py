@@ -1,45 +1,12 @@
 # extracting the data
 
 # libraries
-import numpy as np
 import pandas as pd
 import re
+import os
+import sys
 
-# open and read data
-f = open("retrodata/2015TBA.EVA", "r")
-f1 = f.readlines()
-
-# test print
-# for i in range(100):
-#    print(f1[i])
-
-# test print first two characters, and everything after comma
-# print(f1[0][:2])
-# print(f1[0][3:])
-
-# collect id and group the games
-games = []
-game_info = []
-game_play = []
-for line_item in f1:
-    if line_item[:2] == "id":
-        if len(game_info) > 0:
-            game_info.append(game_play.copy())
-            games.append(game_info.copy())
-        game_info.clear()
-        game_play.clear()  # Needed to clear this so it doesn't tack on for all remaining games!
-        game_info.append(line_item)
-    elif line_item[:4] == "play" or line_item[:3] == "sub":
-        game_play.append(line_item)
-    else:
-        game_info.append(line_item)
-
-# get last item in list, which is the entire game_play
-# print(len(games[79][-1]))
-
-# loop through 1 game
-# for line_item in games[0][-1]:
-#    print(line_item)
+# list ALL functions first
 
 
 # convert play by play to tables
@@ -106,7 +73,7 @@ def convert_games(all_games):
 
 
 # re-write the processor based on re.search/re.findall grep searching
-def play_processor2(the_df):
+def play_processor2(game_num, the_df):
 
     # print(the_df.index)
     # process would go line by line.
@@ -234,9 +201,19 @@ def play_processor2(the_df):
                 # print('Batter Interference: ', the_df.at[i, 'play'])
                 pass
 
+            # Case 25: Hit with some errors
+            elif re.search(r'((S|D|T|H|HR|DGR)([1-9]+)\..*E)', the_df.at[i, 'play']):
+                # print('A Hit! And some errors: ', the_df.at[i, 'play'])
+                pass
+
+            # Case 26: appeal plays
+            elif re.search(r'.*AP', the_df.at[i, 'play']):
+                # print('Appeal Play not already overridden: ', the_df.at[i, 'play'])
+                pass
+
             # Case 20: ELSE
             else:
-                print('CASE NEEDED: ', the_df.at[i, 'play'])
+                print('Game #: ', game_num, 'CASE NEEDED: ', the_df.at[i, 'play'])
 
     return the_df
 
@@ -438,38 +415,51 @@ def half_inning_process(the_df):
     return full_df
 
 
-# convert all games for 1 file
-a_full_df = convert_games(games)
+# get argument
+year_range = sys.argv[1]
 
-# test the play_processor2 function
-# new_output = play_processor2(df1)
-# print(len(a_full_df))
-for e, each_game in enumerate(a_full_df):
-    print('game #: ', e+1)
-    # print(each_game.index)
-    # print(a_full_df[e].index)
-    # pass
-    # df = a_full_df[e].copy()
-    # print(df.index)
-    # print(len(df))
-    new_output = play_processor2(each_game)
+# check if range or single
+if re.search(r'^(19[0-9][0-9]|20[01][0-9])-(19[0-9][0-9]|20[01][0-9])$', year_range):
+    # add range later
+    pass
+elif re.search(r'^[0-9]{4}$', year_range):
+    a_year = year_range
+else:
+    # error handling
+    pass
 
-# print(a_full_df[79])
+# open and read data files
+dir_str = 'retrodata/' + a_year
+for event_file in os.listdir(dir_str):
+    # print(x)
+    file_dir = dir_str + '/' + event_file
+    f = open(file_dir, "r")
+    f1 = f.readlines()
+    print(event_file)
 
-# run the functions
-# for i, d in df1.iterrows():
-#     # print(type(d))
-#     if d['type'] == 'play':
-#         d = play_processor(d)
-#         df1.loc[i] = d
-# df1 = baserunner_processor(df1)
-# output_df = half_inning_process(df1)
+    # collect id and group the games
+    games = []
+    game_info = []
+    game_play = []
+    for line_item in f1:
+        if line_item[:2] == "id":
+            if len(game_info) > 0:
+                game_info.append(game_play.copy())
+                games.append(game_info.copy())
+            game_info.clear()
+            game_play.clear()  # Needed to clear this so it doesn't tack on for all remaining games!
+            game_info.append(line_item)
+        elif line_item[:4] == "play" or line_item[:3] == "sub":
+            game_play.append(line_item)
+        else:
+            game_info.append(line_item)
 
-# print(df1[df1.type == 'sub'])
-# print(df1[df1.inning == '1'])
+    # convert all games for 1 file
+    a_full_df = convert_games(games)
 
-# print(output_df)
-# print(df1)
+    # play_processor2 function
+    for e, each_game in enumerate(a_full_df):
+        new_output = play_processor2(e+1, each_game)
 
 # write to file
 # output_df.to_csv('OUTPUT.csv', sep=',', index=False)
