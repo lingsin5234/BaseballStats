@@ -6,7 +6,7 @@ import pandas as pd
 import re
 
 # open and read data
-f = open("retrodata/2015ATL.EVN", "r")
+f = open("retrodata/2015BOS.EVA", "r")
 f1 = f.readlines()
 
 # test print
@@ -436,9 +436,9 @@ a_full_df = convert_games(games)
 # test the play_processor2 function
 # new_output = play_processor2(df1)
 # print(len(a_full_df))
-for e in range(len(a_full_df)):
+for e, each_game in enumerate(a_full_df):
     print('game #: ', e+1)
-    new_output = play_processor2(a_full_df[e])
+    new_output = play_processor2(each_game)
 
 # run the functions
 # for i, d in df1.iterrows():
