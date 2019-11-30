@@ -6,7 +6,7 @@ import pandas as pd
 import re
 
 # open and read data
-f = open("retrodata/2015ARI.EVN", "r")
+f = open("retrodata/2015ATL.EVN", "r")
 f1 = f.readlines()
 
 # test print
@@ -106,130 +106,129 @@ def convert_games(all_games):
 # re-write the processor based on re.search/re.findall grep searching
 def play_processor2(the_df):
 
-    ln = None
     # process would go line by line.
-    for i, ln in the_df.iterrows():
+    for i in the_df.index:
 
         # for plays
-        if ln['type'] == 'play':
+        if the_df.at[i, 'type'] == 'play':
 
             # Case 1: regular single out plays
-            if re.search(r'^[1-9]([1-9]+)?(!)?/(G|F|L|P|BG|BP|BL)', ln['play']):
-                # print('Routine Put Out: ', ln['play'])
+            if re.search(r'^[1-9]([1-9]+)?(!)?/(G|F|L|P|BG|BP|BL)', the_df.at[i, 'play']):
+                # print('Routine Put Out: ', the_df.at[i, 'play'])
                 pass
 
             # Case 2: irregular put-outs, runner is specified
-            elif re.search(r'^[1-9]([1-9]+)?(\([B123]\))', ln['play']):
-                # print('Irregular Put Out: ', ln['play'])
+            elif re.search(r'^[1-9]([1-9]+)?(\([B123]\))', the_df.at[i, 'play']):
+                # print('Irregular Put Out: ', the_df.at[i, 'play'])
                 pass
 
             # Case 3: explicit force out plays
-            elif re.search(r'^[1-9]([1-9]+)?\([B123]\)/FO', ln['play']):
-                # print('Force Out: ', ln['play'])
+            elif re.search(r'^[1-9]([1-9]+)?\([B123]\)/FO', the_df.at[i, 'play']):
+                # print('Force Out: ', the_df.at[i, 'play'])
                 pass
 
             # Case 4: sacrifice hit / fly
-            elif re.search(r'^[1-9]([1-9]+)?/(SH|SF)', ln['play']):
-                # print('Sac Hit/Fly: ', ln['play'])
+            elif re.search(r'^[1-9]([1-9]+)?/(SH|SF)', the_df.at[i, 'play']):
+                # print('Sac Hit/Fly: ', the_df.at[i, 'play'])
                 pass
 
             # Case 5: fielders' choice
-            elif re.search(r'FC[1-9]', ln['play']):
-                # print('Fielders\' Choice: ', ln['play'])
+            elif re.search(r'FC[1-9]', the_df.at[i, 'play']):
+                # print('Fielders\' Choice: ', the_df.at[i, 'play'])
                 pass
 
             # Case 6: strike out
-            elif re.search(r'^K([1-9]+)?', ln['play']):
-                # print('STRIKEOUT: ', ln['play'])
+            elif re.search(r'^K([1-9]+)?', the_df.at[i, 'play']):
+                # print('STRIKEOUT: ', the_df.at[i, 'play'])
                 pass
 
             # Case 7: strike out + event
-            elif re.search(r'^K\+', ln['play']):
-                # print('Strikeout + Event: ', ln['play'])
+            elif re.search(r'^K\+', the_df.at[i, 'play']):
+                # print('Strikeout + Event: ', the_df.at[i, 'play'])
                 pass
 
             # Case 8: routine double plays
-            elif re.search(r'.*DP', ln['play']):
-                # print('DOUBLE PLAY: ', ln['play'])
+            elif re.search(r'.*DP', the_df.at[i, 'play']):
+                # print('DOUBLE PLAY: ', the_df.at[i, 'play'])
                 pass
 
             # Case 9: triple plays
-            elif re.search(r'.*TP', ln['play']):
-                # print('TRIPLE PLAY: ', ln['play'])
+            elif re.search(r'.*TP', the_df.at[i, 'play']):
+                # print('TRIPLE PLAY: ', the_df.at[i, 'play'])
                 pass
 
             # Case 10: catcher interference or pitcher/1B interference
-            elif re.search(r'^C/E[1-9]', ln['play']):
-                # print('Catcher Int.: ', ln['play'])
+            elif re.search(r'^C/E[1-9]', the_df.at[i, 'play']):
+                # print('Catcher Int.: ', the_df.at[i, 'play'])
                 pass
 
             # Case 11: hit! -- the fielder(s) after letter is optional
-            elif re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', ln['play']):
-                # print('A Hit!: ', ln['play'])
+            elif re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', the_df.at[i, 'play']):
+                # print('A Hit!: ', the_df.at[i, 'play'])
                 pass
 
             # Case 12: walk or hit by pitch
-            elif re.search(r'^(HP|IW|W)(?!\+)', ln['play']):
-                # print('Walk / Hit By Pitch: ', ln['play'])
+            elif re.search(r'^(HP|IW|W)(?!\+)', the_df.at[i, 'play']):
+                # print('Walk / Hit By Pitch: ', the_df.at[i, 'play'])
                 pass
 
             # Case 13: walk + event
-            elif re.search(r'^(IW|W)\+', ln['play']):
-                # print('Walk + Event: ', ln['play'])
+            elif re.search(r'^(IW|W)\+', the_df.at[i, 'play']):
+                # print('Walk + Event: ', the_df.at[i, 'play'])
                 pass
 
             # Case 14: fly ball error
-            elif re.search(r'^FLE[1-9]', ln['play']):
-                # print('Fly ball Error: ', ln['play'])
+            elif re.search(r'^FLE[1-9]', the_df.at[i, 'play']):
+                # print('Fly ball Error: ', the_df.at[i, 'play'])
                 pass
 
             # Case 15: error
-            elif re.search(r'^([1-9]+)?E[1-9]', ln['play']):
-                # print('Error: ', ln['play'])
+            elif re.search(r'^([1-9]+)?E[1-9]', the_df.at[i, 'play']):
+                # print('Error: ', the_df.at[i, 'play'])
                 pass
 
             # Case 16: wild pitch or balk
-            elif re.search(r'^(WP|BK)', ln['play']):
-                # print('Wild Pitch: ', ln['play'])
+            elif re.search(r'^(WP|BK)', the_df.at[i, 'play']):
+                # print('Wild Pitch: ', the_df.at[i, 'play'])
                 pass
 
             # Case 17: no pitch
-            elif re.search(r'^NP$', ln['play']):
+            elif re.search(r'^NP$', the_df.at[i, 'play']):
                 pass
 
             # Case 18: stolen base
-            elif re.search(r'^SB', ln['play']):
-                # print('Stolen Base: ', ln['play'])
+            elif re.search(r'^SB', the_df.at[i, 'play']):
+                # print('Stolen Base: ', the_df.at[i, 'play'])
                 pass
 
             # Case 19: defensive indifference
-            elif re.search(r'^DI', ln['play']):
-                # print('Defensive Indiff.: ', ln['play'])
+            elif re.search(r'^DI', the_df.at[i, 'play']):
+                # print('Defensive Indiff.: ', the_df.at[i, 'play'])
                 pass
 
             # Case 20: caught stealing
-            elif re.search(r'^CS', ln['play']):
-                # print('Caught Stealing: ', ln['play'])
+            elif re.search(r'^CS', the_df.at[i, 'play']):
+                # print('Caught Stealing: ', the_df.at[i, 'play'])
                 pass
 
             # Case 21: pick off and/or caught stealing
-            elif re.search(r'^PO(CS)?[123H]', ln['play']):
-                # print('Picked Off &/ Caught Stealing: ', ln['play'])
+            elif re.search(r'^PO(CS)?[123H]', the_df.at[i, 'play']):
+                # print('Picked Off &/ Caught Stealing: ', the_df.at[i, 'play'])
                 pass
 
             # Case 22: passed ball
-            elif re.search(r'^PB', ln['play']):
-                # print('Passed Ball: ', ln['play'])
+            elif re.search(r'^PB', the_df.at[i, 'play']):
+                # print('Passed Ball: ', the_df.at[i, 'play'])
                 pass
 
             # Case 23: unexpected runner advance
-            elif re.search(r'^OA', ln['play']):
-                # print('Unexpected Runner Adv.: ', ln['play'])
+            elif re.search(r'^OA', the_df.at[i, 'play']):
+                # print('Unexpected Runner Adv.: ', the_df.at[i, 'play'])
                 pass
 
             # Case 20: ELSE
             else:
-                print('CASE NEEDED: ', ln['play'])
+                print('CASE NEEDED: ', the_df.at[i, 'play'])
 
     return the_df
 
