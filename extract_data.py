@@ -94,6 +94,96 @@ df1.half_innings = df1.inning + '_' + df1.half
 # re-write the processor based on re.search/re.findall grep searching
 def play_processor2(the_df):
 
+    # process would go line by line.
+    for i, ln in the_df.iterrows():
+
+        # for plays
+        if ln['type'] == 'play':
+
+            # Case 1: regular single out plays
+            if re.search(r'^[1-9]([1-9]+)?/(G|F|L|P)', ln['play']):
+                print('Routine Put Out: ', ln['play'])
+
+            # Case 2: irregular put-outs, runner is specified
+            elif re.search(r'^[1-9]([1-9]+)?\([B123]\)/BG', ln['play']):
+                print('Irregular Put Out: ', ln['play'])
+
+            # Case 3: explicit force out plays
+            elif re.search(r'^[1-9]([1-9]+)?\([B123]\)/FO', ln['play']):
+                print('Force Out: ', ln['play'])
+
+            # Case 4: sacrifice hit / fly
+            elif re.search(r'^[1-9]([1-9]+)?/(SH|SF)', ln['play']):
+                print('Sac Hit/Fly: ', ln['play'])
+
+            # Case 5: fielders' choice
+            elif re.search(r'FC[1-9]', ln['play']):
+                print('Fielders\' Choice: ', ln['play'])
+
+            # Case 6: strike out
+            elif re.search(r'^K([1-9]+)?', ln['play']):
+                print('STRIKEOUT: ', ln['play'])
+
+            # Case 7: strike out + event
+            elif re.search(r'^K\+', ln['play']):
+                print('Strikeout + Event: ', ln['play'])
+
+            # Case 8: routine double plays
+            elif re.search(r'.*DP', ln['play']):
+                print('DOUBLE PLAY: ', ln['play'])
+
+            # Case 9: triple plays
+            elif re.search(r'.*TP', ln['play']):
+                print('TRIPLE PLAY: ', ln['play'])
+
+            # Case 10: catcher interference or pitcher/1B interference
+            elif re.search(r'^C/E[1-9]', ln['play']):
+                print('Catcher Int.: ', ln['play'])
+
+            # Case 11: Hit!
+            elif re.search(r'^((S|D|T)[1-9]|H/|HR|DGR)', ln['play']):
+                print('A Hit!: ', ln['play'])
+
+            # Case 12: Walk / HP
+            elif re.search(r'^(HP|IW|W)(?!\+)', ln['play']):
+                print('Walk / Hit By Pitch: ', ln['play'])
+
+            # Case 13: Walk + event
+            elif re.search(r'^(IW|W)\+', ln['play']):
+                print('Walk + Event: ', ln['play'])
+
+            # Case 14: fly ball error
+            elif re.search(r'^FLE[1-9]', ln['play']):
+                print('Fly ball Error: ', ln['play'])
+
+            # Case 15: error
+            elif re.search(r'^E[1-9]', ln['play']):
+                print('Error: ', ln['play'])
+
+            # Case 16: wild pitch or balk
+            elif re.search(r'^(WP|BK)', ln['play']):
+                print('Wild Pitch: ', ln['play'])
+
+            # Case 17: no pitch
+            elif re.search(r'^NP$', ln['play']):
+                pass
+
+            # Case 18: stolen base
+            elif re.search(r'^SB', ln['play']):
+                print('Stolen Base: ', ln['play'])
+
+            # Case 19: caught stealing
+            elif re.search(r'^CS', ln['play']):
+                print('Caught Stealing: ', ln['play'])
+
+            # Case 20: defensive indifference
+            elif re.search(r'^DI', ln['play']):
+                print('Defensive Indiff.: ', ln['play'])
+
+            # Case 20: ELSE
+            else:
+                print('CASE NEEDED: ', ln['play'])
+
     return the_df
 
 
@@ -294,6 +384,9 @@ def half_inning_process(the_df):
     return full_df
 
 
+# test the play_processor2 function
+new_output = play_processor2(df1)
+
 # run the functions
 for i, d in df1.iterrows():
     # print(type(d))
@@ -311,4 +404,3 @@ output_df = half_inning_process(df1)
 
 # write to file
 output_df.to_csv('OUTPUT.csv', sep=',', index=False)
-
