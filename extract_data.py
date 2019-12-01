@@ -229,7 +229,21 @@ def play_processor2(game_num, the_df):
             # Case 15: error
             elif re.search(r'^([1-9]+)?E[1-9]', the_df.at[i, 'play']):
                 # print('Error: ', the_df.at[i, 'play'])
-                pass
+
+                # if explicitly puts moves the batter
+                if re.search(r'\..*B(-|X)[123H]', the_df.at[i, 'play']):
+                    if re.search(r'\..*B-1', the_df.at[i, 'play']):
+                        the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
+                    elif re.search(r'\..*B-2', the_df.at[i, 'play']):
+                        the_df.at[i, '2B_after'] = the_df.at[i, 'playerID']
+                    elif re.search(r'\..*B-3', the_df.at[i, 'play']):
+                        the_df.at[i, '3B_after'] = the_df.at[i, 'playerID']
+                    elif re.search(r'\..*B-H', the_df.at[i, 'play']):
+                        the_df.at[i, 'runs_scored'] = the_df.at[i, 'playerID']
+                    # other cases are BX[123H] - just ignore
+                else:
+                    # assume they reached first base safely
+                    the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
 
             # Case 16: wild pitch or balk
             elif re.search(r'^(WP|BK)', the_df.at[i, 'play']):
