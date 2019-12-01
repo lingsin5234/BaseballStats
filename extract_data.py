@@ -328,6 +328,28 @@ def play_processor2(game_num, the_df):
                 if re.search(r'\..*3-H', the_df.at[i, 'play']):
                     the_df.at[i, 'runs_scored'] += 1
 
+                # remove runners that are explicitly out
+                if re.search(r'\..*1X[123H]', the_df.at[i, 'play']):
+                    the_df.at[i, 'outs'] += 1
+                if re.search(r'\..*2X[23H]', the_df.at[i, 'play']):
+                    the_df.at[i, 'outs'] += 1
+                if re.search(r'\..*3X[3H]', the_df.at[i, 'play']):
+                    the_df.at[i, 'outs'] += 1
+
+                # handle weird outs for the batter previously marked on base.
+                if re.search(r'\..*BX[123H]', the_df.at[i, 'play']):
+                    the_df.at[i, 'outs'] += 1
+
+                    # handle the now existing runner
+                    if the_df.at[i, '1B_after'] == the_df.at[i, 'playerID']:
+                        the_df.at[i, '1B_after'] = 'X'
+                    if the_df.at[i, '2B_after'] == the_df.at[i, 'playerID']:
+                        the_df.at[i, '2B_after'] = 'X'
+                    if the_df.at[i, '3B_after'] == the_df.at[i, 'playerID']:
+                        the_df.at[i, '3B_after'] = 'X'
+                    if re.search(r'(H[1-9]|HR).*\..*BXH', the_df.at[i, 'play']):
+                        the_df.at[i, 'runs_scored'] -= 1
+
                 # retain the runners that did not move
                 # R1 did not move and was not out
                 if bool(re.search(r'\.([23](-|X)[23H])+', the_df.at[i, 'play'])) &\
@@ -355,6 +377,52 @@ def play_processor2(game_num, the_df):
                     the_df.at[i, '2B_after'] = the_df.at[i, '2B_before']
                 if (the_df.at[i, '3B_after'] != 'X') & (the_df.at[i, '3B_after'] != the_df.at[i, 'playerID']):
                     the_df.at[i, '3B_after'] = the_df.at[i, '3B_before']
+
+            # some combination of out(s)
+            if re.search(r'FO|FC|DP', the_df.at[i, 'play']):
+
+                # find the out, move appropriate
+                # R1 is out
+                if re.search(r'\(1\)', the_df.at[i, 'play']):
+                    # batter on first unless DP
+                    if the_df.at[i, '1B_after'] != 'X':
+                        the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
+                # R2 is out
+                if re.search(r'\(2\)', the_df.at[i, 'play']):
+                    # batter on first unless DP
+                    if the_df.at[i, '1B_after'] != 'X':
+                        the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
+                    # R1 on 2nd unless DP
+                    if (the_df.at[i, '2B_after'] != 'X') & \
+                            (the_df.at[i, '2B_after'] is not None):
+                        the_df.at[i, '2B_after'] = the_df.at[i, '1B_before']
+                    # R3 stays on base
+                    if (the_df.at[i, '3B_after'] != 'X') & \
+                            (the_df.at[i, '3B_before'] is not None) & \
+                            bool(re.search(r'\..*3(-|X)H', the_df.at[i, 'play'])):
+                        the_df.at[i, '3B_after'] = the_df.at[i, '3B_before']
+
+                # R3 is out
+                if re.search(r'\(3\)', the_df.at[i, 'play']):
+                    # batter on first unless DP
+                    if the_df.at[i, '1B_after'] != 'X':
+                        the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
+                    # R1 on 2nd unless DP
+                    if (the_df.at[i, '2B_after'] != 'X') & \
+                            (the_df.at[i, '2B_after'] is not None):
+                        the_df.at[i, '2B_after'] = the_df.at[i, '1B_before']
+                    # R2 on 3rd unless DP
+                    if (the_df.at[i, '3B_after'] != 'X') & \
+                            (the_df.at[i, '3B_after'] is not None):
+                        the_df.at[i, '3B_after'] = the_df.at[i, '2B_before']
+
+            # remove the X's
+            if the_df.at[i, '1B_after'] == 'X':
+                the_df.at[i, '1B_after'] = None
+            if the_df.at[i, '2B_after'] == 'X':
+                the_df.at[i, '2B_after'] = None
+            if the_df.at[i, '3B_after'] == 'X':
+                the_df.at[i, '3B_after'] = None
 
     return the_df
 
