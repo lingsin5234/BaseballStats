@@ -308,7 +308,15 @@ def play_processor2(game_num, the_df):
             # HANDLING BASERUNNERS
             # always a . before the baserunners move
             if re.search(r'\.[B123](-|X)[123H]', the_df.at[i, 'play']):
-                pass
+                
+            else:
+                # no runner movement and not empty value: copy runners
+                if (the_df.at[i, '1B_after'] != 'X') & (the_df.at[i, '1B_after'] != the_df.at[i, 'playerID']):
+                    the_df.at[i, '1B_after'] = the_df.at[i, '1B_before']
+                if (the_df.at[i, '2B_after'] != 'X') & (the_df.at[i, '2B_after'] != the_df.at[i, 'playerID']):
+                    the_df.at[i, '2B_after'] = the_df.at[i, '2B_before']
+                if (the_df.at[i, '3B_after'] != 'X') & (the_df.at[i, '3B_after'] != the_df.at[i, 'playerID']):
+                    the_df.at[i, '3B_after'] = the_df.at[i, '3B_before']
 
     return the_df
 
