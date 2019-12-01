@@ -152,7 +152,7 @@ def play_processor2(game_num, the_df):
             # Case 7: strike out + event
             elif re.search(r'^K\+', the_df.at[i, 'play']):
                 # print('Strikeout + Event: ', the_df.at[i, 'play'])
-                the_df.at[i, 'outs'] += 1
+                the_df.at[i, 'outs'] += 1  # what if passed ball???? B-1?
 
                 # determine if next play is out or not.
                 # take a look
@@ -164,6 +164,17 @@ def play_processor2(game_num, the_df):
                 the_df.at[i, 'outs'] += 2
 
                 # determine which runners are out
+                if re.search(r'\(1\)', the_df.at[i, 'play']):
+                    the_df.at[i, '2B_after'] = 'X'
+                if re.search(r'\(2\)', the_df.at[i, 'play']):
+                    the_df.at[i, '3B_after'] = 'X'
+                if re.search(r'\([123]\).*\([123]\)', the_df.at[i, 'play']):
+                    # nothing happens if 3rd base runner is out.
+                    # both 1 and 2 would be recorded
+                    pass
+                else:
+                    # record the out at 1st implicitly if only 1 other baserunner is out.
+                    the_df.at[i, '1B_after'] = 'X'
 
             # Case 9: triple plays
             elif re.search(r'.*TP', the_df.at[i, 'play']):
@@ -173,22 +184,31 @@ def play_processor2(game_num, the_df):
             # Case 10: catcher interference or pitcher/1B interference
             elif re.search(r'^C/E[1-9]', the_df.at[i, 'play']):
                 # print('Catcher Int.: ', the_df.at[i, 'play'])
-                pass
+                the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
 
             # Case 11: hit! -- the fielder(s) after letter is optional
             elif re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', the_df.at[i, 'play']):
                 # print('A Hit!: ', the_df.at[i, 'play'])
-                pass
+
+                # determine what type of hit.
+                if re.search(r'^S([1-9]+)?', the_df.at[i, 'play']):
+                    the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
+                elif re.search(r'^(D([1-9]+)?|DGR)', the_df.at[i, 'play']):
+                    the_df.at[i, '2B_after'] = the_df.at[i, 'playerID']
+                elif re.search(r'^T([1-9]+)?', the_df.at[i, 'play']):
+                    the_df.at[i, '3B_after'] = the_df.at[i, 'playerID']
+                else:
+                    the_df.at[i, 'runs_scored'] += 1
 
             # Case 12: walk or hit by pitch
             elif re.search(r'^(HP|IW|W)(?!\+)', the_df.at[i, 'play']):
                 # print('Walk / Hit By Pitch: ', the_df.at[i, 'play'])
-                pass
+                the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
 
             # Case 13: walk + event
             elif re.search(r'^(IW|W)\+', the_df.at[i, 'play']):
                 # print('Walk + Event: ', the_df.at[i, 'play'])
-                pass
+                the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
 
             # Case 14: fly ball error
             elif re.search(r'^FLE[1-9]', the_df.at[i, 'play']):
@@ -212,7 +232,15 @@ def play_processor2(game_num, the_df):
             # Case 18: stolen base
             elif re.search(r'^SB', the_df.at[i, 'play']):
                 # print('Stolen Base: ', the_df.at[i, 'play'])
-                pass
+
+                # determine which base stolen
+                if re.search(r'^SB2', the_df.at[i, 'play']):
+                    the_df.at[i, '2B_after'] = the_df.at[i, '1B_before']
+                elif re.search(r'^SB3', the_df.at[i, 'play']):
+                    the_df.at[i, '3B_after'] = the_df.at[i, '2B_before']
+                elif re.search(r'^SBH', the_df.at[i, 'play']):
+                    the_df.at[i, 'runs_scored'] += 1
+                    the_df.at[i, '3B_after'] = None
 
             # Case 19: defensive indifference
             elif re.search(r'^DI', the_df.at[i, 'play']):
