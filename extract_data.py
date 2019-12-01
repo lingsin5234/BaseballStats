@@ -85,47 +85,90 @@ def play_processor2(game_num, the_df):
             # Case 1: regular single out plays
             if re.search(r'^[1-9]([1-9!]+)?/(G|F|L|P|BG|BP|BL)', the_df.at[i, 'play']):
                 # print('Routine Put Out: ', the_df.at[i, 'play'])
-                pass
+                the_df.at[i, 'outs'] += 1
 
             # Case 2: irregular put-outs, runner is specified
-            elif re.search(r'^[1-9]([1-9]+)?(\([B123]\))', the_df.at[i, 'play']):
+            # i.e. when put out at base not normally covered by that fielder
+            elif re.search(r'^[1-9]([1-9]+)?\([B123]\)/(?!FO)', the_df.at[i, 'play']):
                 # print('Irregular Put Out: ', the_df.at[i, 'play'])
-                pass
+                the_df.at[i, 'outs'] += 1
+
+                # determine which runner
+                if re.search(r'^[1-9]([1-9]+)?\(B\)', the_df.at[i, 'play']):
+                    # out is at 1B, no action required
+                    pass
+                elif re.search(r'^[1-9]([1-9]+)?\([123]\)', the_df.at[i, 'play']):
+                    # take a look
+                    print(game_num, ': ', the_df.at[i, 'play'])
 
             # Case 3: explicit force out plays
             elif re.search(r'^[1-9]([1-9]+)?\([B123]\)/FO', the_df.at[i, 'play']):
                 # print('Force Out: ', the_df.at[i, 'play'])
-                pass
+                the_df.at[i, 'outs'] += 1
+
+                # determine which runner
+                if re.search(r'^[1-9]([1-9]+)?\(B\)', the_df.at[i, 'play']):
+                    # mark an X for processing later.
+                    the_df.at[i, '1B_after'] = 'X'
+                elif re.search(r'^[1-9]([1-9]+)?\(1\)', the_df.at[i, 'play']):
+                    # mark an X for processing later.
+                    the_df.at[i, '2B_after'] = 'X'
+                elif re.search(r'^[1-9]([1-9]+)?\(2\)', the_df.at[i, 'play']):
+                    # mark an X for processing later.
+                    the_df.at[i, '3B_after'] = 'X'
+                elif re.search(r'^[1-9]([1-9]+)?\(3\)', the_df.at[i, 'play']):
+                    # out at Home, no action required
+                    pass
 
             # Case 4: sacrifice hit / fly
             elif re.search(r'^[1-9]([1-9]+)?/(SH|SF)', the_df.at[i, 'play']):
                 # print('Sac Hit/Fly: ', the_df.at[i, 'play'])
-                pass
+                the_df.at[i, 'outs'] += 1
 
             # Case 5: fielders' choice
-            elif re.search(r'FC[1-9]', the_df.at[i, 'play']):
+            elif re.search(r'^FC[1-9]', the_df.at[i, 'play']):
                 # print('Fielders\' Choice: ', the_df.at[i, 'play'])
-                pass
+                the_df.at[i, 'outs'] += 1
+
+                # determine which runner
+                if re.search(r'^FC[1-9]([1-9]+)?\(B\)', the_df.at[i, 'play']):
+                    # mark an X for processing later.
+                    the_df.at[i, '1B_after'] = 'X'
+                elif re.search(r'^FC[1-9]([1-9]+)?\(1\)', the_df.at[i, 'play']):
+                    # mark an X for processing later.
+                    the_df.at[i, '2B_after'] = 'X'
+                elif re.search(r'^FC[1-9]([1-9]+)?\(2\)', the_df.at[i, 'play']):
+                    # mark an X for processing later.
+                    the_df.at[i, '3B_after'] = 'X'
+                elif re.search(r'^FC[1-9]([1-9]+)?\(3\)', the_df.at[i, 'play']):
+                    # out at Home, no action required
+                    pass
 
             # Case 6: strike out
             elif re.search(r'^K([1-9]+)?', the_df.at[i, 'play']):
                 # print('STRIKEOUT: ', the_df.at[i, 'play'])
-                pass
+                the_df.at[i, 'outs'] += 1
 
             # Case 7: strike out + event
             elif re.search(r'^K\+', the_df.at[i, 'play']):
                 # print('Strikeout + Event: ', the_df.at[i, 'play'])
-                pass
+                the_df.at[i, 'outs'] += 1
+
+                # determine if next play is out or not.
+                # take a look
+                print(game_num, ': ', the_df.at[i, 'play'])
 
             # Case 8: routine double plays
             elif re.search(r'.*DP', the_df.at[i, 'play']):
                 # print('DOUBLE PLAY: ', the_df.at[i, 'play'])
-                pass
+                the_df.at[i, 'outs'] += 2
+
+                # determine which runners are out
 
             # Case 9: triple plays
             elif re.search(r'.*TP', the_df.at[i, 'play']):
                 # print('TRIPLE PLAY: ', the_df.at[i, 'play'])
-                pass
+                the_df.at[i, 'outs'] += 3
 
             # Case 10: catcher interference or pitcher/1B interference
             elif re.search(r'^C/E[1-9]', the_df.at[i, 'play']):
@@ -214,6 +257,11 @@ def play_processor2(game_num, the_df):
             # Case 20: ELSE
             else:
                 print('Game #: ', game_num, 'CASE NEEDED: ', the_df.at[i, 'play'])
+
+            # HANDLING BASERUNNERS
+            # always a . before the baserunners move
+            if re.search(r'\.[B123](-|X)[123H]', the_df.at[i, 'play']):
+                pass
 
     return the_df
 
@@ -430,36 +478,40 @@ else:
 
 # open and read data files
 dir_str = 'retrodata/' + a_year
-for event_file in os.listdir(dir_str):
-    # print(x)
-    file_dir = dir_str + '/' + event_file
-    f = open(file_dir, "r")
-    f1 = f.readlines()
-    print(event_file)
+# for event_file in os.listdir(dir_str):
+# print(x)
+# file_dir = dir_str + '/' + event_file
+file_dir = dir_str + '/2016TOR.EVA'
+f = open(file_dir, "r")
+f1 = f.readlines()
+# print(event_file)
 
-    # collect id and group the games
-    games = []
-    game_info = []
-    game_play = []
-    for line_item in f1:
-        if line_item[:2] == "id":
-            if len(game_info) > 0:
-                game_info.append(game_play.copy())
-                games.append(game_info.copy())
-            game_info.clear()
-            game_play.clear()  # Needed to clear this so it doesn't tack on for all remaining games!
-            game_info.append(line_item)
-        elif line_item[:4] == "play" or line_item[:3] == "sub":
-            game_play.append(line_item)
-        else:
-            game_info.append(line_item)
+# collect id and group the games
+games = []
+game_info = []
+game_play = []
+for line_item in f1:
+    if line_item[:2] == "id":
+        if len(game_info) > 0:
+            game_info.append(game_play.copy())
+            games.append(game_info.copy())
+        game_info.clear()
+        game_play.clear()  # Needed to clear this so it doesn't tack on for all remaining games!
+        game_info.append(line_item)
+    elif line_item[:4] == "play" or line_item[:3] == "sub":
+        game_play.append(line_item)
+    else:
+        game_info.append(line_item)
 
-    # convert all games for 1 file
-    a_full_df = convert_games(games)
+# convert all games for 1 file
+a_full_df = convert_games(games)
+full_output = pd.DataFrame(columns=a_full_df[0].columns)
 
-    # play_processor2 function
-    for e, each_game in enumerate(a_full_df):
-        new_output = play_processor2(e+1, each_game)
+# play_processor2 function
+for e, each_game in enumerate(a_full_df):
+    new_output = play_processor2(e+1, each_game)
+    full_output = full_output.append(new_output, ignore_index=True)
 
 # write to file
 # output_df.to_csv('OUTPUT.csv', sep=',', index=False)
+full_output.to_csv('OUTPUT.csv', sep=',', index=False)
