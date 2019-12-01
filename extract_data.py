@@ -79,6 +79,17 @@ def play_processor2(game_num, the_df):
     # process would go line by line.
     for i in the_df.index:
 
+        # check for new inning
+        if i > 0:
+            if the_df.at[i, 'half_innings'] == the_df.at[i-1, 'half_innings']:
+                the_df.at[i, '1B_before'] = the_df.at[i-1, '1B_after']
+                the_df.at[i, '2B_before'] = the_df.at[i-1, '2B_after']
+                the_df.at[i, '3B_before'] = the_df.at[i-1, '3B_after']
+                the_df.at[i, 'outs'] = the_df.at[i-1, 'outs']
+            else:
+                # see if pass works
+                pass
+
         # for plays
         if the_df.at[i, 'type'] == 'play':
 
@@ -250,12 +261,20 @@ def play_processor2(game_num, the_df):
             # Case 20: caught stealing
             elif re.search(r'^CS', the_df.at[i, 'play']):
                 # print('Caught Stealing: ', the_df.at[i, 'play'])
-                pass
+                the_df.at[i, 'outs'] += 1
+
+                # determine which base runner was caught
+                if re.search(r'^CS2', the_df.at[i, 'play']):
+                    the_df.at[i, '2B_after'] = 'X'
+                elif re.search(r'^CS3', the_df.at[i, 'play']):
+                    the_df.at[i, '3B_after'] = 'X'
+                elif re.search(r'^SBH', the_df.at[i, 'play']):
+                    pass
 
             # Case 21: pick off and/or caught stealing
             elif re.search(r'^PO(CS)?[123H]', the_df.at[i, 'play']):
                 # print('Picked Off &/ Caught Stealing: ', the_df.at[i, 'play'])
-                pass
+                the_df.at[i, 'outs'] += 1
 
             # Case 22: passed ball
             elif re.search(r'^PB', the_df.at[i, 'play']):
