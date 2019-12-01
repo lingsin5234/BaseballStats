@@ -308,7 +308,45 @@ def play_processor2(game_num, the_df):
             # HANDLING BASERUNNERS
             # always a . before the baserunners move
             if re.search(r'\.[B123](-|X)[123H]', the_df.at[i, 'play']):
-                
+                # move the runners that explicitly moved
+                if re.search(r'\..*1-1', the_df.at[i, 'play']):
+                    the_df.at[i, '1B_after'] = the_df.at[i, '1B_before']
+                if re.search(r'\..*1-2', the_df.at[i, 'play']):
+                    the_df.at[i, '2B_after'] = the_df.at[i, '1B_before']
+                if re.search(r'\..*1-3', the_df.at[i, 'play']):
+                    the_df.at[i, '3B_after'] = the_df.at[i, '1B_before']
+                if re.search(r'\..*1-H', the_df.at[i, 'play']):
+                    the_df.at[i, 'runs_scored'] += 1
+                if re.search(r'\..*2-2', the_df.at[i, 'play']):
+                    the_df.at[i, '2B_after'] = the_df.at[i, '2B_before']
+                if re.search(r'\..*2-3', the_df.at[i, 'play']):
+                    the_df.at[i, '3B_after'] = the_df.at[i, '2B_before']
+                if re.search(r'\..*2-H', the_df.at[i, 'play']):
+                    the_df.at[i, 'runs_scored'] += 1
+                if re.search(r'\..*3-3', the_df.at[i, 'play']):
+                    the_df.at[i, '3B_after'] = the_df.at[i, '3B_before']
+                if re.search(r'\..*3-H', the_df.at[i, 'play']):
+                    the_df.at[i, 'runs_scored'] += 1
+
+                # retain the runners that did not move
+                # R1 did not move and was not out
+                if bool(re.search(r'\.([23](-|X)[23H])+', the_df.at[i, 'play'])) &\
+                        (the_df.at[i, '1B_after'] != 'X') & \
+                        (the_df.at[i, '1B_before'] is not None):
+                    the_df.at[i, '1B_after'] = the_df.at[i, '1B_before']
+
+                # R2 did not move and was not out
+                if bool(re.search(r'\.([13](-|X)[123H])+', the_df.at[i, 'play'])) &\
+                        (the_df.at[i, '2B_after'] != 'X') & \
+                        (the_df.at[i, '2B_before'] is not None):
+                    the_df.at[i, '2B_after'] = the_df.at[i, '2B_before']
+
+                # R2 did not move and was not out
+                if bool(re.search(r'\.([12](-|X)[123])+', the_df.at[i, 'play'])) &\
+                        (the_df.at[i, '3B_after'] != 'X') & \
+                        (the_df.at[i, '3B_after'] is not None):
+                    the_df.at[i, '3B_after'] = the_df.at[i, '3B_before']
+
             else:
                 # no runner movement and not empty value: copy runners
                 if (the_df.at[i, '1B_after'] != 'X') & (the_df.at[i, '1B_after'] != the_df.at[i, 'playerID']):
