@@ -434,6 +434,22 @@ def play_processor2(game_num, the_df):
                     if (the_df.at[i, '3B_after'] != 'X') & (the_df.at[i, '3B_after'] != the_df.at[i, 'playerID']):
                         the_df.at[i, '3B_after'] = the_df.at[i, '3B_before']
 
+                # if there was a stolen base/caught stealing, check other bases
+                else:
+                    # not a double/triple steal then process stand-still runners
+                    if not(re.search(r'SB.*SB', the_df.at[i, 'play'])):
+                        if re.search(r'SB2(?!\.)', the_df.at[i, 'play']):
+                            if (the_df.at[i, '3B_before'] is not None) & (the_df.at[i, '3B_after'] is None):
+                                the_df.at[i, '3B_after'] = the_df.at[i, '3B_before']
+                        if re.search(r'SB3(?!\.)', the_df.at[i, 'play']):
+                            if (the_df.at[i, '1B_before'] is not None) & (the_df.at[i, '1B_after'] is None):
+                                the_df.at[i, '1B_after'] = the_df.at[i, '1B_before']
+                        if re.search(r'SBH(?!\.)', the_df.at[i, 'play']):
+                            if (the_df.at[i, '1B_before'] is not None) & (the_df.at[i, '1B_after'] is None):
+                                the_df.at[i, '1B_after'] = the_df.at[i, '1B_before']
+                            if (the_df.at[i, '2B_before'] is not None) & (the_df.at[i, '2B_after'] is None):
+                                the_df.at[i, '2B_after'] = the_df.at[i, '2B_before']
+
             # some combination of out(s)
             if re.search(r'FO|FC|DP', the_df.at[i, 'play']):
 
