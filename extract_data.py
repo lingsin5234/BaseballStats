@@ -647,7 +647,7 @@ def stat_collector(player_id, game_id, stat_type, stat_value):
 # stat organizer
 def stat_organizer(player_tb):
 
-    player_tb
+    player_tb = player_tb.groupby(['player_id', 'stat_type']).size().reset_index()
 
     return player_tb
 
@@ -705,5 +705,8 @@ for e, each_game in enumerate(a_full_df):
 # output_df.to_csv('OUTPUT.csv', sep=',', index=False)
 full_output.to_csv('OUTPUT.csv', sep=',', index=False)
 
-print(player.groupby(['player_id', 'stat_type']).size().reset_index())
+# player stats
+# print(player.groupby(['player_id', 'stat_type']).size().reset_index())
 # print(player)
+player_stats = stat_organizer(player)
+player_stats.to_csv('STATS.csv', sep=',', index=False)
