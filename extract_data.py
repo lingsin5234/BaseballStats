@@ -713,6 +713,8 @@ for line_item in f1:
 
 player_stats = pd.read_csv('STATS.csv')
 player_stats = player_stats.pivot('player_id', 'stat_type')
+player_stats = player_stats.fillna(0)
+player_stats = player_stats.astype(int)
 print(player_stats)
 
 # long to wide reshape
