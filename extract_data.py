@@ -693,20 +693,28 @@ for line_item in f1:
         game_info.append(line_item)
 
 # convert all games for 1 file
-a_full_df = convert_games(games)
-full_output = pd.DataFrame(columns=a_full_df[0].columns)
+# a_full_df = convert_games(games)
+# full_output = pd.DataFrame(columns=a_full_df[0].columns)
 
 # play_processor2 function
-for e, each_game in enumerate(a_full_df):
-    new_output = play_processor2(e+1, each_game)
-    full_output = full_output.append(new_output, ignore_index=True)
+# for e, each_game in enumerate(a_full_df):
+#     new_output = play_processor2(e+1, each_game)
+#     full_output = full_output.append(new_output, ignore_index=True)
 
 # write to file
 # output_df.to_csv('OUTPUT.csv', sep=',', index=False)
-full_output.to_csv('OUTPUT.csv', sep=',', index=False)
+# full_output.to_csv('OUTPUT.csv', sep=',', index=False)
 
 # player stats
 # print(player.groupby(['player_id', 'stat_type']).size().reset_index())
 # print(player)
-player_stats = stat_organizer(player)
-player_stats.to_csv('STATS.csv', sep=',', index=False)
+# player_stats = stat_organizer(player)
+# player_stats.to_csv('STATS.csv', sep=',', index=False)
+
+player_stats = pd.read_csv('STATS.csv')
+player_stats = player_stats.pivot('player_id', 'stat_type')
+print(player_stats)
+
+# long to wide reshape
+# player_stats['idx'] = player_stats.groupby('player_id').cumcount()
+# print(player_stats.pivot(index='player_id', columns='stat_type'))
