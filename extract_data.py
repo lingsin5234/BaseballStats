@@ -19,7 +19,7 @@ def stat_collector(player_id, game_id, stat_type, stat_value):
 
     # modify player table
     player.loc[-1] = [player_id, game_id, stat_type, stat_value]
-    player.index = player.index + 1
+    player.index = ed.player.index + 1
 
     return True
 
@@ -96,7 +96,3 @@ player_stats = player_stats.pivot('player_id', 'stat_type')
 player_stats = player_stats.fillna(0)
 player_stats = player_stats.astype(int)
 print(player_stats)
-
-# long to wide reshape
-# player_stats['idx'] = player_stats.groupby('player_id').cumcount()
-# print(player_stats.pivot(index='player_id', columns='stat_type'))
