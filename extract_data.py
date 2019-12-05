@@ -9,29 +9,6 @@ import game_converter as g
 import play_processor as pp
 
 
-# create global table.
-global player
-player = pd.DataFrame(columns=('player_id', 'game_id', 'stat_type', 'stat_value'))
-
-
-# stat collector
-def stat_collector(player_id, game_id, stat_type, stat_value):
-
-    # modify player table
-    player.loc[-1] = [player_id, game_id, stat_type, stat_value]
-    player.index = ed.player.index + 1
-
-    return True
-
-
-# stat organizer
-def stat_organizer(player_tb):
-
-    player_tb = player_tb.groupby(['player_id', 'stat_type']).size().reset_index()
-
-    return player_tb
-
-
 # get argument
 year_range = sys.argv[1]
 
