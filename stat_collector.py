@@ -18,3 +18,9 @@ def stat_organizer(player_tb):
     player_tb = player_tb.groupby(['player_id', 'stat_type']).size().reset_index()
 
     return player_tb
+
+
+# game start tracker
+def game_tracker():
+
+    return

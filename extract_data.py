@@ -36,9 +36,11 @@ f1 = f.readlines()
 games = []
 game_info = []
 game_play = []
+game_start = []
 for line_item in f1:
     if line_item[:2] == "id":
         if len(game_info) > 0:
+            game_info.append(game_start.copy())
             game_info.append(game_play.copy())
             games.append(game_info.copy())
         game_info.clear()
@@ -46,8 +48,14 @@ for line_item in f1:
         game_info.append(line_item)
     elif line_item[:4] == "play" or line_item[:3] == "sub":
         game_play.append(line_item)
+    elif line_item[:5] == "start":
+        game_start.append(line_item)
     else:
         game_info.append(line_item)
+
+print(games[0][28])
+print(games[0][-2])
+
 
 # convert all games for 1 file
 # a_full_df = g.convert_games(games)
@@ -72,4 +80,4 @@ player_stats = pd.read_csv('STATS.csv')
 player_stats = player_stats.pivot('player_id', 'stat_type')
 player_stats = player_stats.fillna(0)
 player_stats = player_stats.astype(int)
-print(player_stats)
+# print(player_stats)
