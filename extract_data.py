@@ -8,6 +8,7 @@ import sys
 import game_converter as g
 import play_processor as pp
 import stat_collector as sc
+import global_variables as gv
 
 
 # get argument
@@ -62,7 +63,7 @@ for line_item in f1:
         game_info.append(line_item)
 
 output = sc.game_tracker(games, game_ids)
-print(output[0])
+print(output)
 
 
 # convert all games for 1 file
