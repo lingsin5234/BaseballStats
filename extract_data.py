@@ -62,9 +62,9 @@ for line_item in f1:
     else:
         game_info.append(line_item)
 
-output = sc.game_tracker(games, game_ids)
-print(output)
-
+gv.game_roster = sc.game_tracker(games, game_ids)
+# print(gv.game_roster)
+gv.game_roster.to_csv('STARTERS.csv', sep=',', index=False)
 
 # convert all games for 1 file
 # a_full_df = g.convert_games(games)
