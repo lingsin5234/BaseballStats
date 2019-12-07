@@ -30,7 +30,7 @@ def game_tracker(all_starts, all_game_ids):
     games_ids[0] = games_ids[0].str.replace('id,', '')
 
     # sort all the game starts
-    games_dfs = []
+    games_dfs = pd.DataFrame()
     for g in range(len(all_starts)):
         # convert to table
         pdf = pd.DataFrame(all_starts[g][-2])  # 2nd last item is all starting lineups
@@ -47,7 +47,10 @@ def game_tracker(all_starts, all_game_ids):
         # insert game_id column -- do not use df1 = df1.insert(...)
         df1.insert(0, 'game_id', games_ids.loc[g, 0])
 
-        # add to full game_dfs list
-        games_dfs.append(df1.copy())
+        # add game starters to the table
+        games_dfs = games_dfs.append(df1.copy())
+
+    # reset the index
+    games_dfs = games_dfs.reset_index(drop=True)
 
     return games_dfs
