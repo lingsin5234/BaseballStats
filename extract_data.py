@@ -79,11 +79,10 @@ for e, each_game in enumerate(a_full_df):
 
     # then run the processor
     new_output = pp.play_processor2(e+1, each_game)
-    gameplay_columns = new_output.columns
     full_output = full_output.append(new_output, sort=False)
 
 # reindex the columns once
-full_output = full_output.reindex(gameplay_columns, axis=1)
+full_output = full_output.reindex(new_output.columns, axis=1)
 
 # write to file
 full_output.to_csv('OUTPUT.csv', sep=',', index=False)
