@@ -7,6 +7,7 @@ import os
 import sys
 import game_converter as g
 import play_processor as pp
+import stat_collector as sc
 
 
 # get argument
@@ -34,16 +35,23 @@ f1 = f.readlines()
 
 # collect id and group the games
 games = []
+game_ids = []
 game_info = []
 game_play = []
 game_start = []
 for line_item in f1:
     if line_item[:2] == "id":
+
+        # append game id
+        game_ids.append(line_item)
+
+        # populate game info, starts, plays
         if len(game_info) > 0:
             game_info.append(game_start.copy())
             game_info.append(game_play.copy())
             games.append(game_info.copy())
         game_info.clear()
+        game_start.clear()
         game_play.clear()  # Needed to clear this so it doesn't tack on for all remaining games!
         game_info.append(line_item)
     elif line_item[:4] == "play" or line_item[:3] == "sub":
@@ -53,8 +61,8 @@ for line_item in f1:
     else:
         game_info.append(line_item)
 
-print(games[0][28])
-print(games[0][-2])
+output = sc.game_tracker(games, game_ids)
+print(output[0])
 
 
 # convert all games for 1 file
