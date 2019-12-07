@@ -1,6 +1,7 @@
 # libraries
 import re
 import stat_collector as sc
+import global_variables as gv
 
 
 # re-write the processor based on re.search/re.findall grep searching
@@ -8,6 +9,9 @@ def play_processor2(game_num, the_df):
 
     # store the game_id to use instead - game_num can still be used for home/away status
     the_game_id = the_df.at[0, 'game_id']
+
+    # store the starting lineup for this game
+    lineup = gv.game_roster[gv.game_roster.game_id==the_game_id]
 
     # print(the_df.index)
     # process would go line by line.
@@ -561,5 +565,27 @@ def play_processor2(game_num, the_df):
             the_df.at[i, 'outs'] = the_df.at[i - 1, 'outs']
 
             # if pinch-runner, put in the runner
+            # batting team = the half inning
+            if the_df.at[i, 'half'] == the_df.at[i, 'team']:
+
+                # pinch runner only
+                if the_df.at[i, 'fielding'] == '12':
+
+                    # check which spot in the lineup, get the playerID:
+                    sub_filter = (lineup.team == the_df.at[i, 'team']) & (lineup.bat_lineup == the_df.at[i, 'batting'])
+                    sub_index = lineup.index[sub_filter]
+                    sub_player_id = lineup.at[sub_index[0], 'player_id']
+                    print(sub_player_id)
+
+                    # check the bases for the runner:
+                    if the_df.at[i, '1B_after'] == sub_player_id:
+                        the_df.at[i, '1B_after'] = sub_player_id
+                    elif the_df.at[i, '2B_after'] == sub_player_id:
+                        the_df.at[i, '2B_after'] = sub_player_id
+                    elif the_df.at[i, '3B_after'] == sub_player_id:
+                        the_df.at[i, '3B_after'] = sub_player_id
+                    else:
+                        # most likely is Pinch Hitting -- make a check for this later; but should be '11'
+                        pass
 
     return the_df
