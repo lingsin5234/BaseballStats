@@ -557,4 +557,6 @@ def play_processor2(game_num, the_df):
             the_df.at[i, '3B_after'] = the_df.at[i - 1, '3B_before']
             the_df.at[i, 'outs'] = the_df.at[i - 1, 'outs']
 
+            # if pinch-runner, put in the runner
+
     return the_df
