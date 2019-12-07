@@ -73,11 +73,17 @@ full_output = pd.DataFrame(columns=a_full_df[0].columns)
 # play_processor2 function
 for e, each_game in enumerate(a_full_df):
     # add the game_ids first
-    each_game.insert(0, 'game_id', game_ids[e])
+    current_game_id = game_ids[e].replace('\n', '')
+    current_game_id = current_game_id.replace('id,', '')
+    each_game.insert(0, 'game_id', current_game_id)
 
     # then run the processor
     new_output = pp.play_processor2(e+1, each_game)
-    full_output = full_output.append(new_output, ignore_index=True, sort=False)
+    gameplay_columns = new_output.columns
+    full_output = full_output.append(new_output, sort=False)
+
+# reindex the columns once
+full_output = full_output.reindex(gameplay_columns, axis=1)
 
 # write to file
 full_output.to_csv('OUTPUT.csv', sep=',', index=False)
