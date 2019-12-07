@@ -575,17 +575,31 @@ def play_processor2(game_num, the_df):
                     sub_filter = (lineup.team == the_df.at[i, 'team']) & (lineup.bat_lineup == the_df.at[i, 'batting'])
                     sub_index = lineup.index[sub_filter]
                     sub_player_id = lineup.at[sub_index[0], 'player_id']
-                    print(sub_player_id)
 
                     # check the bases for the runner:
                     if the_df.at[i, '1B_after'] == sub_player_id:
-                        the_df.at[i, '1B_after'] = sub_player_id
+                        the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
                     elif the_df.at[i, '2B_after'] == sub_player_id:
-                        the_df.at[i, '2B_after'] = sub_player_id
+                        the_df.at[i, '2B_after'] = the_df.at[i, 'playerID']
                     elif the_df.at[i, '3B_after'] == sub_player_id:
-                        the_df.at[i, '3B_after'] = sub_player_id
+                        the_df.at[i, '3B_after'] = the_df.at[i, 'playerID']
                     else:
                         # most likely is Pinch Hitting -- make a check for this later; but should be '11'
                         pass
+
+                    # replace the person in the lineup
+                    lineup.at[sub_index[0], 'player_id'] = the_df.at[i, 'playerID']
+
+                # pinch hitter only
+                elif the_df.at[i, 'fielding'] == '11':
+
+                    # check which spot in the lineup, get the playerID:
+                    sub_filter = (lineup.team == the_df.at[i, 'team']) & (
+                                lineup.bat_lineup == the_df.at[i, 'batting'])
+                    sub_index = lineup.index[sub_filter]
+                    # sub_player_id = lineup.at[sub_index[0], 'player_id']
+
+                    # replace the person in the lineup
+                    lineup.at[sub_index[0], 'player_id'] = the_df.at[i, 'playerID']
 
     return the_df
