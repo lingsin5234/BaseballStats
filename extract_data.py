@@ -62,22 +62,25 @@ for line_item in f1:
     else:
         game_info.append(line_item)
 
+# extract all starting lineups
 gv.game_roster = sc.game_tracker(games, game_ids)
-# print(gv.game_roster)
 gv.game_roster.to_csv('STARTERS.csv', sep=',', index=False)
 
 # convert all games for 1 file
-# a_full_df = g.convert_games(games)
-# full_output = pd.DataFrame(columns=a_full_df[0].columns)
+a_full_df = g.convert_games(games)
+full_output = pd.DataFrame(columns=a_full_df[0].columns)
 
 # play_processor2 function
-# for e, each_game in enumerate(a_full_df):
-#    new_output = pp.play_processor2(e+1, each_game)
-#    full_output = full_output.append(new_output, ignore_index=True)
+for e, each_game in enumerate(a_full_df):
+    # add the game_ids first
+    each_game.insert(0, 'game_id', game_ids[e])
+
+    # then run the processor
+    new_output = pp.play_processor2(e+1, each_game)
+    full_output = full_output.append(new_output, ignore_index=True, sort=False)
 
 # write to file
-# output_df.to_csv('OUTPUT.csv', sep=',', index=False)
-# full_output.to_csv('OUTPUT.csv', sep=',', index=False)
+full_output.to_csv('OUTPUT.csv', sep=',', index=False)
 
 # player stats
 # print(player.groupby(['player_id', 'stat_type']).size().reset_index())
