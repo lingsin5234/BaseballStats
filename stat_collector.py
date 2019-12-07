@@ -39,7 +39,12 @@ def game_tracker(all_starts, all_game_ids):
         # remove line break in last column
         df1[5] = df1[5].str.replace('\n', '')
 
-        # insert game_id column
+        # table edits
+        df1.drop(0, axis=1, inplace=True)
+        df1.rename(columns={1: 'player_id', 2: 'player_nm', 3: 'team', 4: 'bat_lineup', 5: 'fielding'}, inplace=True)
+        # df1.columns = ['player_id', 'player_nm', 'team', 'bat_lineup', 'fielding']
+
+        # insert game_id column -- do not use df1 = df1.insert(...)
         df1.insert(0, 'game_id', games_ids.loc[g, 0])
 
         # add to full game_dfs list
