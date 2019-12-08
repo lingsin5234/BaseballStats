@@ -90,11 +90,12 @@ full_output.to_csv('OUTPUT.csv', sep=',', index=False)
 # player stats
 # print(player.groupby(['player_id', 'stat_type']).size().reset_index())
 # print(player)
-# player_stats = stat_organizer(player)
-# player_stats.to_csv('STATS.csv', sep=',', index=False)
+# player_stats = pd.read_csv('STATS.csv')
 
-player_stats = pd.read_csv('STATS.csv')
-player_stats = player_stats.pivot('player_id', 'stat_type')
-player_stats = player_stats.fillna(0)
-player_stats = player_stats.astype(int)
+gv.player_stats = sc.stat_organizer(gv.player)
+gv.player_stats = gv.player_stats.pivot('player_id', 'stat_type')
+gv.player_stats = gv.player_stats.fillna(0)
+gv.player_stats = gv.player_stats.astype(int)
+gv.player_stats.to_csv('STATS.csv', sep=',')
+
 # print(player_stats)
