@@ -22,7 +22,7 @@ def stat_organizer(player_tb):
     player_tb = player_tb.pivot('player_id', 'stat_type', 0)
     player_tb = player_tb.fillna(0)
     player_tb = player_tb.astype(int)
-    player_tb = pd.DataFrame(player_tb.to_records()).rename(columns={'player_id': 'index'})
+    player_tb = pd.DataFrame(player_tb.to_records())
 
     return player_tb
 

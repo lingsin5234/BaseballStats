@@ -94,4 +94,4 @@ full_output.to_csv('OUTPUT.csv', sep=',', index=False)
 # gv.player.to_csv('STATS.csv', sep=',')
 
 gv.player_stats = sc.stat_organizer(gv.player)
-gv.player_stats.to_csv('STATS.csv', sep=',')
+gv.player_stats.to_csv('STATS.csv', sep=',', index=False)
