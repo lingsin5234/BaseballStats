@@ -96,6 +96,5 @@ gv.player_stats = sc.stat_organizer(gv.player)
 gv.player_stats = gv.player_stats.pivot('player_id', 'stat_type')
 gv.player_stats = gv.player_stats.fillna(0)
 gv.player_stats = gv.player_stats.astype(int)
+print(gv.player_stats)
 gv.player_stats.to_csv('STATS.csv', sep=',')
-
-# print(player_stats)
