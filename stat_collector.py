@@ -17,6 +17,12 @@ def stat_collector(player_id, game_id, stat_type, stat_value):
 def stat_organizer(player_tb):
 
     player_tb = player_tb.groupby(['player_id', 'stat_type']).size().reset_index()
+    # a column named '0' will appear with all the values for each stat_type
+    # this must be included as the "values" operator in the pivot function!
+    player_tb = player_tb.pivot('player_id', 'stat_type', 0)
+    player_tb = player_tb.fillna(0)
+    player_tb = player_tb.astype(int)
+    player_tb = pd.DataFrame(player_tb.to_records()).rename(columns={'player_id': 'index'})
 
     return player_tb
 
