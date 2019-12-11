@@ -45,11 +45,7 @@ def play_processor2(game_num, the_df):
                 # stat add: AB, PA, LOB
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
-                # sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].sum())
-                if the_df.loc[i, bases_before].count() > 0:
-                    print(str(the_df.loc[i, bases_before].count()))
-                    print(type(the_df.loc[i, bases_before].count()))
-                    exit()
+                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
 
             # Case 2: irregular put-outs, runner is specified
             # i.e. when put out at base not normally covered by that fielder
@@ -68,6 +64,7 @@ def play_processor2(game_num, the_df):
                 # stat add: AB, PA, LOB
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
 
             # Case 3: explicit force out plays
             elif re.search(r'^[1-9]([1-9]+)?\([B123]\)/FO', the_df.at[i, 'play']):
@@ -91,6 +88,7 @@ def play_processor2(game_num, the_df):
                 # stat add: AB, PA, LOB
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
 
             # Case 4: sacrifice hit / fly
             elif re.search(r'^[1-9]([1-9]+)?/(SH|SF)', the_df.at[i, 'play']):
@@ -123,6 +121,7 @@ def play_processor2(game_num, the_df):
                 # stat add: AB, PA, LOB
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
 
             # Case 6: strike out with NO event
             elif re.search(r'^K([1-9]+)?(?!\+)', the_df.at[i, 'play']):
@@ -133,6 +132,7 @@ def play_processor2(game_num, the_df):
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'strikeout', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
 
             # Case 7: strike out + event
             elif re.search(r'^K\+', the_df.at[i, 'play']):
@@ -185,6 +185,7 @@ def play_processor2(game_num, the_df):
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'strikeout', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
 
             # Case 8: routine double plays
             elif re.search(r'.*DP', the_df.at[i, 'play']):
@@ -207,6 +208,7 @@ def play_processor2(game_num, the_df):
                 # stat add: AB, PA, LOB
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
 
             # Case 9: triple plays
             elif re.search(r'.*TP', the_df.at[i, 'play']):
@@ -216,6 +218,7 @@ def play_processor2(game_num, the_df):
                 # stat add: AB, PA, LOB
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
 
             # Case 10: catcher interference or pitcher/1B interference
             elif re.search(r'^C/E[1-9]', the_df.at[i, 'play']):
