@@ -13,6 +13,9 @@ def play_processor2(game_num, the_df):
     # store the starting lineup for this game
     lineup = gv.game_roster[gv.game_roster.game_id==the_game_id]
 
+    # specific columns for the LOB use
+    bases_before = ['1B_before', '2B_before', '3B_before']
+
     # print(the_df.index)
     # process would go line by line.
     for i in the_df.index:
@@ -42,6 +45,11 @@ def play_processor2(game_num, the_df):
                 # stat add: AB, PA, LOB
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                # sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].sum())
+                if the_df.loc[i, bases_before].count() > 0:
+                    print(str(the_df.loc[i, bases_before].count()))
+                    print(type(the_df.loc[i, bases_before].count()))
+                    exit()
 
             # Case 2: irregular put-outs, runner is specified
             # i.e. when put out at base not normally covered by that fielder
