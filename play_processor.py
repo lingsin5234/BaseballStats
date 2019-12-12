@@ -13,8 +13,9 @@ def play_processor2(game_num, the_df):
     # store the starting lineup for this game
     lineup = gv.game_roster[gv.game_roster.game_id==the_game_id]
 
-    # specific columns for the LOB use
+    # specific columns for the LOB, RLSP use
     bases_before = ['1B_before', '2B_before', '3B_before']
+    scoring_pos = ['2B_before', '3B_before']
 
     # print(the_df.index)
     # process would go line by line.
@@ -42,10 +43,11 @@ def play_processor2(game_num, the_df):
                 # print('Routine Put Out: ', the_df.at[i, 'play'])
                 the_df.at[i, 'outs'] += 1
 
-                # stat add: AB, PA, LOB
+                # stat add: AB, PA, LOB, RLSP
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
                 sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
+                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count())
 
             # Case 2: irregular put-outs, runner is specified
             # i.e. when put out at base not normally covered by that fielder
@@ -61,10 +63,11 @@ def play_processor2(game_num, the_df):
                     # take a look
                     print(the_game_id, ': ', the_df.at[i, 'play'])
 
-                # stat add: AB, PA, LOB
+                # stat add: AB, PA, LOB, RLSP
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
                 sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
+                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count())
 
             # Case 3: explicit force out plays
             elif re.search(r'^[1-9]([1-9]+)?\([B123]\)/FO', the_df.at[i, 'play']):
@@ -85,10 +88,11 @@ def play_processor2(game_num, the_df):
                     # out at Home, no action required
                     pass
 
-                # stat add: AB, PA, LOB
+                # stat add: AB, PA, LOB, RLSP
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
                 sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
+                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count())
 
             # Case 4: sacrifice hit / fly
             elif re.search(r'^[1-9]([1-9]+)?/(SH|SF)', the_df.at[i, 'play']):
@@ -118,21 +122,23 @@ def play_processor2(game_num, the_df):
                     # out at Home, no action required
                     pass
 
-                # stat add: AB, PA, LOB
+                # stat add: AB, PA, LOB, RLSP
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
                 sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
+                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count())
 
             # Case 6: strike out with NO event
             elif re.search(r'^K([1-9]+)?(?!\+)', the_df.at[i, 'play']):
                 # print('STRIKEOUT: ', the_df.at[i, 'play'])
                 the_df.at[i, 'outs'] += 1
 
-                # stat add: AB, K, PA, LOB
+                # stat add: AB, K, PA, LOB, RLSP
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'strikeout', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
                 sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
+                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count())
 
             # Case 7: strike out + event
             elif re.search(r'^K\+', the_df.at[i, 'play']):
@@ -181,11 +187,12 @@ def play_processor2(game_num, the_df):
                     # out applies anyway; no action required
                     print('Game #: ', the_game_id, 'CHECK HERE: ', the_df.at[i, 'play'])
 
-                # stat add: AB, K, PA, LOB
+                # stat add: AB, K, PA, LOB, RLSP
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'strikeout', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
                 sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
+                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count())
 
             # Case 8: routine double plays
             elif re.search(r'.*DP', the_df.at[i, 'play']):
@@ -205,20 +212,22 @@ def play_processor2(game_num, the_df):
                     # record the out at 1st implicitly if only 1 other baserunner is out.
                     the_df.at[i, '1B_after'] = 'X'
 
-                # stat add: AB, PA, LOB
+                # stat add: AB, PA, LOB, RLSP
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
                 sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
+                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count())
 
             # Case 9: triple plays
             elif re.search(r'.*TP', the_df.at[i, 'play']):
                 # print('TRIPLE PLAY: ', the_df.at[i, 'play'])
                 the_df.at[i, 'outs'] += 3
 
-                # stat add: AB, PA, LOB
+                # stat add: AB, PA, LOB, RLSP
                 sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1)
                 sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
+                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count())
 
             # Case 10: catcher interference or pitcher/1B interference
             elif re.search(r'^C/E[1-9]', the_df.at[i, 'play']):
