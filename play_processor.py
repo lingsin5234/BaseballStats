@@ -448,7 +448,14 @@ def play_processor2(game_num, the_df):
 
                     # stat add: R
                     sc.stat_collector(the_df.at[i, '3B_before'], the_game_id, 'runs_scored', 1)
-                    if not(re.search(r'3-H\(UR\)', the_df.at[i, 'play'])):
+
+                    # check rbi awarded or not
+                    if re.search(r'3-H\((NR|NORBI)\)', the_df.at[i, 'play']) | \
+                            re.search(r'^FC.*3-H(?!\(RBI\))', the_df.at[i, 'play']) | \
+                            re.search(r'^([1-9]+)?E.*3-H(?!\(RBI\))', the_df.at[i, 'play']):
+                        # no RBI recorded
+                        pass
+                    else:
                         # stat add: RBI
                         sc.stat_collector(pid, the_game_id, 'rbi', 1)
 
@@ -461,7 +468,14 @@ def play_processor2(game_num, the_df):
 
                     # stat add: R
                     sc.stat_collector(the_df.at[i, '2B_before'], the_game_id, 'runs_scored', 1)
-                    if not(re.search(r'2-H\(UR\)', the_df.at[i, 'play'])):
+
+                    # check rbi awarded or not
+                    if re.search(r'2-H\((NR|NORBI)\)', the_df.at[i, 'play']) | \
+                            re.search(r'^FC.*2-H(?!\(RBI\))', the_df.at[i, 'play']) | \
+                            re.search(r'^([1-9]+)?E.*2-H(?!\(RBI\))', the_df.at[i, 'play']):
+                        # no RBI recorded
+                        pass
+                    else:
                         # stat add: RBI
                         sc.stat_collector(pid, the_game_id, 'rbi', 1)
 
@@ -476,7 +490,14 @@ def play_processor2(game_num, the_df):
 
                     # stat add: R
                     sc.stat_collector(the_df.at[i, '1B_before'], the_game_id, 'runs_scored', 1)
-                    if not(re.search(r'1-H\(UR\)', the_df.at[i, 'play'])):
+
+                    # check rbi awarded or not
+                    if re.search(r'1-H\((NR|NORBI)\)', the_df.at[i, 'play']) | \
+                            re.search(r'^FC.*1-H(?!\(RBI\))', the_df.at[i, 'play']) | \
+                            re.search(r'^([1-9]+)?E.*1-H(?!\(RBI\))', the_df.at[i, 'play']):
+                        # no RBI recorded
+                        pass
+                    else:
                         # stat add: RBI
                         sc.stat_collector(pid, the_game_id, 'rbi', 1)
 
