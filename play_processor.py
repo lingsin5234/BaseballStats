@@ -271,12 +271,16 @@ def play_processor2(game_num, the_df):
                 else:
                     the_df.at[i, 'runs_scored'] += 1
 
-                    # stat add: AB, H, HR, R, PA
+                    # stat add: AB, H, HR, R, PA, RBI
                     sc.stat_collector(pid, the_game_id, 'at_bat', 1)
                     sc.stat_collector(pid, the_game_id, 'hit', 1)
                     sc.stat_collector(pid, the_game_id, 'home_run', 1)
                     sc.stat_collector(pid, the_game_id, 'runs_scored', 1)
                     sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+
+                    # score the RBI if not NR or NORBI
+                    if not(re.search(r'B-H\((NR|NORBI)\)', the_df.at[i, 'play'])):
+                        sc.stat_collector(pid, the_game_id, 'rbi', 1)
 
             # Case 12: walk or hit by pitch
             elif re.search(r'^(HP|IW|W)(?!P)(?!\+)', the_df.at[i, 'play']):
@@ -317,7 +321,14 @@ def play_processor2(game_num, the_df):
                     elif re.search(r'\..*B-3', the_df.at[i, 'play']):
                         the_df.at[i, '3B_after'] = the_df.at[i, 'playerID']
                     elif re.search(r'\..*B-H', the_df.at[i, 'play']):
-                        the_df.at[i, 'runs_scored'] = the_df.at[i, 'playerID']
+                        the_df.at[i, 'runs_scored'] += 1
+
+                        # stat add: R
+                        sc.stat_collector(pid, the_game_id, 'run_scored', 1)
+
+                        # score the RBI if not NR or NORBI
+                        if not(re.search(r'B-H\((NR|NORBI)\)', the_df.at[i, 'play'])):
+                            sc.stat_collector(pid, the_game_id, 'rbi', 1)
                     # other cases are BX[123H] - just ignore
                 else:
                     # assume they reached first base safely
@@ -450,9 +461,9 @@ def play_processor2(game_num, the_df):
                     sc.stat_collector(the_df.at[i, '3B_before'], the_game_id, 'runs_scored', 1)
 
                     # check rbi awarded or not
-                    if re.search(r'3-H\((NR|NORBI)\)', the_df.at[i, 'play']) | \
-                            re.search(r'^FC.*3-H(?!\(RBI\))', the_df.at[i, 'play']) | \
-                            re.search(r'^([1-9]+)?E.*3-H(?!\(RBI\))', the_df.at[i, 'play']):
+                    if bool(re.search(r'3-H\((NR|NORBI)\)', the_df.at[i, 'play'])) | \
+                            bool(re.search(r'^FC.*3-H(?!\(RBI\))', the_df.at[i, 'play'])) | \
+                            bool(re.search(r'^([1-9]+)?E.*3-H(?!\(RBI\))', the_df.at[i, 'play'])):
                         # no RBI recorded
                         pass
                     else:
@@ -470,9 +481,9 @@ def play_processor2(game_num, the_df):
                     sc.stat_collector(the_df.at[i, '2B_before'], the_game_id, 'runs_scored', 1)
 
                     # check rbi awarded or not
-                    if re.search(r'2-H\((NR|NORBI)\)', the_df.at[i, 'play']) | \
-                            re.search(r'^FC.*2-H(?!\(RBI\))', the_df.at[i, 'play']) | \
-                            re.search(r'^([1-9]+)?E.*2-H(?!\(RBI\))', the_df.at[i, 'play']):
+                    if bool(re.search(r'2-H\((NR|NORBI)\)', the_df.at[i, 'play'])) | \
+                            bool(re.search(r'^FC.*2-H(?!\(RBI\))', the_df.at[i, 'play'])) | \
+                            bool(re.search(r'^([1-9]+)?E.*2-H(?!\(RBI\))', the_df.at[i, 'play'])):
                         # no RBI recorded
                         pass
                     else:
@@ -492,9 +503,26 @@ def play_processor2(game_num, the_df):
                     sc.stat_collector(the_df.at[i, '1B_before'], the_game_id, 'runs_scored', 1)
 
                     # check rbi awarded or not
-                    if re.search(r'1-H\((NR|NORBI)\)', the_df.at[i, 'play']) | \
-                            re.search(r'^FC.*1-H(?!\(RBI\))', the_df.at[i, 'play']) | \
-                            re.search(r'^([1-9]+)?E.*1-H(?!\(RBI\))', the_df.at[i, 'play']):
+                    if bool(re.search(r'1-H\((NR|NORBI)\)', the_df.at[i, 'play'])) | \
+                            bool(re.search(r'^FC.*1-H(?!\(RBI\))', the_df.at[i, 'play'])) | \
+                            bool(re.search(r'^([1-9]+)?E.*1-H(?!\(RBI\))', the_df.at[i, 'play'])):
+                        # no RBI recorded
+                        pass
+                    else:
+                        # stat add: RBI
+                        sc.stat_collector(pid, the_game_id, 'rbi', 1)
+
+                # if batter runner scores is explicitly mentioned, but not the Home Run nor Error FIRST cases
+                if bool(re.search(r'\..*B-H', the_df.at[i, 'play'])) & \
+                    (not(re.search(r'^(H/|HR|([0-9]+)?E)', the_df.at[i, 'play']))):
+
+                    # stat add: R
+                    sc.stat_collector(pid, the_game_id, 'runs_scored', 1)
+
+                    # check rbi awarded or not
+                    if bool(re.search(r'B-H\((NR|NORBI)\)', the_df.at[i, 'play'])) | \
+                            bool(re.search(r'^FC.*B-H(?!\(RBI\))', the_df.at[i, 'play'])) | \
+                            bool(re.search(r'^([1-9]+)?E.*B-H(?!\(RBI\))', the_df.at[i, 'play'])):
                         # no RBI recorded
                         pass
                     else:
