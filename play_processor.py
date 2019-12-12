@@ -287,18 +287,24 @@ def play_processor2(game_num, the_df):
                 # print('Walk / Hit By Pitch: ', the_df.at[i, 'play'])
                 the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
 
-                # stat add: W, PA
-                sc.stat_collector(pid, the_game_id, 'walk', 1, the_df.at[i, 'play'])
+                # stat add: PA, W or HBP
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
+                if re.search(r'^HP', the_df.at[i, 'play']):
+                    sc.stat_collector(pid, the_game_id, 'HBP', 1, the_df.at[i, 'play'])
+                else:
+                    sc.stat_collector(pid, the_game_id, 'walk', 1, the_df.at[i, 'play'])
 
             # Case 13: walk + event
             elif re.search(r'^(IW|W)\+', the_df.at[i, 'play']):
                 # print('Walk + Event: ', the_df.at[i, 'play'])
                 the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
 
-                # stat add: W, PA
-                sc.stat_collector(pid, the_game_id, 'walk', 1, the_df.at[i, 'play'])
+                # stat add: PA, W or HBP
                 sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
+                if re.search(r'^HP', the_df.at[i, 'play']):
+                    sc.stat_collector(pid, the_game_id, 'HBP', 1, the_df.at[i, 'play'])
+                else:
+                    sc.stat_collector(pid, the_game_id, 'walk', 1, the_df.at[i, 'play'])
 
             # Case 14: fly ball error
             elif re.search(r'^FLE[1-9]', the_df.at[i, 'play']):
