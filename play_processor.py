@@ -558,8 +558,9 @@ def play_processor2(game_num, the_df):
                 if re.search(r'\..*BX[123H]', the_df.at[i, 'play']):
                     the_df.at[i, 'outs'] += 1
 
-                    # stat add: AB -- don't need?
-                    # sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
+                    # stat add: AB -- don't need if already did on a hit
+                    if re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', the_df.at[i, 'play']):
+                        sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
 
                     # handle the now existing runner
                     if the_df.at[i, '1B_after'] == the_df.at[i, 'playerID']:
