@@ -44,10 +44,10 @@ def play_processor2(game_num, the_df):
                 the_df.at[i, 'outs'] += 1
 
                 # stat add: AB, PA, LOB, RLSP
-                sc.stat_collector(pid, the_game_id, 'at_bat', 1)
-                sc.stat_collector(pid, the_game_id, 'plate_app', 1)
-                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
-                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count())
+                sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count(), the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count(), the_df.at[i, 'play'])
 
             # Case 2: irregular put-outs, runner is specified
             # i.e. when put out at base not normally covered by that fielder
@@ -64,10 +64,10 @@ def play_processor2(game_num, the_df):
                     print(the_game_id, ': ', the_df.at[i, 'play'])
 
                 # stat add: AB, PA, LOB, RLSP
-                sc.stat_collector(pid, the_game_id, 'at_bat', 1)
-                sc.stat_collector(pid, the_game_id, 'plate_app', 1)
-                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
-                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count())
+                sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count(), the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count(), the_df.at[i, 'play'])
 
             # Case 3: explicit force out plays
             elif re.search(r'^[1-9]([1-9]+)?\([B123]\)/FO', the_df.at[i, 'play']):
@@ -89,10 +89,10 @@ def play_processor2(game_num, the_df):
                     pass
 
                 # stat add: AB, PA, LOB, RLSP
-                sc.stat_collector(pid, the_game_id, 'at_bat', 1)
-                sc.stat_collector(pid, the_game_id, 'plate_app', 1)
-                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
-                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count())
+                sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count(), the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count(), the_df.at[i, 'play'])
 
             # Case 4: sacrifice hit / fly
             elif re.search(r'^[1-9]([1-9]+)?/(SH|SF)', the_df.at[i, 'play']):
@@ -100,8 +100,8 @@ def play_processor2(game_num, the_df):
                 the_df.at[i, 'outs'] += 1
 
                 # stat add: SH, PA
-                sc.stat_collector(pid, the_game_id, 'sac_hit', 1)
-                sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                sc.stat_collector(pid, the_game_id, 'sac_hit', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
 
             # Case 5: fielders' choice
             elif re.search(r'^FC[1-9]', the_df.at[i, 'play']):
@@ -123,10 +123,10 @@ def play_processor2(game_num, the_df):
                     pass
 
                 # stat add: AB, PA, LOB, RLSP
-                sc.stat_collector(pid, the_game_id, 'at_bat', 1)
-                sc.stat_collector(pid, the_game_id, 'plate_app', 1)
-                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
-                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count())
+                sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count(), the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count(), the_df.at[i, 'play'])
 
             # Case 6: strike out with NO event
             elif re.search(r'^K([1-9]+)?(?!\+)', the_df.at[i, 'play']):
@@ -134,11 +134,11 @@ def play_processor2(game_num, the_df):
                 the_df.at[i, 'outs'] += 1
 
                 # stat add: AB, K, PA, LOB, RLSP
-                sc.stat_collector(pid, the_game_id, 'at_bat', 1)
-                sc.stat_collector(pid, the_game_id, 'strikeout', 1)
-                sc.stat_collector(pid, the_game_id, 'plate_app', 1)
-                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
-                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count())
+                sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'strikeout', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count(), the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count(), the_df.at[i, 'play'])
 
             # Case 7: strike out + event
             elif re.search(r'^K\+', the_df.at[i, 'play']):
@@ -188,11 +188,11 @@ def play_processor2(game_num, the_df):
                     print('Game #: ', the_game_id, 'CHECK HERE: ', the_df.at[i, 'play'])
 
                 # stat add: AB, K, PA, LOB, RLSP
-                sc.stat_collector(pid, the_game_id, 'at_bat', 1)
-                sc.stat_collector(pid, the_game_id, 'strikeout', 1)
-                sc.stat_collector(pid, the_game_id, 'plate_app', 1)
-                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
-                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count())
+                sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'strikeout', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count(), the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count(), the_df.at[i, 'play'])
 
             # Case 8: routine double plays
             elif re.search(r'.*DP', the_df.at[i, 'play']):
@@ -213,10 +213,10 @@ def play_processor2(game_num, the_df):
                     the_df.at[i, '1B_after'] = 'X'
 
                 # stat add: AB, PA, LOB, RLSP
-                sc.stat_collector(pid, the_game_id, 'at_bat', 1)
-                sc.stat_collector(pid, the_game_id, 'plate_app', 1)
-                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
-                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count())
+                sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count(), the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count(), the_df.at[i, 'play'])
 
             # Case 9: triple plays
             elif re.search(r'.*TP', the_df.at[i, 'play']):
@@ -224,10 +224,10 @@ def play_processor2(game_num, the_df):
                 the_df.at[i, 'outs'] += 3
 
                 # stat add: AB, PA, LOB, RLSP
-                sc.stat_collector(pid, the_game_id, 'at_bat', 1)
-                sc.stat_collector(pid, the_game_id, 'plate_app', 1)
-                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count())
-                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count())
+                sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'lob', the_df.loc[i, bases_before].count(), the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'rlsp', the_df.loc[i, scoring_pos].count(), the_df.at[i, 'play'])
 
             # Case 10: catcher interference or pitcher/1B interference
             elif re.search(r'^C/E[1-9]', the_df.at[i, 'play']):
@@ -235,7 +235,7 @@ def play_processor2(game_num, the_df):
                 the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
 
                 # stat add: PA
-                sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
 
             # Case 11: hit! -- the fielder(s) after letter is optional
             elif re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', the_df.at[i, 'play']):
@@ -246,50 +246,50 @@ def play_processor2(game_num, the_df):
                     the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
 
                     # stat add: AB, H, PA
-                    sc.stat_collector(pid, the_game_id, 'at_bat', 1)
-                    sc.stat_collector(pid, the_game_id, 'hit', 1)
-                    sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                    sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(pid, the_game_id, 'hit', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
 
                 elif re.search(r'^(D([1-9]+)?|DGR)', the_df.at[i, 'play']):
                     the_df.at[i, '2B_after'] = the_df.at[i, 'playerID']
 
                     # stat add: AB, H, D, PA
-                    sc.stat_collector(pid, the_game_id, 'at_bat', 1)
-                    sc.stat_collector(pid, the_game_id, 'hit', 1)
-                    sc.stat_collector(pid, the_game_id, 'double', 1)
-                    sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                    sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(pid, the_game_id, 'hit', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(pid, the_game_id, 'double', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
 
                 elif re.search(r'^T([1-9]+)?', the_df.at[i, 'play']):
                     the_df.at[i, '3B_after'] = the_df.at[i, 'playerID']
 
                     # stat add: AB, H, T, PA
-                    sc.stat_collector(pid, the_game_id, 'at_bat', 1)
-                    sc.stat_collector(pid, the_game_id, 'hit', 1)
-                    sc.stat_collector(pid, the_game_id, 'triple', 1)
-                    sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                    sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(pid, the_game_id, 'hit', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(pid, the_game_id, 'triple', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
 
                 else:
                     the_df.at[i, 'runs_scored'] += 1
 
                     # stat add: AB, H, HR, R, PA, RBI
-                    sc.stat_collector(pid, the_game_id, 'at_bat', 1)
-                    sc.stat_collector(pid, the_game_id, 'hit', 1)
-                    sc.stat_collector(pid, the_game_id, 'home_run', 1)
-                    sc.stat_collector(pid, the_game_id, 'runs_scored', 1)
-                    sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                    sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(pid, the_game_id, 'hit', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(pid, the_game_id, 'home_run', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(pid, the_game_id, 'runs_scored', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
 
                     # score the RBI if not NR or NORBI
                     if not(re.search(r'B-H\((NR|NORBI)\)', the_df.at[i, 'play'])):
-                        sc.stat_collector(pid, the_game_id, 'rbi', 1)
+                        sc.stat_collector(pid, the_game_id, 'rbi', 1, the_df.at[i, 'play'])
 
             # Case 12: walk or hit by pitch
-            elif re.search(r'^(HP|IW|W)(?!P)(?!\+)', the_df.at[i, 'play']):
+            elif re.search(r'^(HP|IW|W(?!P))(?!\+)', the_df.at[i, 'play']):
                 # print('Walk / Hit By Pitch: ', the_df.at[i, 'play'])
                 the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
 
                 # stat add: W, PA
-                sc.stat_collector(pid, the_game_id, 'walk', 1)
-                sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                sc.stat_collector(pid, the_game_id, 'walk', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
 
             # Case 13: walk + event
             elif re.search(r'^(IW|W)\+', the_df.at[i, 'play']):
@@ -297,16 +297,16 @@ def play_processor2(game_num, the_df):
                 the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
 
                 # stat add: W, PA
-                sc.stat_collector(pid, the_game_id, 'walk', 1)
-                sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                sc.stat_collector(pid, the_game_id, 'walk', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
 
             # Case 14: fly ball error
             elif re.search(r'^FLE[1-9]', the_df.at[i, 'play']):
                 # print('Fly ball Error: ', the_df.at[i, 'play'])
 
                 # stat add: AB, PA
-                sc.stat_collector(pid, the_game_id, 'at_bat', 1)
-                sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
 
             # Case 15: error
             elif re.search(r'^([1-9]+)?E[1-9]', the_df.at[i, 'play']):
@@ -324,19 +324,19 @@ def play_processor2(game_num, the_df):
                         the_df.at[i, 'runs_scored'] += 1
 
                         # stat add: R
-                        sc.stat_collector(pid, the_game_id, 'run_scored', 1)
+                        sc.stat_collector(pid, the_game_id, 'run_scored', 1, the_df.at[i, 'play'])
 
                         # score the RBI if not NR or NORBI
                         if not(re.search(r'B-H\((NR|NORBI)\)', the_df.at[i, 'play'])):
-                            sc.stat_collector(pid, the_game_id, 'rbi', 1)
+                            sc.stat_collector(pid, the_game_id, 'rbi', 1, the_df.at[i, 'play'])
                     # other cases are BX[123H] - just ignore
                 else:
                     # assume they reached first base safely
                     the_df.at[i, '1B_after'] = the_df.at[i, 'playerID']
 
                 # stat add: AB, PA
-                sc.stat_collector(pid, the_game_id, 'at_bat', 1)
-                sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
 
             # Case 16: wild pitch or balk
             elif re.search(r'^(WP|BK)', the_df.at[i, 'play']):
@@ -356,21 +356,21 @@ def play_processor2(game_num, the_df):
                     the_df.at[i, '2B_after'] = the_df.at[i, '1B_before']
 
                     # stat add: SB
-                    sc.stat_collector(the_df.at[i, '1B_before'], the_game_id, 'stolen_base', 1)
+                    sc.stat_collector(the_df.at[i, '1B_before'], the_game_id, 'stolen_base', 1, the_df.at[i, 'play'])
 
                 if re.search(r'SB3', the_df.at[i, 'play']):
                     the_df.at[i, '3B_after'] = the_df.at[i, '2B_before']
 
                     # stat add: SB
-                    sc.stat_collector(the_df.at[i, '2B_before'], the_game_id, 'stolen_base', 1)
+                    sc.stat_collector(the_df.at[i, '2B_before'], the_game_id, 'stolen_base', 1, the_df.at[i, 'play'])
 
                 if re.search(r'SBH', the_df.at[i, 'play']):
                     the_df.at[i, 'runs_scored'] += 1
                     the_df.at[i, '3B_after'] = None
 
                     # stat add: SB, R
-                    sc.stat_collector(the_df.at[i, '3B_before'], the_game_id, 'stolen_base', 1)
-                    sc.stat_collector(the_df.at[i, '3B_before'], the_game_id, 'runs_scored', 1)
+                    sc.stat_collector(the_df.at[i, '3B_before'], the_game_id, 'stolen_base', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(the_df.at[i, '3B_before'], the_game_id, 'runs_scored', 1, the_df.at[i, 'play'])
 
             # Case 19: defensive indifference
             elif re.search(r'^DI', the_df.at[i, 'play']):
@@ -387,18 +387,21 @@ def play_processor2(game_num, the_df):
                     the_df.at[i, '2B_after'] = 'X'
 
                     # stat add: CS
-                    sc.stat_collector(the_df.at[i, '1B_before'], the_game_id, 'caught_stealing', 1)
+                    sc.stat_collector(the_df.at[i, '1B_before'],
+                                      the_game_id, 'caught_stealing', 1, the_df.at[i, 'play'])
 
                 elif re.search(r'^CS3', the_df.at[i, 'play']):
                     the_df.at[i, '3B_after'] = 'X'
 
                     # stat add: CS
-                    sc.stat_collector(the_df.at[i, '2B_before'], the_game_id, 'caught_stealing', 1)
+                    sc.stat_collector(the_df.at[i, '2B_before'],
+                                      the_game_id, 'caught_stealing', 1, the_df.at[i, 'play'])
 
                 elif re.search(r'^CSH', the_df.at[i, 'play']):
 
                     # stat add: CS
-                    sc.stat_collector(the_df.at[i, '3B_before'], the_game_id, 'caught_stealing', 1)
+                    sc.stat_collector(the_df.at[i, '3B_before'],
+                                      the_game_id, 'caught_stealing', 1, the_df.at[i, 'play'])
 
             # Case 21: pick off and/or caught stealing
             elif re.search(r'^PO(CS)?[123H]', the_df.at[i, 'play']):
@@ -407,15 +410,18 @@ def play_processor2(game_num, the_df):
 
                 if re.search(r'CS2', the_df.at[i, 'play']):
                     # stat add: CS
-                    sc.stat_collector(the_df.at[i, '1B_before'], the_game_id, 'caught_stealing', 1)
+                    sc.stat_collector(the_df.at[i, '1B_before'],
+                                      the_game_id, 'caught_stealing', 1, the_df.at[i, 'play'])
 
                 if re.search(r'CS3', the_df.at[i, 'play']):
                     # stat add: CS
-                    sc.stat_collector(the_df.at[i, '2B_before'], the_game_id, 'caught_stealing', 1)
+                    sc.stat_collector(the_df.at[i, '2B_before'],
+                                      the_game_id, 'caught_stealing', 1, the_df.at[i, 'play'])
 
                 if re.search(r'CSH', the_df.at[i, 'play']):
                     # stat add: CS
-                    sc.stat_collector(the_df.at[i, '3B_before'], the_game_id, 'caught_stealing', 1)
+                    sc.stat_collector(the_df.at[i, '3B_before'],
+                                      the_game_id, 'caught_stealing', 1, the_df.at[i, 'play'])
 
             # Case 22: passed ball
             elif re.search(r'^PB', the_df.at[i, 'play']):
@@ -436,8 +442,9 @@ def play_processor2(game_num, the_df):
             elif re.search(r'^((S|D|T|H|HR|DGR)([1-9]+)\..*E)', the_df.at[i, 'play']):
                 # print('A Hit! And some errors: ', the_df.at[i, 'play'])
 
-                # stat add: PA
-                sc.stat_collector(pid, the_game_id, 'plate_app', 1)
+                # stat add: AB, PA
+                sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, 'plate_app', 1, the_df.at[i, 'play'])
 
             # Case 26: appeal plays
             elif re.search(r'.*AP', the_df.at[i, 'play']):
@@ -458,7 +465,7 @@ def play_processor2(game_num, the_df):
                     the_df.at[i, 'runs_scored'] += 1
 
                     # stat add: R
-                    sc.stat_collector(the_df.at[i, '3B_before'], the_game_id, 'runs_scored', 1)
+                    sc.stat_collector(the_df.at[i, '3B_before'], the_game_id, 'runs_scored', 1, the_df.at[i, 'play'])
 
                     # check rbi awarded or not
                     if bool(re.search(r'3-H\((NR|NORBI)\)', the_df.at[i, 'play'])) | \
@@ -468,7 +475,7 @@ def play_processor2(game_num, the_df):
                         pass
                     else:
                         # stat add: RBI
-                        sc.stat_collector(pid, the_game_id, 'rbi', 1)
+                        sc.stat_collector(pid, the_game_id, 'rbi', 1, the_df.at[i, 'play'])
 
                 if re.search(r'\..*2-2', the_df.at[i, 'play']):
                     the_df.at[i, '2B_after'] = the_df.at[i, '2B_before']
@@ -478,7 +485,7 @@ def play_processor2(game_num, the_df):
                     the_df.at[i, 'runs_scored'] += 1
 
                     # stat add: R
-                    sc.stat_collector(the_df.at[i, '2B_before'], the_game_id, 'runs_scored', 1)
+                    sc.stat_collector(the_df.at[i, '2B_before'], the_game_id, 'runs_scored', 1, the_df.at[i, 'play'])
 
                     # check rbi awarded or not
                     if bool(re.search(r'2-H\((NR|NORBI)\)', the_df.at[i, 'play'])) | \
@@ -488,7 +495,7 @@ def play_processor2(game_num, the_df):
                         pass
                     else:
                         # stat add: RBI
-                        sc.stat_collector(pid, the_game_id, 'rbi', 1)
+                        sc.stat_collector(pid, the_game_id, 'rbi', 1, the_df.at[i, 'play'])
 
                 if re.search(r'\..*1-1', the_df.at[i, 'play']):
                     the_df.at[i, '1B_after'] = the_df.at[i, '1B_before']
@@ -500,7 +507,7 @@ def play_processor2(game_num, the_df):
                     the_df.at[i, 'runs_scored'] += 1
 
                     # stat add: R
-                    sc.stat_collector(the_df.at[i, '1B_before'], the_game_id, 'runs_scored', 1)
+                    sc.stat_collector(the_df.at[i, '1B_before'], the_game_id, 'runs_scored', 1, the_df.at[i, 'play'])
 
                     # check rbi awarded or not
                     if bool(re.search(r'1-H\((NR|NORBI)\)', the_df.at[i, 'play'])) | \
@@ -510,14 +517,14 @@ def play_processor2(game_num, the_df):
                         pass
                     else:
                         # stat add: RBI
-                        sc.stat_collector(pid, the_game_id, 'rbi', 1)
+                        sc.stat_collector(pid, the_game_id, 'rbi', 1, the_df.at[i, 'play'])
 
                 # if batter runner scores is explicitly mentioned, but not the Home Run nor Error FIRST cases
                 if bool(re.search(r'\..*B-H', the_df.at[i, 'play'])) & \
                     (not(re.search(r'^(H/|HR|([0-9]+)?E)', the_df.at[i, 'play']))):
 
                     # stat add: R
-                    sc.stat_collector(pid, the_game_id, 'runs_scored', 1)
+                    sc.stat_collector(pid, the_game_id, 'runs_scored', 1, the_df.at[i, 'play'])
 
                     # check rbi awarded or not
                     if bool(re.search(r'B-H\((NR|NORBI)\)', the_df.at[i, 'play'])) | \
@@ -527,7 +534,7 @@ def play_processor2(game_num, the_df):
                         pass
                     else:
                         # stat add: RBI
-                        sc.stat_collector(pid, the_game_id, 'rbi', 1)
+                        sc.stat_collector(pid, the_game_id, 'rbi', 1, the_df.at[i, 'play'])
 
                 # remove runners that are explicitly out
                 if re.search(r'\..*1X[123H]', the_df.at[i, 'play']):
@@ -542,7 +549,7 @@ def play_processor2(game_num, the_df):
                     the_df.at[i, 'outs'] += 1
 
                     # stat add: AB
-                    sc.stat_collector(pid, the_game_id, 'at_bat', 1)
+                    sc.stat_collector(pid, the_game_id, 'at_bat', 1, the_df.at[i, 'play'])
 
                     # handle the now existing runner
                     if the_df.at[i, '1B_after'] == the_df.at[i, 'playerID']:
