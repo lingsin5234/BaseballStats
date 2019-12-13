@@ -309,13 +309,10 @@ def play_processor2(game_num, the_df):
                 else:
                     sc.stat_collector(pid, the_game_id, this_half, 'walk', 1, the_df.at[i, 'play'])
 
-            # Case 14: fly ball error
+            # Case 14: error on FOUL fly ball
             elif re.search(r'^FLE[1-9]', the_df.at[i, 'play']):
-                # print('Fly ball Error: ', the_df.at[i, 'play'])
-
-                # stat add: AB, PA
-                sc.stat_collector(pid, the_game_id, this_half, 'at_bat', 1, the_df.at[i, 'play'])
-                sc.stat_collector(pid, the_game_id, this_half, 'plate_app', 1, the_df.at[i, 'play'])
+                # print('FOUL Fly ball Error: ', the_df.at[i, 'play'])
+                pass
 
             # Case 15: error
             elif re.search(r'^([1-9]+)?E[1-9]', the_df.at[i, 'play']):
@@ -565,7 +562,7 @@ def play_processor2(game_num, the_df):
                     the_df.at[i, 'outs'] += 1
 
                     # stat add: AB, PA -- if NOT already added on a hit
-                    if re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', the_df.at[i, 'play']):
+                    if not(re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', the_df.at[i, 'play'])):
                         sc.stat_collector(pid, the_game_id, this_half, 'at_bat', 1, the_df.at[i, 'play'])
                         sc.stat_collector(pid, the_game_id, this_half, 'plate_app', 1, the_df.at[i, 'play'])
 
