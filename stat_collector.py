@@ -4,10 +4,10 @@ import pandas as pd
 
 
 # stat collector
-def stat_collector(player_id, game_id, stat_type, stat_value, actual_play):
+def stat_collector(player_id, game_id, this_half, stat_type, stat_value, actual_play):
 
     # modify player table
-    gv.player.loc[-1] = [player_id, game_id, stat_type, stat_value, actual_play]
+    gv.player.loc[-1] = [player_id, game_id, this_half, stat_type, stat_value, actual_play]
     gv.player.index = gv.player.index + 1
 
     return True
