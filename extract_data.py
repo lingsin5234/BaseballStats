@@ -89,10 +89,6 @@ full_output = full_output.reindex(new_output.columns, axis=1)
 full_output.to_csv('OUTPUT.csv', sep=',', index=False)
 
 # player stats
-# print(player.groupby(['player_id', 'stat_type']).size().reset_index())
-# print(player)
-# player_stats = pd.read_csv('STATS.csv')
-
 gv.player.to_csv('PRE_STATS.csv', sep=',')
 gv.player_stats = sc.stat_organizer(gv.player)
 gv.player_stats.to_csv('STATS.csv', sep=',', index=False)
