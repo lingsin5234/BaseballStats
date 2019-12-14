@@ -113,7 +113,8 @@ def play_processor2(game_num, the_df):
                     the_df.at[i, '3B_after'] = pid
                 elif re.search(r'B-H', the_df.at[i, 'play']):
                     the_df.at[i, 'runs_scored'] += 1
-                    sc.stat_appender(pid, the_game_id, this_half, 'run_scored', 1, the_df.at[i, 'play'])
+                    st = ['R']
+                    sc.stat_collector(pid, this_line, st)
                 # batter is out!
                 elif re.search(r'BX[123H]', the_df.at[i, 'play']):
                     the_df.at[i, 'outs'] += 1
