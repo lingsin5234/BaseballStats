@@ -63,39 +63,36 @@ for line_item in f1:
     else:
         game_info.append(line_item)
 
-print(games[79])
-print(games[80])
-print(len(game_ids))
 # extract all starting lineups
-# gv.game_roster = sc.game_tracker(games, game_ids)
-# gv.game_roster.to_csv('STARTERS.csv', sep=',', index=False)
+gv.game_roster = sc.game_tracker(games, game_ids)
+gv.game_roster.to_csv('STARTERS.csv', sep=',', index=False)
 
 # convert all games for 1 file
-# a_full_df = g.convert_games(games)
-# full_output = pd.DataFrame(columns=a_full_df[0].columns)
+a_full_df = g.convert_games(games)
+full_output = pd.DataFrame(columns=a_full_df[0].columns)
 
 # play_processor2 function
-# for e, each_game in enumerate(a_full_df):
+for e, each_game in enumerate(a_full_df):
     # add the game_ids first
-#     current_game_id = game_ids[e].replace('\n', '')
-#     current_game_id = current_game_id.replace('id,', '')
-#     each_game.insert(0, 'game_id', current_game_id)
+    current_game_id = game_ids[e].replace('\n', '')
+    current_game_id = current_game_id.replace('id,', '')
+    each_game.insert(0, 'game_id', current_game_id)
 
     # then run the processor
-#     new_output = pp.play_processor2(e+1, each_game)
-#     full_output = full_output.append(new_output, sort=False)
+    new_output = pp.play_processor2(e+1, each_game)
+    full_output = full_output.append(new_output, sort=False)
 
 # reindex the columns once
-# full_output = full_output.reindex(new_output.columns, axis=1)
+full_output = full_output.reindex(new_output.columns, axis=1)
 
 # write to file
-# full_output.to_csv('OUTPUT.csv', sep=',', index=False)
+full_output.to_csv('OUTPUT.csv', sep=',', index=False)
 
 # player stats
 # print(player.groupby(['player_id', 'stat_type']).size().reset_index())
 # print(player)
 # player_stats = pd.read_csv('STATS.csv')
 
-# gv.player.to_csv('PRE_STATS.csv', sep=',')
-# gv.player_stats = sc.stat_organizer(gv.player)
-# gv.player_stats.to_csv('STATS.csv', sep=',', index=False)
+gv.player.to_csv('PRE_STATS.csv', sep=',')
+gv.player_stats = sc.stat_organizer(gv.player)
+gv.player_stats.to_csv('STATS.csv', sep=',', index=False)

@@ -562,7 +562,7 @@ def play_processor2(game_num, the_df):
                     the_df.at[i, 'outs'] += 1
 
                     # stat add: AB, PA -- if NOT already added on a hit
-                    if re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', the_df.at[i, 'play']):
+                    if not(re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', the_df.at[i, 'play'])):
                         sc.stat_collector(pid, the_game_id, this_half, 'at_bat', 1, the_df.at[i, 'play'])
                         sc.stat_collector(pid, the_game_id, this_half, 'plate_app', 1, the_df.at[i, 'play'])
 
