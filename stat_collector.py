@@ -4,9 +4,33 @@ import pandas as pd
 
 
 # stat collector
-def stat_collector(player_id, game_id, this_half, stat_type, stat_value, actual_play):
+def stat_collector(pid, the_line, stat_types):
 
-    # modify player table
+    # game info values
+    game_id = the_line['game_id']
+    this_half = the_line['half_innings']
+    actual_play = the_line['play']
+
+    # constants - specific columns for the LOB, RLSP use
+    bases_before = ['1B_before', '2B_before', '3B_before']
+    scoring_pos = ['2B_before', '3B_before']
+
+    # for each stat_type, call stat_appender
+    for s_type in stat_types:
+        if s_type == 'LOB':
+            stat_appender(pid, game_id, this_half, s_type, the_line[bases_before].count(), actual_play)
+        elif s_type == 'RLSP':
+            stat_appender(pid, game_id, this_half, s_type, the_line[scoring_pos].count(), actual_play)
+        else:
+            stat_appender(pid, game_id, this_half, s_type, 1, actual_play)
+
+    return True
+
+
+# stat appender
+def stat_appender(player_id, game_id, this_half, stat_type, stat_value, actual_play):
+
+    # add to player table
     gv.player.loc[-1] = [player_id, game_id, this_half, stat_type, stat_value, actual_play]
     gv.player.index = gv.player.index + 1
 
