@@ -159,12 +159,38 @@ def play_processor2(game_num, the_df):
                 # determine which base stolen
                 if re.search(r'SB', the_df.at[i, 'play']):
                     if re.search(r'SB2', the_df.at[i, 'play']):
-                        the_df.at[i, '2B_after'] = the_df.at[i, '1B_before']
-                    elif re.search(r'SB3', the_df.at[i, 'play']):
-                        the_df.at[i, '3B_after'] = the_df.at[i, '2B_before']
-                    elif re.search(r'SBH', the_df.at[i, 'play']):
+                        # check for error
+                        if re.search(r'SB2.1-[23H]\(([0-9]+)?E([0-9]+)?', the_df.at[i, 'play']):
+                            # ignore and leave for the baserunning later
+                            pass
+                        else:
+                            the_df.at[i, '2B_after'] = the_df.at[i, '1B_before']
+
+                        # stat add: SB
+                        sc.stat_collector(the_df.at[i, '1B_before'],
+                                          the_game_id, this_half, 'stolen_base', 1, the_df.at[i, 'play'])
+
+                    if re.search(r'SB3', the_df.at[i, 'play']):
+                        # check for error
+                        if re.search(r'SB3.2-[3H]\(([0-9]+)?E([0-9]+)?', the_df.at[i, 'play']):
+                            # ignore and leave for the baserunning later
+                            pass
+                        else:
+                            the_df.at[i, '3B_after'] = the_df.at[i, '2B_before']
+
+                        # stat add: SB
+                        sc.stat_collector(the_df.at[i, '2B_before'],
+                                          the_game_id, this_half, 'stolen_base', 1, the_df.at[i, 'play'])
+
+                    if re.search(r'SBH', the_df.at[i, 'play']):
                         the_df.at[i, 'runs_scored'] += 1
                         the_df.at[i, '3B_after'] = None
+
+                        # stat add: SB, R
+                        sc.stat_collector(the_df.at[i, '3B_before'],
+                                          the_game_id, this_half, 'stolen_base', 1, the_df.at[i, 'play'])
+                        sc.stat_collector(the_df.at[i, '3B_before'],
+                                      the_game_id, this_half, 'runs_scored', 1, the_df.at[i, 'play'])
 
                 # determine which base runner was caught
                 elif re.search(r'CS', the_df.at[i, 'play']):
@@ -321,7 +347,7 @@ def play_processor2(game_num, the_df):
                 # print('FOUL Fly ball Error: ', the_df.at[i, 'play'])
                 pass
 
-            # Case 15: error
+            # Case 15: error on ball in play
             elif re.search(r'^([1-9]+)?E[1-9]', the_df.at[i, 'play']):
                 # print('Error: ', the_df.at[i, 'play'])
 
@@ -366,24 +392,38 @@ def play_processor2(game_num, the_df):
 
                 # determine which base stolen
                 if re.search(r'SB2', the_df.at[i, 'play']):
-                    the_df.at[i, '2B_after'] = the_df.at[i, '1B_before']
+                    # check for error
+                    if re.search(r'SB2.1-[23H]\(([0-9]+)?E([0-9]+)?', the_df.at[i, 'play']):
+                        # ignore and leave for the baserunning later
+                        pass
+                    else:
+                        the_df.at[i, '2B_after'] = the_df.at[i, '1B_before']
 
                     # stat add: SB
-                    sc.stat_collector(the_df.at[i, '1B_before'], the_game_id, this_half, 'stolen_base', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(the_df.at[i, '1B_before'],
+                                      the_game_id, this_half, 'stolen_base', 1, the_df.at[i, 'play'])
 
                 if re.search(r'SB3', the_df.at[i, 'play']):
-                    the_df.at[i, '3B_after'] = the_df.at[i, '2B_before']
+                    # check for error
+                    if re.search(r'SB3.2-[3H]\(([0-9]+)?E([0-9]+)?', the_df.at[i, 'play']):
+                        # ignore and leave for the baserunning later
+                        pass
+                    else:
+                        the_df.at[i, '3B_after'] = the_df.at[i, '2B_before']
 
                     # stat add: SB
-                    sc.stat_collector(the_df.at[i, '2B_before'], the_game_id, this_half, 'stolen_base', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(the_df.at[i, '2B_before'],
+                                      the_game_id, this_half, 'stolen_base', 1, the_df.at[i, 'play'])
 
                 if re.search(r'SBH', the_df.at[i, 'play']):
                     the_df.at[i, 'runs_scored'] += 1
                     the_df.at[i, '3B_after'] = None
 
                     # stat add: SB, R
-                    sc.stat_collector(the_df.at[i, '3B_before'], the_game_id, this_half, 'stolen_base', 1, the_df.at[i, 'play'])
-                    sc.stat_collector(the_df.at[i, '3B_before'], the_game_id, this_half, 'runs_scored', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(the_df.at[i, '3B_before'],
+                                      the_game_id, this_half, 'stolen_base', 1, the_df.at[i, 'play'])
+                    sc.stat_collector(the_df.at[i, '3B_before'],
+                                      the_game_id, this_half, 'runs_scored', 1, the_df.at[i, 'play'])
 
             # Case 19: defensive indifference
             elif re.search(r'^DI', the_df.at[i, 'play']):
