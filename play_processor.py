@@ -114,25 +114,29 @@ def play_processor2(game_num, the_df):
                 # print('Fielders\' Choice: ', the_df.at[i, 'play'])
 
                 # determine if there was an out
-                if re.search(r'[B123]X[123H](?!\(([0-9]+)?E([0-9]+)?\))', the_df.at[i, 'play']):
+                if re.search(r'[123]X[123H](?!\(([0-9]+)?E([0-9]+)?\))', the_df.at[i, 'play']):
+                    the_df.at[i, 'outs'] += 1
+                # move batter if explicitly mentioned
+                if re.search(r'B-2', the_df.at[i, 'play']):
+                    the_df.at[i, '2B_after'] = pid
+                elif re.search(r'B-3', the_df.at[i, 'play']):
+                    the_df.at[i, '3B_after'] = pid
+                elif re.search(r'B-H', the_df.at[i, 'play']):
+                    the_df.at[i, 'runs_scored'] += 1
+                    sc.stat_collector(pid, the_game_id, this_half, 'run_scored', 1, the_df.at[i, 'play'])
+                # batter is out!
+                elif re.search(r'BX[123H]', the_df.at[i, 'play']):
                     the_df.at[i, 'outs'] += 1
                 else:
-                    # move batter if explicitly mentioned
-                    if re.search(r'B-2', the_df.at[i, 'play']):
-                        the_df.at[i, '2B_after'] = pid
-                    elif re.search(r'B-3', the_df.at[i, 'play']):
-                        the_df.at[i, '3B_after'] = pid
-                    elif re.search(r'B-H', the_df.at[i, 'play']):
-                        the_df.at[i, 'runs_scored'] += 1
-                        sc.stat_collector(pid, the_game_id, this_half, 'run_scored', 1, the_df.at[i, 'play'])
-                    else:
-                        the_df.at[i, '1B_after'] = pid
+                    the_df.at[i, '1B_after'] = pid
 
                 # stat add: AB, PA, LOB, RLSP
                 sc.stat_collector(pid, the_game_id, this_half, 'at_bat', 1, the_df.at[i, 'play'])
                 sc.stat_collector(pid, the_game_id, this_half, 'plate_app', 1, the_df.at[i, 'play'])
-                sc.stat_collector(pid, the_game_id, this_half, 'lob', the_df.loc[i, bases_before].count(), the_df.at[i, 'play'])
-                sc.stat_collector(pid, the_game_id, this_half, 'rlsp', the_df.loc[i, scoring_pos].count(), the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, this_half,
+                                  'lob', the_df.loc[i, bases_before].count(), the_df.at[i, 'play'])
+                sc.stat_collector(pid, the_game_id, this_half,
+                                  'rlsp', the_df.loc[i, scoring_pos].count(), the_df.at[i, 'play'])
 
             # Case 6: strike out with NO event
             elif re.search(r'^K([1-9]+)?(?!\+)', the_df.at[i, 'play']):
