@@ -2,6 +2,7 @@
 import re
 import stat_collector as sc
 import global_variables as gv
+import base_running as br
 
 
 # re-write the processor based on re.search/re.findall grep searching
@@ -142,37 +143,12 @@ def play_processor2(game_num, the_df):
                 # determine if next play is out or not.
                 # determine which base stolen
                 if re.search(r'SB', the_df.at[i, 'play']):
-                    if re.search(r'SB2', the_df.at[i, 'play']):
-                        # check for error
-                        if re.search(r'SB2.1-[23H]\(([0-9]+)?E([0-9]+)?', the_df.at[i, 'play']):
-                            # ignore and leave for the baserunning later
-                            pass
-                        else:
-                            the_df.at[i, '2B_after'] = the_df.at[i, '1B_before']
-
-                        # stat add: SB
-                        st = ['SB']
-                        sc.stat_collector(the_df.at[i, '1B_before'], this_line, st)
-
-                    if re.search(r'SB3', the_df.at[i, 'play']):
-                        # check for error
-                        if re.search(r'SB3.2-[3H]\(([0-9]+)?E([0-9]+)?', the_df.at[i, 'play']):
-                            # ignore and leave for the baserunning later
-                            pass
-                        else:
-                            the_df.at[i, '3B_after'] = the_df.at[i, '2B_before']
-
-                        # stat add: SB
-                        st = ['SB']
-                        sc.stat_collector(the_df.at[i, '2B_before'], this_line, st)
-
-                    if re.search(r'SBH', the_df.at[i, 'play']):
-                        the_df.at[i, 'runs_scored'] += 1
-                        the_df.at[i, '3B_after'] = None
-
-                        # stat add: SB, R
-                        st = ['SB', 'R']
-                        sc.stat_collector(the_df.at[i, '3B_before'], this_line, st)
+                    the_df.at[[i]] = br.steal_processor(this_line)
+                    # new_line = br.steal_processor(this_line)
+                    # the_df.at[i, '1B_after'] = new_line[0]
+                    # the_df.at[i, '2B_after'] = new_line[1]
+                    # the_df.at[i, '3B_after'] = new_line[2]
+                    # the_df.at[i, 'runs_scored'] = new_line[3]
 
                 # determine which base runner was caught
                 elif re.search(r'CS', the_df.at[i, 'play']):
