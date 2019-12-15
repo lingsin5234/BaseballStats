@@ -18,9 +18,9 @@ def stat_collector(pid, the_line, stat_types):
     # for each stat_type, call stat_appender
     for s_type in stat_types:
         if s_type == 'LOB':
-            stat_appender(pid, game_id, this_half, s_type, the_line[bases_before].count(), actual_play)
+            stat_appender(pid, game_id, this_half, s_type, the_line[bases_before].count().sum(), actual_play)
         elif s_type == 'RLSP':
-            stat_appender(pid, game_id, this_half, s_type, the_line[scoring_pos].count(), actual_play)
+            stat_appender(pid, game_id, this_half, s_type, the_line[scoring_pos].count().sum(), actual_play)
         else:
             stat_appender(pid, game_id, this_half, s_type, 1, actual_play)
 
@@ -84,3 +84,4 @@ def game_tracker(all_starts, all_game_ids):
     games_dfs = games_dfs.reset_index(drop=True)
 
     return games_dfs
+
