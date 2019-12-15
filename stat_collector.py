@@ -7,9 +7,9 @@ import pandas as pd
 def stat_collector(pid, the_line, stat_types):
 
     # game info values
-    game_id = the_line['game_id']
-    this_half = the_line['half_innings']
-    actual_play = the_line['play']
+    game_id = the_line['game_id'].values[0]
+    this_half = the_line['half_innings'].values[0]
+    actual_play = the_line['play'].values[0]
 
     # constants - specific columns for the LOB, RLSP use
     bases_before = ['1B_before', '2B_before', '3B_before']
