@@ -18,10 +18,7 @@ def steal_processor(this_line):
             # stat add: SB
             st = ['SB']
             sc.stat_collector(this_line['1B_before'].values[0], this_line, st)
-            check = len(gv.player)
-            print('check:', check)
-            print(type(check-1))
-            print(gv.player.loc[[check-1]])
+
         if re.search(r'SB3', this_line['play'].values[0]):
             # if NOT an error on throwing
             if not (re.search(r'SB3.2-[3H]\(([0-9]+)?E([0-9]+)?', this_line['play'].values[0])):

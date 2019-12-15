@@ -144,10 +144,6 @@ def play_processor2(game_num, the_df):
                 # determine which base stolen
                 if re.search(r'SB', the_df.at[i, 'play']):
                     the_df.loc[[i]] = br.steal_processor(this_line)
-                    print(the_df.loc[[i]])
-                    print(type(the_df.at[i, '1B_before']))
-                    print(the_df.at[i, '1B_before'])
-                    exit()
                     # new_line = br.steal_processor(this_line)
                     # the_df.at[i, '1B_after'] = new_line[0]
                     # the_df.at[i, '2B_after'] = new_line[1]
