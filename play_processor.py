@@ -221,8 +221,8 @@ def play_processor2(game_num, the_df):
                 st = ['PA']
                 sc.stat_collector(pid, this_line, st)
 
-            # Case 11: hit! -- the fielder(s) after letter is optional
-            elif re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', the_df.at[i, 'play']):
+            # Case 11: hit! -- the fielder(s) after letter is optional; NO ERRORS ALLOWED HERE.
+            elif re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR).*(?!E)', the_df.at[i, 'play']):
                 # print('A Hit!: ', the_df.at[i, 'play'])
 
                 # determine what type of hit.
@@ -390,9 +390,64 @@ def play_processor2(game_num, the_df):
             elif re.search(r'^((S|D|T|H|HR|DGR)([1-9]+)\..*E)', the_df.at[i, 'play']):
                 # print('A Hit! And some errors: ', the_df.at[i, 'play'])
 
-                # stat add: AB, PA
-                st = ['AB', 'PA']
-                sc.stat_collector(pid, this_line, st)
+                # determine what type of hit.
+                if re.search(r'^S([1-9]+)?', the_df.at[i, 'play']):
+
+                    # stat add: AB, PA, H
+                    st = ['AB', 'PA', 'H']
+
+                    # check if batter advanced elsewhere
+                    if re.search(r'B-[23H]', the_df.at[i, 'play']):
+                        if re.search(r'B-2', the_df.at[i, 'play']):
+                            the_df.at[i, '2B_after'] = pid
+                        elif re.search(r'B-3', the_df.at[i, 'play']):
+                            the_df.at[i, '3B_after'] = pid
+                        elif re.search(r'B-H', the_df.at[i, 'play']):
+                            the_df.at[i, 'runs_scored'] += 1
+                            st.append('R')
+                    else:
+                        the_df.at[i, '1B_after'] = pid
+                    sc.stat_collector(pid, this_line, st)
+
+                elif re.search(r'^(D([1-9]+)?|DGR)', the_df.at[i, 'play']):
+
+                    # stat add: AB, PA, H, D
+                    st = ['AB', 'PA', 'H', 'D']
+
+                    # check if batter advanced elsewhere
+                    if re.search(r'B-[3H]', the_df.at[i, 'play']):
+                        if re.search(r'B-3', the_df.at[i, 'play']):
+                            the_df.at[i, '3B_after'] = pid
+                        elif re.search(r'B-H', the_df.at[i, 'play']):
+                            the_df.at[i, 'runs_scored'] += 1
+                            st.append('R')
+                    else:
+                        the_df.at[i, '2B_after'] = pid
+                    sc.stat_collector(pid, this_line, st)
+
+                elif re.search(r'^T([1-9]+)?', the_df.at[i, 'play']):
+
+                    # stat add: AB, PA, H, T
+                    st = ['AB', 'PA', 'H', 'T']
+
+                    # check if batter advanced elsewhere
+                    if re.search(r'B-H', the_df.at[i, 'play']):
+                        the_df.at[i, 'runs_scored'] += 1
+                        st.append('R')
+                    else:
+                        the_df.at[i, '3B_after'] = pid
+                    sc.stat_collector(pid, this_line, st)
+
+                else:
+                    the_df.at[i, 'runs_scored'] += 1
+
+                    # stat add: AB, PA, H, HR, R
+                    st = ['AB', 'PA', 'H', 'HR', 'R']
+
+                    # score the RBI if not NR or NORBI
+                    if not (re.search(r'B-H\((NR|NORBI)\)', the_df.at[i, 'play'])):
+                        st.append('RBI')
+                    sc.stat_collector(pid, this_line, st)
 
             # Case 26: appeal plays
             elif re.search(r'.*AP', the_df.at[i, 'play']):
