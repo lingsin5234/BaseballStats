@@ -152,24 +152,8 @@ def play_processor2(game_num, the_df):
 
                 # determine which base runner was caught
                 elif re.search(r'CS', the_df.at[i, 'play']):
-                    if re.search(r'CS2', the_df.at[i, 'play']):
-                        the_df.at[i, '2B_after'] = 'X'
-
-                        # stat add: CS
-                        st = ['CS']
-                        sc.stat_collector(the_df.at[i, '1B_before'], this_line, st)
-
-                    elif re.search(r'CS3', the_df.at[i, 'play']):
-                        the_df.at[i, '3B_after'] = 'X'
-
-                        # stat add: CS
-                        st = ['CS']
-                        sc.stat_collector(the_df.at[i, '2B_before'], this_line, st)
-
-                    elif re.search(r'CSH', the_df.at[i, 'play']):
-                        # stat add: CS
-                        st = ['CS']
-                        sc.stat_collector(the_df.at[i, '3B_before'], this_line, st)
+                    the_df.at[i, 'outs'] += 1
+                    the_df.loc[[i]] = br.steal_processor(this_line)
 
                 # if explicitly moves the batter on passed ball or WP
                 elif re.search(r'(WP|PB)\..*B-[123H]', the_df.at[i, 'play']):
@@ -354,39 +338,7 @@ def play_processor2(game_num, the_df):
             # Case 18: stolen base
             elif re.search(r'^SB', the_df.at[i, 'play']):
                 # print('Stolen Base: ', the_df.at[i, 'play'])
-
-                # determine which base stolen
-                if re.search(r'SB2', the_df.at[i, 'play']):
-                    # check for error
-                    if re.search(r'SB2.1-[23H]\(([0-9]+)?E([0-9]+)?', the_df.at[i, 'play']):
-                        # ignore and leave for the baserunning later
-                        pass
-                    else:
-                        the_df.at[i, '2B_after'] = the_df.at[i, '1B_before']
-
-                    # stat add: SB
-                    st = ['SB']
-                    sc.stat_collector(the_df.at[i, '1B_before'], this_line, st)
-
-                if re.search(r'SB3', the_df.at[i, 'play']):
-                    # check for error
-                    if re.search(r'SB3.2-[3H]\(([0-9]+)?E([0-9]+)?', the_df.at[i, 'play']):
-                        # ignore and leave for the baserunning later
-                        pass
-                    else:
-                        the_df.at[i, '3B_after'] = the_df.at[i, '2B_before']
-
-                    # stat add: SB
-                    st = ['SB']
-                    sc.stat_collector(the_df.at[i, '2B_before'], this_line, st)
-
-                if re.search(r'SBH', the_df.at[i, 'play']):
-                    the_df.at[i, 'runs_scored'] += 1
-                    the_df.at[i, '3B_after'] = None
-
-                    # stat add: SB, R
-                    st = ['SB', 'R']
-                    sc.stat_collector(the_df.at[i, '3B_before'], this_line, st)
+                the_df.loc[[i]] = br.steal_processor(this_line)
 
             # Case 19: defensive indifference
             elif re.search(r'^DI', the_df.at[i, 'play']):
@@ -397,27 +349,7 @@ def play_processor2(game_num, the_df):
             elif re.search(r'^CS', the_df.at[i, 'play']):
                 # print('Caught Stealing: ', the_df.at[i, 'play'])
                 the_df.at[i, 'outs'] += 1
-
-                # determine which base runner was caught
-                if re.search(r'^CS2', the_df.at[i, 'play']):
-                    the_df.at[i, '2B_after'] = 'X'
-
-                    # stat add: CS
-                    st = ['CS']
-                    sc.stat_collector(the_df.at[i, '1B_before'], this_line, st)
-
-                elif re.search(r'^CS3', the_df.at[i, 'play']):
-                    the_df.at[i, '3B_after'] = 'X'
-
-                    # stat add: CS
-                    st = ['CS']
-                    sc.stat_collector(the_df.at[i, '2B_before'], this_line, st)
-
-                elif re.search(r'^CSH', the_df.at[i, 'play']):
-
-                    # stat add: CS
-                    st = ['CS']
-                    sc.stat_collector(the_df.at[i, '3B_before'], this_line, st)
+                the_df.loc[[i]] = br.steal_processor(this_line)
 
             # Case 21: pick off and/or caught stealing
             elif re.search(r'^PO(CS)?[123H]', the_df.at[i, 'play']):
