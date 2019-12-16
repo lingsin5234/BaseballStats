@@ -18,9 +18,13 @@ def stat_collector(pid, the_line, stat_types):
     # for each stat_type, call stat_appender
     for s_type in stat_types:
         if s_type == 'LOB':
-            stat_appender(pid, game_id, this_half, s_type, the_line[bases_before].count().sum(), actual_play)
+            lobs = the_line[bases_before].count().sum() - the_line['play'].values[0].count(r'-H')
+            stat_appender(pid, game_id, this_half, s_type, lobs, actual_play)
         elif s_type == 'RLSP':
-            stat_appender(pid, game_id, this_half, s_type, the_line[scoring_pos].count().sum(), actual_play)
+            rlsp = the_line[scoring_pos].count().sum() - the_line['play'].values[0].count(r'-H')
+            if rlsp < 0:
+                rlsp = 0
+            stat_appender(pid, game_id, this_half, s_type, rlsp, actual_play)
         else:
             stat_appender(pid, game_id, this_half, s_type, 1, actual_play)
 
