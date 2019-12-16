@@ -37,7 +37,21 @@ def steal_processor(this_line):
             st = ['SB', 'R']
             sc.stat_collector(this_line['3B_before'].values[0], this_line, st)
 
-    # new_line = [this_line['1B_after'], this_line['2B_after'], this_line['3B_after'], this_line['runs_scored']]
+    # check if caught stealing, then which base(s)
+    if re.search(r'CS', this_line['play'].values[0]):
+        if re.search(r'CS2', this_line['play'].values[0]):
+            # stat add: CS
+            st = ['CS']
+            sc.stat_collector(this_line['1B_before'].values[0], this_line, st)
 
-    # return new_line
+        if re.search(r'CS3', this_line['play'].values[0]):
+            # stat add: CS
+            st = ['CS']
+            sc.stat_collector(this_line['2B_before'].values[0], this_line, st)
+
+        if re.search(r'CSH', this_line['play'].values[0]):
+            # stat add: CS
+            st = ['CS']
+            sc.stat_collector(this_line['3B_before'].values[0], this_line, st)
+
     return this_line
