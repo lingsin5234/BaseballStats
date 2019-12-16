@@ -438,7 +438,7 @@ def play_processor2(game_num, the_df):
                     sc.stat_collector(the_df.at[i, '3B_before'], this_line, st)
 
                     # check rbi awarded or not
-                    if bool(re.search(r'3-H(\(UR\))?\((NR|NORBI)\)', the_df.at[i, 'play'])) | \
+                    if bool(re.search(r'3-H([\(UR\)/THE0-9]+)(\((NR|NORBI)\))', the_df.at[i, 'play'])) | \
                             bool(re.search(r'^FC.*3-H(?!\(RBI\))', the_df.at[i, 'play'])) | \
                             bool(re.search(r'^([1-9]+)?E.*3-H(?!\(RBI\))', the_df.at[i, 'play'])) | \
                             bool(re.search(r'DP', the_df.at[i, 'play'])):
@@ -461,7 +461,7 @@ def play_processor2(game_num, the_df):
                     sc.stat_collector(the_df.at[i, '2B_before'], this_line, st)
 
                     # check rbi awarded or not
-                    if bool(re.search(r'2-H(\(UR\))?\((NR|NORBI)\)', the_df.at[i, 'play'])) | \
+                    if bool(re.search(r'2-H([\(UR\)/THE0-9]+)(\((NR|NORBI)\))', the_df.at[i, 'play'])) | \
                             bool(re.search(r'^FC.*2-H(?!\(RBI\))', the_df.at[i, 'play'])) | \
                             bool(re.search(r'^([1-9]+)?E.*2-H(?!\(RBI\))', the_df.at[i, 'play'])) | \
                             bool(re.search(r'DP', the_df.at[i, 'play'])):
@@ -486,7 +486,7 @@ def play_processor2(game_num, the_df):
                     sc.stat_collector(the_df.at[i, '1B_before'], this_line, st)
 
                     # check rbi awarded or not
-                    if bool(re.search(r'1-H(\(UR\))?\((NR|NORBI)\)', the_df.at[i, 'play'])) | \
+                    if bool(re.search(r'1-H([\(UR\)/THE0-9]+)(\((NR|NORBI)\))', the_df.at[i, 'play'])) | \
                             bool(re.search(r'^FC.*1-H(?!\(RBI\))', the_df.at[i, 'play'])) | \
                             bool(re.search(r'^([1-9]+)?E.*1-H(?!\(RBI\))', the_df.at[i, 'play'])) | \
                             bool(re.search(r'DP', the_df.at[i, 'play'])):
@@ -506,7 +506,7 @@ def play_processor2(game_num, the_df):
                     sc.stat_collector(pid, this_line, st)
 
                     # check rbi awarded or not
-                    if bool(re.search(r'B-H(\(UR\))?\((NR|NORBI)\)', the_df.at[i, 'play'])) | \
+                    if bool(re.search(r'B-H([\(UR\)/THE0-9]+)(\((NR|NORBI)\))', the_df.at[i, 'play'])) | \
                             bool(re.search(r'^FC.*B-H(?!\(RBI\))', the_df.at[i, 'play'])) | \
                             bool(re.search(r'^([1-9]+)?E.*B-H(?!\(RBI\))', the_df.at[i, 'play'])) | \
                             bool(re.search(r'DP', the_df.at[i, 'play'])):
