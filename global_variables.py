@@ -2,8 +2,8 @@
 import pandas as pd
 
 # create global tables.
-player = pd.DataFrame(columns=('player_id', 'game_id', 'this_half', 'stat_type', 'stat_value', 'actual_play'))
-game_roster = pd.DataFrame(columns=('game_id', 'which_team', 'player_id', 'fielding'))
+player = pd.DataFrame(columns=('player_id', 'team', 'game_id', 'this_half', 'stat_type', 'stat_value', 'actual_play'))
+game_roster = pd.DataFrame(columns=('game_id', 'team_id', 'player_id', 'fielding'))
 player_stats = pd.DataFrame()
 
 # global dictionary for stat types
