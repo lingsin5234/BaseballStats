@@ -11,6 +11,17 @@ def stat_collector(pid, the_line, stat_types):
     this_half = the_line['half_innings'].values[0]
     actual_play = the_line['play'].values[0]
 
+    # get vis_team and home_team
+    curr_game = gv.game_roster.game_id == game_id
+    vis_team = gv.game_roster.loc[curr_game, 'team'].values[0]
+    home_team = gv.game_roster.loc[curr_game, 'team'].values[-1]
+    print('team #:', the_line['team'].values[0])
+    # which team? find out in the_line
+    if the_line['team'].values[0] == 0:
+        team_id = vis_team  # visitor
+    else:
+        team_id = home_team  # home
+
     # constants - specific columns for the LOB, RLSP use
     bases_before = ['1B_before', '2B_before', '3B_before']
     scoring_pos = ['2B_before', '3B_before']
@@ -19,35 +30,36 @@ def stat_collector(pid, the_line, stat_types):
     for s_type in stat_types:
         if s_type == 'LOB':
             lobs = the_line[bases_before].count().sum() - the_line['play'].values[0].count(r'-H')
-            stat_appender(pid, game_id, this_half, s_type, lobs, actual_play)
+            stat_appender(pid, team_id, game_id, this_half, s_type, lobs, actual_play)
         elif s_type == 'RLSP':
             rlsp = the_line[scoring_pos].count().sum() - the_line['play'].values[0].count(r'-H')
             if rlsp < 0:
                 rlsp = 0
-            stat_appender(pid, game_id, this_half, s_type, rlsp, actual_play)
+            stat_appender(pid, team_id, game_id, this_half, s_type, rlsp, actual_play)
         else:
-            stat_appender(pid, game_id, this_half, s_type, 1, actual_play)
+            stat_appender(pid, team_id, game_id, this_half, s_type, 1, actual_play)
 
     return True
 
 
 # stat appender
-def stat_appender(player_id, game_id, this_half, stat_type, stat_value, actual_play):
+def stat_appender(player_id, team_id, game_id, this_half, stat_type, stat_value, actual_play):
 
     # add to player table
-    gv.player.loc[-1] = [player_id, game_id, this_half, stat_type, stat_value, actual_play]
+    gv.player.loc[-1] = [player_id, team_id, game_id, this_half, stat_type, stat_value, actual_play]
     gv.player.index = gv.player.index + 1
-
+    print(gv.player)
+    exit()
     return True
 
 
 # stat organizer
 def stat_organizer(player_tb):
 
-    player_tb = player_tb.groupby(['player_id', 'stat_type']).size().reset_index()
+    player_tb = player_tb.groupby(['player_id', 'team_id', 'stat_type']).size().reset_index()
     # a column named '0' will appear with all the values for each stat_type
     # this must be included as the "values" operator in the pivot function!
-    player_tb = player_tb.pivot('player_id', 'stat_type', 0)
+    player_tb = player_tb.pivot(['player_id', 'team_id'], 'stat_type', 0)
     player_tb = player_tb.fillna(0)
     player_tb = player_tb.astype(int)
     player_tb = pd.DataFrame(player_tb.to_records())
@@ -88,9 +100,6 @@ def game_tracker(all_starts, all_game_ids):
         # replace 0 with vis_team; 1 with home_team
         df1.loc[df1.team == '0', 'team'] = vis_team.replace('info,visteam,', '').replace('\n', '')
         df1.loc[df1.team == '1', 'team'] = home_team.replace('info,hometeam,', '').replace('\n', '')
-        print(df1[['team']])
-        print(type(df1.loc[df1.team == '0', 'team']))
-        exit()
 
         # add game starters to the table
         games_dfs = games_dfs.append(df1.copy())
