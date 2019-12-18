@@ -43,6 +43,9 @@ def convert_games(all_games):
         # remove line break in last column for subs
         df1.loc[df1.type == 'sub', 'fielding'] = df1.loc[df1.type == 'sub', 'fielding'].str.replace('\n', '').tolist()
 
+        # replace all blank "team" with the half - to determine the team that is at bat
+        df1.loc[df1.team.isnull(), 'team'] = df1.loc[df1.team.isnull(), 'half']
+
         # add outs and baserunners columns
         df1.insert(11, 'outs', 0)
         df1.insert(12, '1B_before', None)
