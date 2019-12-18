@@ -653,7 +653,8 @@ def play_processor2(game_num, the_df):
                 if the_df.at[i, 'fielding'] == '12':
 
                     # check which spot in the lineup, get the playerID:
-                    sub_filter = (lineup.team_id == the_df.at[i, 'team_id']) & (lineup.bat_lineup == the_df.at[i, 'batting'])
+                    sub_filter = (lineup.team_id == the_df.at[i, 'team_id']) & \
+                                 (lineup.bat_lineup == the_df.at[i, 'batting'])
                     sub_index = lineup.index[sub_filter]
                     sub_player_id = lineup.at[sub_index[0], 'player_id']
 
@@ -675,10 +676,9 @@ def play_processor2(game_num, the_df):
                 elif the_df.at[i, 'fielding'] == '11':
 
                     # check which spot in the lineup, get the playerID:
-                    sub_filter = (lineup.team_id == the_df.at[i, 'team_id']) & (
-                                lineup.bat_lineup == the_df.at[i, 'batting'])
+                    sub_filter = (lineup.team_id == the_df.at[i, 'team_id']) & \
+                                 (lineup.bat_lineup == the_df.at[i, 'batting'])
                     sub_index = lineup.index[sub_filter]
-                    # sub_player_id = lineup.at[sub_index[0], 'player_id']
 
                     # replace the person in the lineup
                     lineup.at[sub_index[0], 'player_id'] = the_df.at[i, 'playerID']
