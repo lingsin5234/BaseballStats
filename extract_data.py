@@ -90,14 +90,6 @@ f1 = f.readlines()
 
 # player stats
 # gv.player.to_csv('PRE_STATS.csv', sep=',')
-player_tb = pd.read_csv('PRE_STATS.csv')
-player_tb = player_tb.groupby(['player_id', 'team_name', 'stat_type']).size().reset_index()
-player_tb.rename(columns={0: 'values'}, inplace=True)
-print(player_tb)
-player_tb = player_tb.set_index(['player_id', 'team_name']).pivot(columns='stat_type')['values']
-print(player_tb)
-player_tb = player_tb.reset_index().rename_axis(None, axis=1)
-print(player_tb)
-# player_tb = player_tb.pivot(['player_id', 'team_name'], 'stat_type', 0)
-# gv.player_stats = sc.stat_organizer(gv.player)
-# gv.player_stats.to_csv('STATS.csv', sep=',', index=False)
+gv.player = pd.read_csv('PRE_STATS.csv')
+gv.player_stats = sc.stat_organizer(gv.player)
+gv.player_stats.to_csv('STATS.csv', sep=',', index=False)

@@ -56,11 +56,14 @@ def stat_appender(player_id, team_name, game_id, this_half, stat_type, stat_valu
 def stat_organizer(player_tb):
 
     player_tb = player_tb.groupby(['player_id', 'team_name', 'stat_type']).size().reset_index()
-    # a column named '0' will appear with all the values for each stat_type
-    # this must be included as the "values" operator in the pivot function!
-    player_tb = player_tb.pivot(['player_id', 'team_name'], 'stat_type', 0)
+    # rename the "0" column to values
+    player_tb.rename(columns={0: 'values'}, inplace=True)
+    # set index to BOTH player_id and team_name and pivot based on stat_type column and values
+    player_tb = player_tb.set_index(['player_id', 'team_name']).pivot(columns='stat_type')['values']
+    # reset index and rename to fix the structure of the columns
+    player_tb = player_tb.reset_index().rename_axis(None, axis=1)
     player_tb = player_tb.fillna(0)
-    player_tb = player_tb.astype(int)
+    # player_tb = player_tb.astype(int)
     player_tb = pd.DataFrame(player_tb.to_records())
 
     return player_tb
