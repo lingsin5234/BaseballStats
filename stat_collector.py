@@ -55,10 +55,10 @@ def stat_appender(player_id, team_name, game_id, this_half, stat_type, stat_valu
 # stat organizer
 def stat_organizer(player_tb):
 
-    player_tb = player_tb.groupby(['player_id', 'team_id', 'stat_type']).size().reset_index()
+    player_tb = player_tb.groupby(['player_id', 'team_name', 'stat_type']).size().reset_index()
     # a column named '0' will appear with all the values for each stat_type
     # this must be included as the "values" operator in the pivot function!
-    player_tb = player_tb.pivot(['player_id', 'team_id'], 'stat_type', 0)
+    player_tb = player_tb.pivot(['player_id', 'team_name'], 'stat_type', 0)
     player_tb = player_tb.fillna(0)
     player_tb = player_tb.astype(int)
     player_tb = pd.DataFrame(player_tb.to_records())
@@ -89,7 +89,7 @@ def game_tracker(all_starts, all_game_ids):
         df1[5] = df1[5].str.replace('\n', '')
 
         # insert team_name
-        df1.insert(3, 'team_name', '0')
+        df1.insert(6, 6, '0')
 
         # table edits
         df1.drop(0, axis=1, inplace=True)
