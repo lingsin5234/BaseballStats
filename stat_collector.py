@@ -15,9 +15,9 @@ def stat_collector(pid, the_line, stat_types):
     curr_game = gv.game_roster.game_id == game_id
     vis_team = gv.game_roster.loc[curr_game, 'team'].values[0]
     home_team = gv.game_roster.loc[curr_game, 'team'].values[-1]
-    print('team #:', the_line['team'].values[0])
+
     # which team? find out in the_line
-    if the_line['team'].values[0] == 0:
+    if the_line['team'].values[0] == '0':
         team_id = vis_team  # visitor
     else:
         team_id = home_team  # home
@@ -48,8 +48,7 @@ def stat_appender(player_id, team_id, game_id, this_half, stat_type, stat_value,
     # add to player table
     gv.player.loc[-1] = [player_id, team_id, game_id, this_half, stat_type, stat_value, actual_play]
     gv.player.index = gv.player.index + 1
-    print(gv.player)
-    exit()
+
     return True
 
 
