@@ -13,14 +13,14 @@ def stat_collector(pid, the_line, stat_types):
 
     # get vis_team and home_team
     curr_game = gv.game_roster.game_id == game_id
-    vis_team = gv.game_roster.loc[curr_game, 'team'].values[0]
-    home_team = gv.game_roster.loc[curr_game, 'team'].values[-1]
+    vis_team = gv.game_roster.loc[curr_game, 'team_id'].values[0]
+    home_team = gv.game_roster.loc[curr_game, 'team_id'].values[-1]
 
     # which team? find out in the_line
-    if the_line['team'].values[0] == '0':
-        team_id = vis_team  # visitor
+    if the_line['team_id'].values[0] == '0':
+        team_name = vis_team  # visitor
     else:
-        team_id = home_team  # home
+        team_name = home_team  # home
 
     # constants - specific columns for the LOB, RLSP use
     bases_before = ['1B_before', '2B_before', '3B_before']
@@ -30,23 +30,23 @@ def stat_collector(pid, the_line, stat_types):
     for s_type in stat_types:
         if s_type == 'LOB':
             lobs = the_line[bases_before].count().sum() - the_line['play'].values[0].count(r'-H')
-            stat_appender(pid, team_id, game_id, this_half, s_type, lobs, actual_play)
+            stat_appender(pid, team_name, game_id, this_half, s_type, lobs, actual_play)
         elif s_type == 'RLSP':
             rlsp = the_line[scoring_pos].count().sum() - the_line['play'].values[0].count(r'-H')
             if rlsp < 0:
                 rlsp = 0
-            stat_appender(pid, team_id, game_id, this_half, s_type, rlsp, actual_play)
+            stat_appender(pid, team_name, game_id, this_half, s_type, rlsp, actual_play)
         else:
-            stat_appender(pid, team_id, game_id, this_half, s_type, 1, actual_play)
+            stat_appender(pid, team_name, game_id, this_half, s_type, 1, actual_play)
 
     return True
 
 
 # stat appender
-def stat_appender(player_id, team_id, game_id, this_half, stat_type, stat_value, actual_play):
+def stat_appender(player_id, team_name, game_id, this_half, stat_type, stat_value, actual_play):
 
     # add to player table
-    gv.player.loc[-1] = [player_id, team_id, game_id, this_half, stat_type, stat_value, actual_play]
+    gv.player.loc[-1] = [player_id, team_name, game_id, this_half, stat_type, stat_value, actual_play]
     gv.player.index = gv.player.index + 1
 
     return True
@@ -88,17 +88,21 @@ def game_tracker(all_starts, all_game_ids):
         # remove line break in last column
         df1[5] = df1[5].str.replace('\n', '')
 
+        # insert team_name
+        df1.insert(3, 'team_name', '0')
+
         # table edits
         df1.drop(0, axis=1, inplace=True)
-        df1.rename(columns={1: 'player_id', 2: 'player_nm', 3: 'team', 4: 'bat_lineup', 5: 'fielding'}, inplace=True)
+        df1.rename(columns={1: 'player_id', 2: 'player_nm', 3: 'team_id', 4: 'team_name',
+                            5: 'bat_lineup', 6: 'fielding'}, inplace=True)
         # df1.columns = ['player_id', 'player_nm', 'team', 'bat_lineup', 'fielding']
 
         # insert game_id column -- do not use df1 = df1.insert(...)
         df1.insert(0, 'game_id', games_ids.loc[g, 0])
 
         # replace 0 with vis_team; 1 with home_team
-        df1.loc[df1.team == '0', 'team'] = vis_team.replace('info,visteam,', '').replace('\n', '')
-        df1.loc[df1.team == '1', 'team'] = home_team.replace('info,hometeam,', '').replace('\n', '')
+        df1.loc[df1.team_id == '0', 'team_name'] = vis_team.replace('info,visteam,', '').replace('\n', '')
+        df1.loc[df1.team_id == '1', 'team_name'] = home_team.replace('info,hometeam,', '').replace('\n', '')
 
         # add game starters to the table
         games_dfs = games_dfs.append(df1.copy())

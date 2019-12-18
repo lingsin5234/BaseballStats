@@ -2,7 +2,7 @@
 import pandas as pd
 
 # create global tables.
-player = pd.DataFrame(columns=('player_id', 'team', 'game_id', 'this_half', 'stat_type', 'stat_value', 'actual_play'))
+player = pd.DataFrame(columns=('player_id', 'team_name', 'game_id', 'this_half', 'stat_type', 'stat_value', 'actual_play'))
 game_roster = pd.DataFrame(columns=('game_id', 'player_id', 'player_nm', 'team', 'bat_lineup', 'fielding'))
 player_stats = pd.DataFrame()
 

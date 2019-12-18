@@ -20,13 +20,14 @@ def convert_games(all_games):
 
         # add newer columns
         df1.insert(7, 'name', None)
-        df1.insert(8, 'team', None)
-        df1.insert(9, 'batting', None)
-        df1.insert(10, 'fielding', None)
+        df1.insert(8, 'team_id', None)
+        df1.insert(9, 'team_name', None)
+        df1.insert(10, 'batting', None)
+        df1.insert(11, 'fielding', None)
 
         # shift the substitutions into newer columns
         df1.loc[df1.type == 'sub', 'name'] = df1.loc[df1.type == 'sub', 'half'].tolist()
-        df1.loc[df1.type == 'sub', 'team'] = df1.loc[df1.type == 'sub', 'playerID'].tolist()
+        df1.loc[df1.type == 'sub', 'team_id'] = df1.loc[df1.type == 'sub', 'playerID'].tolist()
         df1.loc[df1.type == 'sub', 'batting'] = df1.loc[df1.type == 'sub', 'count'].tolist()
         df1.loc[df1.type == 'sub', 'fielding'] = df1.loc[df1.type == 'sub', 'pitches'].tolist()
 
@@ -44,18 +45,18 @@ def convert_games(all_games):
         df1.loc[df1.type == 'sub', 'fielding'] = df1.loc[df1.type == 'sub', 'fielding'].str.replace('\n', '').tolist()
 
         # replace all blank "team" with the half - to determine the team that is at bat
-        df1.loc[df1.team.isnull(), 'team'] = df1.loc[df1.team.isnull(), 'half']
+        df1.loc[df1.team_id.isnull(), 'team_id'] = df1.loc[df1.team_id.isnull(), 'half']
 
         # add outs and baserunners columns
-        df1.insert(11, 'outs', 0)
-        df1.insert(12, '1B_before', None)
-        df1.insert(13, '2B_before', None)
-        df1.insert(14, '3B_before', None)
-        df1.insert(15, '1B_after', None)
-        df1.insert(16, '2B_after', None)
-        df1.insert(17, '3B_after', None)
-        df1.insert(18, 'runs_scored', 0)
-        df1.insert(19, 'total_runs', 0)
+        df1.insert(12, 'outs', 0)
+        df1.insert(13, '1B_before', None)
+        df1.insert(14, '2B_before', None)
+        df1.insert(15, '3B_before', None)
+        df1.insert(16, '1B_after', None)
+        df1.insert(17, '2B_after', None)
+        df1.insert(18, '3B_after', None)
+        df1.insert(19, 'runs_scored', 0)
+        df1.insert(20, 'total_runs', 0)
 
         # insert half innings
         df1.insert(3, 'half_innings', None)
