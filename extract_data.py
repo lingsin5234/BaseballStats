@@ -29,7 +29,12 @@ dir_str = 'retrodata/' + a_year
 # for event_file in os.listdir(dir_str):
 # print(x)
 # file_dir = dir_str + '/' + event_file
-file_dir = dir_str + '/2016TOR.EVA'
+all_files = os.listdir(dir_str)
+
+for file_nm in all_files:
+    file_dir = dir_str + '/' + file_nm
+    print(file_dir)
+    exit()
 f = open(file_dir, "r")
 f1 = f.readlines()
 # print(event_file)
