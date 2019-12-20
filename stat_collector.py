@@ -63,7 +63,7 @@ def stat_organizer(player_dict):
 
     # convert player_dict into table
     player_tb = pd.DataFrame.from_dict(player_dict, "index")
-    gv.player.to_csv('PRE_STATS.csv', sep=',')
+    player_tb.to_csv('PRE_STATS.csv', sep=',')
 
     # reshape the data
     player_tb = player_tb.groupby(['player_id', 'team_name', 'stat_type']).size().reset_index()
@@ -74,8 +74,6 @@ def stat_organizer(player_dict):
     # reset index and rename to fix the structure of the columns
     player_tb = player_tb.reset_index().rename_axis(None, axis=1)
     player_tb = player_tb.fillna(0)
-    # player_tb = player_tb.astype(int)
-    player_tb = pd.DataFrame(player_tb.to_records())
 
     return player_tb
 
