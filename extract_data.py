@@ -83,7 +83,6 @@ for file_nm in all_files:
 
     # play_processor2 function
     for e, each_game in enumerate(a_full_df):
-        s2_time = t.time()
 
         # add the game_ids first
         current_game_id = game_ids[e].replace('\n', '')
@@ -99,19 +98,15 @@ for file_nm in all_files:
         # convert to dict, store into full_output
         this_dict = this_game.to_dict()
         gv.full_output.update(this_dict)
-        # gv.fo_idx += temp_index
-
-        # game completion
-        e2_time = t.time()
-        print('Game #:', e+1, '-', e2_time - s2_time)
 
     # indicator of what is completed
     e_time = t.time()
     print('COMPLETED: ', file_nm, ' - ', e_time - s_time)
+    break
 
 # write full_output to file
-df_full_output = pd.DataFrame(gv.full_output, "index")
-df_full_output.to_csv('OUTPUT.csv', sep=',', mode='a', index=False)
+df_full_output = pd.DataFrame.from_dict(gv.full_output, "index")
+df_full_output.transpose().to_csv('OUTPUT.csv', sep=',', mode='a', index=False)
 
 # player stats
 gv.player_stats = sc.stat_organizer(gv.player)
