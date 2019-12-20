@@ -103,20 +103,10 @@ for file_nm in all_files:
         this_dict = this_game.to_dict()
         gv.full_output[gv.fo_idx] = this_dict
         gv.fo_idx += 1
-        # gv.full_output.update(this_dict)
-        # print(len(gv.full_output))
-
-        if e == 3:
-            # print(gv.full_output)
-            # exit()
-            break
 
     # indicator of what is completed
     e_time = t.time()
     print('COMPLETED: ', file_nm, ' - ', e_time - s_time)
-
-    if file_nm == '2016BAL.EVA':
-        break
 
 # write full_output to file, convert each dictionary set back to data frame and append
 fo = open('OUTPUT.csv', mode="w")
