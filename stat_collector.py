@@ -63,9 +63,9 @@ def stat_organizer(player_dict):
 
     # convert player_dict into table
     player_tb = pd.DataFrame.from_dict(player_dict, "index")
-    print(player_tb)
-    exit()
+    gv.player.to_csv('PRE_STATS.csv', sep=',')
 
+    # reshape the data
     player_tb = player_tb.groupby(['player_id', 'team_name', 'stat_type']).size().reset_index()
     # rename the "0" column to values
     player_tb.rename(columns={0: 'values'}, inplace=True)

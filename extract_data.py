@@ -35,7 +35,6 @@ all_files = os.listdir(dir_str)
 for file_nm in all_files:
     # start timer
     s_time = t.time()
-    print(s_time)
 
     # get current file
     file_dir = dir_str + '/' + file_nm
@@ -48,7 +47,6 @@ for file_nm in all_files:
     game_info = []
     game_play = []
     game_start = []
-    print(games)
     for line_item in f1:
         # Do this check first: if end of file OR (line item is ID and game_play > 0)
         if (line_item.index == f1[-1].index) | ((line_item[:2] == "id") & (len(game_play) > 0)):
@@ -82,8 +80,6 @@ for file_nm in all_files:
 
     # convert all games for 1 file
     a_full_df = g.convert_games(games)
-    print(len(a_full_df))
-    new_output = pd.DataFrame(columns=a_full_df[0].columns)
 
     # play_processor2 function
     for e, each_game in enumerate(a_full_df):
@@ -93,33 +89,30 @@ for file_nm in all_files:
         current_game_id = game_ids[e].replace('\n', '')
         current_game_id = current_game_id.replace('id,', '')
         each_game.insert(0, 'game_id', current_game_id)
-        s2_time = t.time()
+
         # then run the processor
-        new_output = pp.play_processor2(e+1, each_game)
-        # full_output = full_output.append(new_output, sort=False)
-        e2_time = t.time()
+        this_game = pp.play_processor2(e+1, each_game)
+
         # reindex the columns once
-        new_output = new_output.reindex(new_output.columns, axis=1)
-        # print(len(full_output))
+        this_game = this_game.reindex(this_game.columns, axis=1)
 
-        # write to file
-        new_output.to_csv('OUTPUT.csv', sep=',', mode='a', index=False)
+        # convert to dict, store into full_output
+        this_dict = this_game.to_dict()
+        gv.full_output.update(this_dict)
+        # gv.fo_idx += temp_index
 
-        # free the variables
-        # full_output = pd.DataFrame()
-        new_output = pd.DataFrame()
-        a_full_df = pd.DataFrame()
-
-        print('Game #: ', e+1, ' - ', e2_time - s2_time)
+        # game completion
+        e2_time = t.time()
+        print('Game #:', e+1, '-', e2_time - s2_time)
 
     # indicator of what is completed
     e_time = t.time()
-    print(e_time)
     print('COMPLETED: ', file_nm, ' - ', e_time - s_time)
-    break
+
+# write full_output to file
+df_full_output = pd.DataFrame(gv.full_output, "index")
+df_full_output.to_csv('OUTPUT.csv', sep=',', mode='a', index=False)
 
 # player stats
-# gv.player.to_csv('PRE_STATS.csv', sep=',')
-# gv.player = pd.read_csv('PRE_STATS.csv')
 gv.player_stats = sc.stat_organizer(gv.player)
 gv.player_stats.to_csv('STATS.csv', sep=',', index=False)
