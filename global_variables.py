@@ -12,6 +12,7 @@ player_idx = 0
 
 # create another dictionary for storing temp EVENT output data
 full_output = {}
+fo_idx = 0
 
 # global dictionary for stat types
 bat_stats = {
