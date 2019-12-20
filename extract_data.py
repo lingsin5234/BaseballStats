@@ -5,6 +5,7 @@ import pandas as pd
 import re
 import os
 import sys
+import time as t
 import game_converter as g
 import play_processor as pp
 import stat_collector as sc
@@ -32,6 +33,8 @@ dir_str = 'retrodata/' + a_year
 all_files = os.listdir(dir_str)
 
 for file_nm in all_files:
+    # start timer
+    s_time = t.time()
 
     # get current file
     file_dir = dir_str + '/' + file_nm
@@ -67,7 +70,7 @@ for file_nm in all_files:
         else:
             game_info.append(line_item)
 
-    # extract all starting lineups
+    # extract all starting lineups by game (replaced each iteration in the variable)
     gv.game_roster = sc.game_tracker(games, game_ids)
     gv.game_roster.to_csv('STARTERS.csv', sep=',', mode='a', index=False)
 
@@ -92,8 +95,14 @@ for file_nm in all_files:
     # write to file
     full_output.to_csv('OUTPUT.csv', sep=',', mode='a', index=False)
 
+    # free the variables
+    full_output.clear()
+    new_output.clear()
+    a_full_df.clear()
+
     # indicator of what is completed
-    print('COMPLETED: ', file_nm)
+    e_time = t.time()
+    print('COMPLETED: ', file_nm, ' - ', e_time - s_time)
 
 # player stats
 gv.player.to_csv('PRE_STATS.csv', sep=',')
