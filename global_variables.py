@@ -2,9 +2,14 @@
 import pandas as pd
 
 # create global tables.
-player = pd.DataFrame(columns=('player_id', 'team_name', 'game_id', 'this_half', 'stat_type', 'stat_value', 'actual_play'))
+# player = pd.DataFrame(columns=('player_id', 'team_name', 'game_id', 'this_half', 'stat_type', 'stat_value', 'actual_play'))
 game_roster = pd.DataFrame(columns=('game_id', 'player_id', 'player_nm', 'team', 'bat_lineup', 'fielding'))
 player_stats = pd.DataFrame()
+
+# create dictionary for storing player data to be processed later
+# with an unknown number of entries - index stored in player_idx
+player = {}
+player_idx = 0
 
 # global dictionary for stat types
 bat_stats = {

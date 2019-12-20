@@ -116,9 +116,10 @@ for file_nm in all_files:
     e_time = t.time()
     print(e_time)
     print('COMPLETED: ', file_nm, ' - ', e_time - s_time)
+    break
 
 # player stats
-gv.player.to_csv('PRE_STATS.csv', sep=',')
+# gv.player.to_csv('PRE_STATS.csv', sep=',')
 # gv.player = pd.read_csv('PRE_STATS.csv')
 gv.player_stats = sc.stat_organizer(gv.player)
 gv.player_stats.to_csv('STATS.csv', sep=',', index=False)
