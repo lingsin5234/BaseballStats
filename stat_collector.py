@@ -46,22 +46,25 @@ def stat_collector(pid, the_line, stat_types):
 # stat appender
 def stat_appender(player_id, team_name, game_id, this_half, stat_type, stat_value, actual_play):
 
-    # add to player table
-    stime = t.time()
-    gv.player.index = gv.player.index + 1
-    gv.player.loc[0] = [player_id, team_name, game_id, this_half, stat_type, stat_value, actual_play]
-    etime = t.time()
-    # stime = t.time()
-    # add to player table - no index
-    # idx = len(gv.player)
-    # gv.player.loc[idx] = [player_id, team_name, game_id, this_half, stat_type, stat_value, actual_play]
-    # etime = t.time()
-    print(etime - stime)
+    # store into player dict using the player_idx index
+    gv.player[gv.player_idx] = {"player_id": player_id,
+                                "team_name": team_name,
+                                "game_id": game_id,
+                                "this_half": this_half,
+                                "stat_type": stat_type,
+                                "stat_value": stat_value,
+                                "actual_play": actual_play}
+    gv.player_idx += 1  # increment index for next use
     return True
 
 
 # stat organizer
-def stat_organizer(player_tb):
+def stat_organizer(player_dict):
+
+    # convert player_dict into table
+    player_tb = pd.DataFrame.from_dict(player_dict, "index")
+    print(player_tb)
+    exit()
 
     player_tb = player_tb.groupby(['player_id', 'team_name', 'stat_type']).size().reset_index()
     # rename the "0" column to values
