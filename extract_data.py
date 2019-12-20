@@ -92,11 +92,11 @@ for file_nm in all_files:
     # write to file
     full_output.to_csv('OUTPUT.csv', sep=',', mode='a', index=False)
 
-    # player stats
-    gv.player.to_csv('PRE_STATS.csv', sep=',', mode='a')
-    # gv.player = pd.read_csv('PRE_STATS.csv')
-    gv.player_stats = sc.stat_organizer(gv.player)
-    gv.player_stats.to_csv('STATS.csv', sep=',', mode='a', index=False)
-
     # indicator of what is completed
     print('COMPLETED: ', file_nm)
+
+# player stats
+gv.player.to_csv('PRE_STATS.csv', sep=',')
+# gv.player = pd.read_csv('PRE_STATS.csv')
+gv.player_stats = sc.stat_organizer(gv.player)
+gv.player_stats.to_csv('STATS.csv', sep=',', index=False)
