@@ -96,9 +96,9 @@ for file_nm in all_files:
     full_output.to_csv('OUTPUT.csv', sep=',', mode='a', index=False)
 
     # free the variables
-    full_output.clear()
-    new_output.clear()
-    a_full_df.clear()
+    full_output = pd.DataFrame()
+    new_output = pd.DataFrame()
+    a_full_df = pd.DataFrame()
 
     # indicator of what is completed
     e_time = t.time()
