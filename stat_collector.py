@@ -1,6 +1,7 @@
 # libraries
 import global_variables as gv
 import pandas as pd
+import time as t
 
 
 # stat collector
@@ -46,9 +47,16 @@ def stat_collector(pid, the_line, stat_types):
 def stat_appender(player_id, team_name, game_id, this_half, stat_type, stat_value, actual_play):
 
     # add to player table
-    gv.player.loc[-1] = [player_id, team_name, game_id, this_half, stat_type, stat_value, actual_play]
+    stime = t.time()
     gv.player.index = gv.player.index + 1
-
+    gv.player.loc[0] = [player_id, team_name, game_id, this_half, stat_type, stat_value, actual_play]
+    etime = t.time()
+    # stime = t.time()
+    # add to player table - no index
+    # idx = len(gv.player)
+    # gv.player.loc[idx] = [player_id, team_name, game_id, this_half, stat_type, stat_value, actual_play]
+    # etime = t.time()
+    print(etime - stime)
     return True
 
 

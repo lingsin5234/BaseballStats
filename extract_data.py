@@ -35,6 +35,7 @@ all_files = os.listdir(dir_str)
 for file_nm in all_files:
     # start timer
     s_time = t.time()
+    print(s_time)
 
     # get current file
     file_dir = dir_str + '/' + file_nm
@@ -47,6 +48,7 @@ for file_nm in all_files:
     game_info = []
     game_play = []
     game_start = []
+    print(games)
     for line_item in f1:
         # Do this check first: if end of file OR (line item is ID and game_play > 0)
         if (line_item.index == f1[-1].index) | ((line_item[:2] == "id") & (len(game_play) > 0)):
@@ -70,38 +72,49 @@ for file_nm in all_files:
         else:
             game_info.append(line_item)
 
+    # close the read file
+    f.close()
+    f1 = None
+
     # extract all starting lineups by game (replaced each iteration in the variable)
     gv.game_roster = sc.game_tracker(games, game_ids)
     gv.game_roster.to_csv('STARTERS.csv', sep=',', mode='a', index=False)
 
     # convert all games for 1 file
     a_full_df = g.convert_games(games)
-    full_output = pd.DataFrame(columns=a_full_df[0].columns)
+    print(len(a_full_df))
+    new_output = pd.DataFrame(columns=a_full_df[0].columns)
 
     # play_processor2 function
     for e, each_game in enumerate(a_full_df):
+        s2_time = t.time()
+
         # add the game_ids first
         current_game_id = game_ids[e].replace('\n', '')
         current_game_id = current_game_id.replace('id,', '')
         each_game.insert(0, 'game_id', current_game_id)
-
+        s2_time = t.time()
         # then run the processor
         new_output = pp.play_processor2(e+1, each_game)
-        full_output = full_output.append(new_output, sort=False)
+        # full_output = full_output.append(new_output, sort=False)
+        e2_time = t.time()
+        # reindex the columns once
+        new_output = new_output.reindex(new_output.columns, axis=1)
+        # print(len(full_output))
 
-    # reindex the columns once
-    full_output = full_output.reindex(new_output.columns, axis=1)
+        # write to file
+        new_output.to_csv('OUTPUT.csv', sep=',', mode='a', index=False)
 
-    # write to file
-    full_output.to_csv('OUTPUT.csv', sep=',', mode='a', index=False)
+        # free the variables
+        # full_output = pd.DataFrame()
+        new_output = pd.DataFrame()
+        a_full_df = pd.DataFrame()
 
-    # free the variables
-    full_output = pd.DataFrame()
-    new_output = pd.DataFrame()
-    a_full_df = pd.DataFrame()
+        print('Game #: ', e+1, ' - ', e2_time - s2_time)
 
     # indicator of what is completed
     e_time = t.time()
+    print(e_time)
     print('COMPLETED: ', file_nm, ' - ', e_time - s_time)
 
 # player stats
