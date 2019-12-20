@@ -32,6 +32,10 @@ dir_str = 'retrodata/' + a_year
 # file_dir = dir_str + '/' + event_file
 all_files = os.listdir(dir_str)
 
+# overwrite STARTERS.csv
+fs = open('STARTERS.csv', "w")
+fs.close()
+
 for file_nm in all_files:
     # start timer
     s_time = t.time()
@@ -102,11 +106,10 @@ for file_nm in all_files:
     # indicator of what is completed
     e_time = t.time()
     print('COMPLETED: ', file_nm, ' - ', e_time - s_time)
-    break
 
 # write full_output to file
 df_full_output = pd.DataFrame.from_dict(gv.full_output, "index")
-df_full_output.transpose().to_csv('OUTPUT.csv', sep=',', mode='a', index=False)
+df_full_output.transpose().to_csv('OUTPUT.csv', sep=',', index=False)
 
 # player stats
 gv.player_stats = sc.stat_organizer(gv.player)
