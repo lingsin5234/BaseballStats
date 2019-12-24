@@ -16,7 +16,7 @@ import global_variables as gv
 year_range = sys.argv[1]
 
 # check if range or single
-if re.search(r'^(19[0-9][0-9]|20[01][0-9])-(19[0-9][0-9]|20[01][0-9])$', year_range):
+if re.search(r'^(19[0-9]{2}|20[0-9]{2})-(19{2}|20[0-9]{2})$', year_range):
     # add range later
     pass
 elif re.search(r'^[0-9]{4}$', year_range):
