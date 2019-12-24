@@ -167,9 +167,37 @@ def play_processor2(game_num, the_df):
                     elif re.search(r'\..*B-H', the_df.at[i, 'play']):
                         the_df.at[i, 'runs_scored'] = the_df.at[i, 'playerID']
 
+                # otherwise PB that moves other runners or Defensive Indifference
+                elif re.search(r'(WP|PB|DI)\.', the_df.at[i, 'play']):
+                    # batter is still out -- i think
+                    pass
+
                 # similar case for WP, no batter movement
                 elif re.search(r'WP\..*[123]-[123H]', the_df.at[i, 'play']):
                     # batter is still out.
+                    pass
+
+                # Pick Off Error
+                elif re.search(r'PO[123]\(([0-9]+)?E([0-9]+)?\)', the_df.at[i, 'play']):
+                    # batter is still out.
+                    pass
+
+                # Pick Off DP
+                elif re.search(r'PO[123].*/DP', the_df.at[i, 'play']):
+                    # runner is also out
+                    the_df.at[i, 'outs'] += 1
+
+                    if re.search(r'PO1', the_df.at[i, 'play']):
+                        the_df.at[i, '1B_after'] = 'X'
+                    if re.search(r'PO2', the_df.at[i, 'play']):
+                        the_df.at[i, '2B_after'] = 'X'
+                    if re.search(r'PO3', the_df.at[i, 'play']):
+                        the_df.at[i, '3B_after'] = 'X'
+
+                # Other DP
+                elif re.search(r'.*/DP', the_df.at[i, 'play']):
+                    # a runner is also out
+                    # the_df.at[i, 'outs'] += 1 -- this is already recorded
                     pass
 
                 # else
@@ -222,7 +250,7 @@ def play_processor2(game_num, the_df):
                 sc.stat_collector(pid, this_line, st)
 
             # Case 11: hit! -- the fielder(s) after letter is optional; HIT + Errors are Resolved here too.
-            elif re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', the_df.at[i, 'play']):
+            elif re.search(r'^((S|D|T)([1-9]+)?/?|H/|HR|DGR)', the_df.at[i, 'play']):
                 # print('A Hit!: ', the_df.at[i, 'play'])
 
                 # determine what type of hit.
@@ -381,21 +409,7 @@ def play_processor2(game_num, the_df):
             elif re.search(r'^PO(CS)?[123H]', the_df.at[i, 'play']):
                 # print('Picked Off &/ Caught Stealing: ', the_df.at[i, 'play'])
                 the_df.at[i, 'outs'] += 1
-
-                if re.search(r'CS2', the_df.at[i, 'play']):
-                    # stat add: CS
-                    st = ['CS']
-                    sc.stat_collector(the_df.at[i, '1B_before'], this_line, st)
-
-                if re.search(r'CS3', the_df.at[i, 'play']):
-                    # stat add: CS
-                    st = ['CS']
-                    sc.stat_collector(the_df.at[i, '2B_before'], this_line, st)
-
-                if re.search(r'CSH', the_df.at[i, 'play']):
-                    # stat add: CS
-                    st = ['CS']
-                    sc.stat_collector(the_df.at[i, '3B_before'], this_line, st)
+                the_df.loc[[i]] = br.steal_processor(this_line)
 
             # Case 22: passed ball
             elif re.search(r'^PB', the_df.at[i, 'play']):
