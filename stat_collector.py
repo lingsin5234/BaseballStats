@@ -20,8 +20,15 @@ def stat_collector(pid, the_line, stat_types):
     # which team? find out in the_line
     if the_line['team_id'].values[0] == '0':
         team_name = vis_team  # visitor
+        stat_team = 'VIST'
     else:
         team_name = home_team  # home
+        stat_team = 'HOME'
+
+    # gather more information about the play
+    num_outs = the_line['outs'].values[0]
+    bases_taken = [the_line['1B_before'].count(), 2 * the_line['1B_before'].count(), 3 * the_line['1B_before'].count()]
+    bases_taken = ''.join(map(str, bases_taken))
 
     # constants - specific columns for the LOB, RLSP use
     bases_before = ['1B_before', '2B_before', '3B_before']
@@ -31,20 +38,24 @@ def stat_collector(pid, the_line, stat_types):
     for s_type in stat_types:
         if s_type == 'LOB':
             lobs = the_line[bases_before].count().sum() - the_line['play'].values[0].count(r'-H')
-            stat_appender(pid, team_name, game_id, this_half, s_type, lobs, actual_play)
+            stat_appender(pid, team_name, game_id, this_half, s_type, lobs, actual_play,
+                          num_outs, bases_taken, stat_team)
         elif s_type == 'RLSP':
             rlsp = the_line[scoring_pos].count().sum() - the_line['play'].values[0].count(r'-H')
             if rlsp < 0:
                 rlsp = 0
-            stat_appender(pid, team_name, game_id, this_half, s_type, rlsp, actual_play)
+            stat_appender(pid, team_name, game_id, this_half, s_type, rlsp, actual_play,
+                          num_outs, bases_taken, stat_team)
         else:
-            stat_appender(pid, team_name, game_id, this_half, s_type, 1, actual_play)
+            stat_appender(pid, team_name, game_id, this_half, s_type, 1, actual_play,
+                          num_outs, bases_taken, stat_team)
 
     return True
 
 
 # stat appender
-def stat_appender(player_id, team_name, game_id, this_half, stat_type, stat_value, actual_play):
+def stat_appender(player_id, team_name, game_id, this_half, stat_type, stat_value, actual_play,
+                  num_outs, bases_taken, stat_team):
 
     # store into player dict using the player_idx index
     gv.player[gv.player_idx] = {"player_id": player_id,
@@ -53,7 +64,10 @@ def stat_appender(player_id, team_name, game_id, this_half, stat_type, stat_valu
                                 "this_half": this_half,
                                 "stat_type": stat_type,
                                 "stat_value": stat_value,
-                                "actual_play": actual_play}
+                                "actual_play": actual_play,
+                                "num_outs": num_outs,
+                                "bases_taken": bases_taken,
+                                "stat_team": stat_team}
     gv.player_idx += 1  # increment index for next use
     return True
 
