@@ -53,10 +53,20 @@ def play_processor2(game_num, the_df):
             # take out any ! in play
             this_line['play'] = this_line['play'].replace('!', '')
 
+            # assign the pitcher
+            if this_line['team_id'] == '0':
+                pitch_team = '1'
+            else:
+                pitch_team = '0'
+            pitch_filter = (lineup.team_id == pitch_team) & (lineup.fielding == '1')
+            pitch_index = lineup.index[pitch_filter]
+            pitcher_id = lineup.at[pitch_index[0], 'player_id']
+            this_line['pitcherID'] = pitcher_id
+
             # store player_id, the play, and pitcher_id
             pid = this_line['playerID']
             the_play = this_line['play']
-            # hid = pitcherID
+            # hid = this_line['pitcherID']
 
             # Case 1: regular single out plays - exclude SH/SF
             if bool(re.search(r'^[1-9]([1-9!]+)?/(G|F|L|P|BG|BP|BL|IF)(?!/(SH|SF))', the_play)) | \
