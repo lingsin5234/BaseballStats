@@ -135,6 +135,7 @@ for file_nm in all_files:
 # write full_output to file, convert each dictionary set back to data frame and append
 fo = open('OUTPUT.csv', mode="w")
 fo.close()
+o1_time = t.time()
 for i in gv.full_output:
     temp_output = gv.full_output[i]
     temp_output = pd.DataFrame.from_dict(temp_output, "index")
@@ -143,6 +144,21 @@ for i in gv.full_output:
     else:
         temp_output.transpose().to_csv('OUTPUT.csv', sep=',', mode='a', index=False, header=False)
 
+# WRITING OUTPUT PERFORMANCE
+o2_time = t.time()
+fgp = open('GAMEPLAY.LOG', mode='a')
+fgp.write('Processing Games Output File: ' + str(o2_time - o1_time) + '\n')
+print('Processing Games Output File: ', o2_time - o1_time)
+fgp.close()
+
 # player stats
+t1_time = t.time()
 gv.player_stats = sc.stat_organizer(gv.player)
 gv.player_stats.to_csv('STATS.csv', sep=',', index=False)
+
+# WRITING STATS PERFORMANCE
+t2_time = t.time()
+fgp = open('GAMEPLAY.LOG', mode='a')
+fgp.write('Stats Processing: ' + str(t2_time - t1_time) + '\n')
+print('Stats Processing: ', t2_time - t1_time)
+fgp.close()
