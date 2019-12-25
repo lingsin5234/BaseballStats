@@ -106,16 +106,10 @@ def base_running(this_line):
             for r in runners:
                 this_line = runner_processor(r, this_line)
 
-            print(runners)
-            print(type(this_line))
-            print(this_line)
-            exit()
         # single baserunner
         else:
             runners = this_line['play'].values[0].split('.')[1].split(';')[0]
             this_line = runner_processor(runners, this_line)
-            print(runners)
-            print(this_line)
 
     # case: steal or CS
     # not a double/triple steal then process stand-still runners
