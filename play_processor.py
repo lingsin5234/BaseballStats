@@ -491,12 +491,15 @@ def play_processor2(game_num, the_df):
         # performance checkpoint
         q4_time = t.time()
 
+        # store to log
+        fgp = open('GAMEPLAY.LOG', mode='a')
+
         # performance review
-        print('LINE #', i)
-        print('setup', q2_time - q1_time)
-        print('play/sub', q3_time - q2_time)
-        print('reassign', q4_time - q3_time)
-        print('total', q4_time - q1_time)
-        print('\n')
+        fgp.write('LINE #' + str(i) + '\n')
+        fgp.write('setup: ' + str(q2_time - q1_time) + '\n')
+        fgp.write('play/sub: ' + str(q3_time - q2_time) + '\n')
+        fgp.write('reassign: ' + str(q4_time - q3_time) + '\n')
+        fgp.write('total: ' + str(q4_time - q1_time) + '\n')
+        fgp.close()
 
     return the_df
