@@ -3,6 +3,7 @@ import re
 import stat_collector as sc
 import global_variables as gv
 import base_running as br
+import pandas as pd
 
 
 # re-write the processor based on re.search/re.findall grep searching
@@ -475,10 +476,11 @@ def play_processor2(game_num, the_df):
                     lineup.at[sub_index[0], 'player_id'] = pid
 
         # set the line back to the df to be stored properly.
-        print(this_line.from_dict())
-        print(type(this_line.from_dict()))
+        new_line = pd.DataFrame.from_dict(this_line, 'index').transpose()
+        print(new_line)
+        print(type(new_line))
         print(type(the_df.loc[[i]]))
         exit()
-        the_df.loc[[i]] = this_line.from_dict()
+        the_df.loc[[i]] = pd.DataFrame.from_dict(this_line, 'index').transpose()
 
     return the_df
