@@ -14,7 +14,7 @@ def stat_collector(pid, the_line, stat_types):
 
     # get vis_team and home_team
     curr_game = gv.game_roster.game_id == game_id
-    vis_team = gv.game_roster.loc[curr_game, 'team_name']
+    vis_team = gv.game_roster.loc[curr_game, 'team_name'].values[0]
     home_team = gv.game_roster.loc[curr_game, 'team_name'].values[-1]
 
     # which team? find out in the_line

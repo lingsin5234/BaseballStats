@@ -50,12 +50,16 @@ def play_processor2(game_num, the_df):
         # for plays
         if this_line['type'] == 'play':
 
+            # take out any ! in play
+            this_line['play'] = this_line['play'].replace('!', '')
+
             # store player_id and the play
             pid = this_line['playerID']
             the_play = this_line['play']
 
             # Case 1: regular single out plays - exclude SH/SF
-            if re.search(r'^[1-9]([1-9!]+)?/(G|F|L|P|BG|BP|BL)(?!/(SH|SF))', the_play):
+            if (re.search(r'^[1-9]([1-9!]+)?/(G|F|L|P|BG|BP|BL|IF)(?!/(SH|SF))', the_play)) | \
+                    (re.search(r'^[1-9]([1-9!]+)?$', the_play)):
                 this_line['outs'] += 1
 
                 # stat add: AB, PA, LOB, RLSP
