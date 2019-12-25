@@ -16,6 +16,24 @@ def play_processor2(game_num, the_df):
     # store the starting lineup for this game
     lineup = gv.game_roster[gv.game_roster.game_id == the_game_id]
 
+    # test big dictionary
+    the_dict = the_df.to_dict('records')
+    for i, this_line in enumerate(the_dict):
+        # check for new inning
+        if i > 0:
+            if this_line['half_innings'] == the_dict[i-1]['half_innings']:
+                this_line['1B_before'] = the_dict[i-1]['1B_after']
+                this_line['2B_before'] = the_dict[i-1]['2B_after']
+                this_line['3B_before'] = the_dict[i-1]['3B_after']
+                this_line['outs'] = the_dict[i-1]['outs']
+
+                print(i)
+                print(this_line)
+                exit()
+            else:
+                # see if pass works
+                pass
+
     # print(the_df.index)
     # process would go line by line.
     for i in the_df.index:
