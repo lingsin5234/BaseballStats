@@ -18,8 +18,6 @@ def play_processor2(game_num, the_df):
 
     # store the starting lineup for this game
     lineup = gv.game_roster[gv.game_roster.game_id == the_game_id]
-    print(lineup)
-    exit()
 
     # convert df to dictionary
     fgp = open('GAMEPLAY.LOG', mode='a')
