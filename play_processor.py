@@ -5,6 +5,7 @@ import global_variables as gv
 import base_running as br
 import pandas as pd
 import time as t
+import pitcher_oper as po
 
 
 # re-write the processor based on re.search/re.findall grep searching
@@ -54,19 +55,13 @@ def play_processor2(game_num, the_df):
             this_line['play'] = this_line['play'].replace('!', '')
 
             # assign the pitcher
-            if this_line['team_id'] == '0':
-                pitch_team = '1'
-            else:
-                pitch_team = '0'
-            pitch_filter = (lineup.team_id == pitch_team) & (lineup.fielding == '1')
-            pitch_index = lineup.index[pitch_filter]
-            pitcher_id = lineup.at[pitch_index[0], 'player_id']
-            this_line['pitcherID'] = pitcher_id
+            this_line['pitcherID'] = po.assign_pitcher(lineup, this_line, False)[0]
 
             # store player_id, the play, and pitcher_id
             pid = this_line['playerID']
             the_play = this_line['play']
-            # hid = this_line['pitcherID']
+            hid = this_line['pitcherID']
+            print(hid, this_line['half_innings'])
 
             # Case 1: regular single out plays - exclude SH/SF
             if bool(re.search(r'^[1-9]([1-9!]+)?/(G|F|L|P|BG|BP|BL|IF)(?!/(SH|SF))', the_play)) | \
@@ -495,6 +490,7 @@ def play_processor2(game_num, the_df):
 
                     # replace the person in the lineup
                     lineup.at[sub_index[0], 'player_id'] = pid
+                    lineup.at[sub_index[0], 'player_nm'] = this_line['name']
 
                 # pinch hitter only
                 elif this_line['fielding'] == '11':
@@ -506,6 +502,15 @@ def play_processor2(game_num, the_df):
 
                     # replace the person in the lineup
                     lineup.at[sub_index[0], 'player_id'] = pid
+                    lineup.at[sub_index[0], 'player_nm'] = this_line['name']
+
+            # fielding team = the half inning
+            else:
+                # check for only the pitching substitutions for now
+                if this_line['fielding'] == '1':
+                    pitch_index = po.assign_pitcher(lineup, this_line, True)[1]
+                    lineup.at[pitch_index, 'player_id'] = this_line['playerID']
+                    lineup.at[pitch_index, 'player_nm'] = this_line['name']
 
         # performance checkpoint
         q3_time = t.time()
