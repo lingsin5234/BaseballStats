@@ -87,6 +87,8 @@ for file_nm in all_files:
 
     # play_processor2 function
     for e, each_game in enumerate(a_full_df):
+        # check by game
+        s2_time = t.time()
 
         # add the game_ids first
         current_game_id = game_ids[e].replace('\n', '')
@@ -103,6 +105,9 @@ for file_nm in all_files:
         this_dict = this_game.to_dict()
         gv.full_output[gv.fo_idx] = this_dict
         gv.fo_idx += 1
+
+        e2_time = t.time()
+        print('GAME #', e, '-', e2_time - s2_time)
 
     # indicator of what is completed
     e_time = t.time()

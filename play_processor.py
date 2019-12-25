@@ -30,18 +30,19 @@ def play_processor2(game_num, the_df):
                 pass
 
         # store the entire row of game_play
-        this_line = the_df.loc[[i]]
+        this_line = the_df.loc[[i]].to_dict('records')
+        this_line = this_line[0]
 
         # for plays
-        if this_line['type'].values[0] == 'play':
+        if this_line['type'] == 'play':
 
             # store player_id and the play
-            pid = this_line['playerID'].values[0]
-            the_play = this_line['play'].values[0]
+            pid = this_line['playerID']
+            the_play = this_line['play']
 
             # Case 1: regular single out plays - exclude SH/SF
             if re.search(r'^[1-9]([1-9!]+)?/(G|F|L|P|BG|BP|BL)(?!/(SH|SF))', the_play):
-                this_line['outs'].values[0] += 1
+                this_line['outs'] += 1
 
                 # stat add: AB, PA, LOB, RLSP
                 st = ['AB', 'PA', 'LOB', 'RLSP']
@@ -50,7 +51,7 @@ def play_processor2(game_num, the_df):
             # Case 2: irregular put-outs, runner is specified
             # i.e. when put out at base not normally covered by that fielder
             elif re.search(r'^[1-9]([1-9]+)?\([B123]\)/(?!FO)', the_play):
-                this_line['outs'].values[0] += 1
+                this_line['outs'] += 1
 
                 # determine which runner
                 if re.search(r'^[1-9]([1-9]+)?\(B\)', the_play):
@@ -66,18 +67,18 @@ def play_processor2(game_num, the_df):
 
             # Case 3: explicit force out plays
             elif re.search(r'^[1-9]([1-9]+)?\([B123]\)/FO', the_play):
-                this_line['outs'].values[0] += 1
+                this_line['outs'] += 1
 
                 # determine which runner
                 if re.search(r'^[1-9]([1-9]+)?\(B\)', the_play):
                     # mark an X for processing later.
-                    this_line['1B_after'].values[0] = 'X'
+                    this_line['1B_after'] = 'X'
                 elif re.search(r'^[1-9]([1-9]+)?\(1\)', the_play):
                     # mark an X for processing later.
-                    this_line['2B_after'].values[0] = 'X'
+                    this_line['2B_after'] = 'X'
                 elif re.search(r'^[1-9]([1-9]+)?\(2\)', the_play):
                     # mark an X for processing later.
-                    this_line['3B_after'].values[0] = 'X'
+                    this_line['3B_after'] = 'X'
                 elif re.search(r'^[1-9]([1-9]+)?\(3\)', the_play):
                     # out at Home, no action required
                     pass
@@ -88,7 +89,7 @@ def play_processor2(game_num, the_df):
 
             # Case 4: sacrifice hit / fly
             elif re.search(r'^[1-9]([1-9]+)?.*/(SH|SF)', the_play):
-                this_line['outs'].values[0] += 1
+                this_line['outs'] += 1
 
                 # stat add: SH/SF, PA
                 if re.search(r'SF', the_play):
@@ -101,13 +102,13 @@ def play_processor2(game_num, the_df):
             elif re.search(r'^FC[1-9]', the_play):
                 # determine if there was an out
                 if re.search(r'[123]X[123H](?!\(([0-9]+)?E([0-9]+)?\))', the_play):
-                    this_line['outs'].values[0] += 1
+                    this_line['outs'] += 1
                 
                 # move batter if explicitly mentioned
                 if re.search(r'B-2', the_play):
-                    this_line['2B_after'].values[0] = pid
+                    this_line['2B_after'] = pid
                 elif re.search(r'B-3', the_play):
-                    this_line['3B_after'].values[0] = pid
+                    this_line['3B_after'] = pid
                 elif re.search(r'B-H', the_play):
                     this_line['runs_scored'] += 1
                     st = ['R']
@@ -115,9 +116,9 @@ def play_processor2(game_num, the_df):
                 
                 # batter is out!
                 elif re.search(r'BX[123H]', the_play):
-                    this_line['outs'].values[0] += 1
+                    this_line['outs'] += 1
                 else:
-                    this_line['1B_after'].values[0] = pid
+                    this_line['1B_after'] = pid
 
                 # stat add: AB, PA, LOB, RLSP
                 st = ['AB', 'PA', 'LOB', 'RLSP']
@@ -125,7 +126,7 @@ def play_processor2(game_num, the_df):
 
             # Case 6: strike out with NO event
             elif re.search(r'^K([1-9]+)?(?!\+)', the_play):
-                this_line['outs'].values[0] += 1
+                this_line['outs'] += 1
 
                 # stat add: AB, K, PA, LOB, RLSP
                 st = ['AB', 'K', 'PA', 'LOB', 'RLSP']
@@ -133,7 +134,7 @@ def play_processor2(game_num, the_df):
 
             # Case 7: strike out + event
             elif re.search(r'^K\+', the_play):
-                this_line['outs'].values[0] += 1
+                this_line['outs'] += 1
 
                 # determine if next play is out or not.
                 # determine which base stolen
@@ -142,20 +143,20 @@ def play_processor2(game_num, the_df):
 
                 # determine which base runner was caught
                 elif re.search(r'CS', the_play):
-                    this_line['outs'].values[0] += 1
+                    this_line['outs'] += 1
                     this_line = br.steal_processor(this_line)
 
                 # if explicitly moves the batter on passed ball or WP
                 elif re.search(r'(WP|PB)\..*B-[123H]', the_play):
-                    this_line['outs'].values[0] -= 1
+                    this_line['outs'] -= 1
                     if re.search(r'\..*B-1', the_play):
-                        this_line['1B_after'].values[0] = pid
+                        this_line['1B_after'] = pid
                     elif re.search(r'\..*B-2', the_play):
-                        this_line['2B_after'].values[0] = pid
+                        this_line['2B_after'] = pid
                     elif re.search(r'\..*B-3', the_play):
-                        this_line['3B_after'].values[0] = pid
+                        this_line['3B_after'] = pid
                     elif re.search(r'\..*B-H', the_play):
-                        this_line['runs_scored'].values[0] = pid
+                        this_line['runs_scored'] = pid
 
                 # otherwise PB that moves other runners or Defensive Indifference
                 elif re.search(r'(WP|PB|DI)\.', the_play):
@@ -175,19 +176,19 @@ def play_processor2(game_num, the_df):
                 # Pick Off DP
                 elif re.search(r'PO[123].*/DP', the_play):
                     # runner is also out
-                    this_line['outs'].values[0] += 1
+                    this_line['outs'] += 1
 
                     if re.search(r'PO1', the_play):
-                        this_line['1B_after'].values[0] = 'X'
+                        this_line['1B_after'] = 'X'
                     if re.search(r'PO2', the_play):
-                        this_line['2B_after'].values[0] = 'X'
+                        this_line['2B_after'] = 'X'
                     if re.search(r'PO3', the_play):
-                        this_line['3B_after'].values[0] = 'X'
+                        this_line['3B_after'] = 'X'
 
                 # Other DP
                 elif re.search(r'.*/DP', the_play):
                     # a runner is also out
-                    # this_line['outs'].values[0] += 1 -- this is already recorded
+                    # this_line['outs'] += 1 -- this is already recorded
                     pass
 
                 # else
@@ -201,20 +202,20 @@ def play_processor2(game_num, the_df):
 
             # Case 8: routine double plays
             elif re.search(r'.*DP', the_play):
-                this_line['outs'].values[0] += 2
+                this_line['outs'] += 2
 
                 # determine which runners are out
                 if re.search(r'\(1\)', the_play):
-                    this_line['2B_after'].values[0] = 'X'
+                    this_line['2B_after'] = 'X'
                 if re.search(r'\(2\)', the_play):
-                    this_line['3B_after'].values[0] = 'X'
+                    this_line['3B_after'] = 'X'
                 if re.search(r'\([123]\).*\([123]\)', the_play):
                     # nothing happens if 3rd base runner is out.
                     # both 1 and 2 would be recorded
                     pass
                 else:
                     # record the out at 1st implicitly if only 1 other baserunner is out.
-                    this_line['1B_after'].values[0] = 'X'
+                    this_line['1B_after'] = 'X'
 
                 # stat add: AB, PA, LOB, RLSP
                 st = ['AB', 'PA', 'LOB', 'RLSP']
@@ -222,7 +223,7 @@ def play_processor2(game_num, the_df):
 
             # Case 9: triple plays
             elif re.search(r'.*TP', the_play):
-                this_line['outs'].values[0] += 3
+                this_line['outs'] += 3
 
                 # stat add: AB, PA, LOB, RLSP
                 st = ['AB', 'PA', 'LOB', 'RLSP']
@@ -230,7 +231,7 @@ def play_processor2(game_num, the_df):
 
             # Case 10: catcher interference or pitcher/1B interference
             elif re.search(r'^C/E[1-9]', the_play):
-                this_line['1B_after'].values[0] = pid
+                this_line['1B_after'] = pid
 
                 # stat add: PA
                 st = ['PA']
@@ -249,14 +250,14 @@ def play_processor2(game_num, the_df):
                     # check if batter advanced elsewhere - e.g. Error on Throw / Catch
                     if re.search(r'B-[23H]', the_play):
                         if re.search(r'B-2', the_play):
-                            this_line['2B_after'].values[0] = pid
+                            this_line['2B_after'] = pid
                         elif re.search(r'B-3', the_play):
-                            this_line['3B_after'].values[0] = pid
+                            this_line['3B_after'] = pid
                         elif re.search(r'B-H', the_play):
                             this_line['runs_scored'] += 1
                             st.append('R')
                     else:
-                        this_line['1B_after'].values[0] = pid
+                        this_line['1B_after'] = pid
                     sc.stat_collector(pid, this_line, st)
 
                 elif re.search(r'^(D([1-9]+)?|DGR)', the_play):
@@ -267,12 +268,12 @@ def play_processor2(game_num, the_df):
                     # check if batter advanced elsewhere
                     if re.search(r'B-[3H]', the_play):
                         if re.search(r'B-3', the_play):
-                            this_line['3B_after'].values[0] = pid
+                            this_line['3B_after'] = pid
                         elif re.search(r'B-H', the_play):
                             this_line['runs_scored'] += 1
                             st.append('R')
                     else:
-                        this_line['2B_after'].values[0] = pid
+                        this_line['2B_after'] = pid
                     sc.stat_collector(pid, this_line, st)
 
                 elif re.search(r'^T([1-9]+)?', the_play):
@@ -285,7 +286,7 @@ def play_processor2(game_num, the_df):
                         this_line['runs_scored'] += 1
                         st.append('R')
                     else:
-                        this_line['3B_after'].values[0] = pid
+                        this_line['3B_after'] = pid
                     sc.stat_collector(pid, this_line, st)
 
                 else:
@@ -302,7 +303,7 @@ def play_processor2(game_num, the_df):
             # Case 12: walk or hit by pitch
             elif re.search(r'^(HP|IW|W(?!P))(?!\+)', the_play):
                 # print('Walk / Hit By Pitch: ', the_play)
-                this_line['1B_after'].values[0] = pid
+                this_line['1B_after'] = pid
 
                 # stat add: PA, W or HBP
                 st = ['PA']
@@ -318,7 +319,7 @@ def play_processor2(game_num, the_df):
             # Case 13: walk + event
             elif re.search(r'^(HP|IW|W(?!P))\+', the_play):
                 # print('Walk + Event: ', the_play)
-                this_line['1B_after'].values[0] = pid
+                this_line['1B_after'] = pid
 
                 # stat add: PA, W or HBP
                 st = ['PA']
@@ -348,11 +349,11 @@ def play_processor2(game_num, the_df):
                 # if explicitly puts moves the batter
                 if re.search(r'\..*B(-|X)[123H]', the_play):
                     if re.search(r'\..*B-1', the_play):
-                        this_line['1B_after'].values[0] = pid
+                        this_line['1B_after'] = pid
                     elif re.search(r'\..*B-2', the_play):
-                        this_line['2B_after'].values[0] = pid
+                        this_line['2B_after'] = pid
                     elif re.search(r'\..*B-3', the_play):
-                        this_line['3B_after'].values[0] = pid
+                        this_line['3B_after'] = pid
                     elif re.search(r'\..*B-H', the_play):
                         this_line['runs_scored'] += 1
                         # stat add: R
@@ -363,7 +364,7 @@ def play_processor2(game_num, the_df):
                     # other cases are BX[123H] - just ignore
                 else:
                     # assume they reached first base safely
-                    this_line['1B_after'].values[0] = pid
+                    this_line['1B_after'] = pid
 
                 sc.stat_collector(pid, this_line, st)
 
@@ -389,13 +390,13 @@ def play_processor2(game_num, the_df):
             # Case 20: caught stealing
             elif re.search(r'^CS', the_play):
                 # print('Caught Stealing: ', the_play)
-                this_line['outs'].values[0] += 1
+                this_line['outs'] += 1
                 this_line = br.steal_processor(this_line)
 
             # Case 21: pick off and/or caught stealing
             elif re.search(r'^PO(CS)?[123H]', the_play):
                 # print('Picked Off &/ Caught Stealing: ', the_play)
-                this_line['outs'].values[0] += 1
+                this_line['outs'] += 1
                 this_line = br.steal_processor(this_line)
 
             # Case 22: passed ball
@@ -430,31 +431,31 @@ def play_processor2(game_num, the_df):
 
         # this line item is substitution
         else:
-            this_line['1B_after'].values[0] = the_df.at[i - 1, '1B_before']
-            this_line['2B_after'].values[0] = the_df.at[i - 1, '2B_before']
-            this_line['3B_after'].values[0] = the_df.at[i - 1, '3B_before']
-            this_line['outs'].values[0] = the_df.at[i - 1, 'outs']
+            this_line['1B_after'] = the_df.at[i - 1, '1B_before']
+            this_line['2B_after'] = the_df.at[i - 1, '2B_before']
+            this_line['3B_after'] = the_df.at[i - 1, '3B_before']
+            this_line['outs'] = the_df.at[i - 1, 'outs']
 
             # if pinch-runner, put in the runner
             # batting team = the half inning
-            if this_line['half'].values[0] == this_line['team_id'].values[0]:
+            if this_line['half'] == this_line['team_id']:
 
                 # pinch runner only
-                if this_line['fielding'].values[0] == '12':
+                if this_line['fielding'] == '12':
 
                     # check which spot in the lineup, get the playerID:
-                    sub_filter = (lineup.team_id == this_line['team_id'].values[0]) & \
-                                 (lineup.bat_lineup == this_line['batting'].values[0])
+                    sub_filter = (lineup.team_id == this_line['team_id']) & \
+                                 (lineup.bat_lineup == this_line['batting'])
                     sub_index = lineup.index[sub_filter]
                     sub_player_id = lineup.at[sub_index[0], 'player_id']
 
                     # check the bases for the runner:
-                    if this_line['1B_after'].values[0] == sub_player_id:
-                        this_line['1B_after'].values[0] = pid
-                    elif this_line['2B_after'].values[0] == sub_player_id:
-                        this_line['2B_after'].values[0] = pid
-                    elif this_line['3B_after'].values[0] == sub_player_id:
-                        this_line['3B_after'].values[0] = pid
+                    if this_line['1B_after'] == sub_player_id:
+                        this_line['1B_after'] = pid
+                    elif this_line['2B_after'] == sub_player_id:
+                        this_line['2B_after'] = pid
+                    elif this_line['3B_after'] == sub_player_id:
+                        this_line['3B_after'] = pid
                     else:
                         # most likely is Pinch Hitting -- make a check for this later; but should be '11'
                         pass
@@ -463,17 +464,21 @@ def play_processor2(game_num, the_df):
                     lineup.at[sub_index[0], 'player_id'] = pid
 
                 # pinch hitter only
-                elif this_line['fielding'].values[0] == '11':
+                elif this_line['fielding'] == '11':
 
                     # check which spot in the lineup, get the playerID:
-                    sub_filter = (lineup.team_id == this_line['team_id'].values[0]) & \
-                                 (lineup.bat_lineup == this_line['batting'].values[0])
+                    sub_filter = (lineup.team_id == this_line['team_id']) & \
+                                 (lineup.bat_lineup == this_line['batting'])
                     sub_index = lineup.index[sub_filter]
 
                     # replace the person in the lineup
                     lineup.at[sub_index[0], 'player_id'] = pid
 
         # set the line back to the df to be stored properly.
-        the_df.loc[[i]] = this_line
+        print(this_line.from_dict())
+        print(type(this_line.from_dict()))
+        print(type(the_df.loc[[i]]))
+        exit()
+        the_df.loc[[i]] = this_line.from_dict()
 
     return the_df
