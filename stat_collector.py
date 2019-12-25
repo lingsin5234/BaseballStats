@@ -137,8 +137,8 @@ def game_tracker(all_starts, all_game_ids):
 
         # table edits
         df1.drop(0, axis=1, inplace=True)
-        df1.rename(columns={1: 'player_id', 2: 'player_nm', 3: 'team_id', 4: 'team_name',
-                            5: 'bat_lineup', 6: 'fielding'}, inplace=True)
+        df1.rename(columns={1: 'player_id', 2: 'player_nm', 3: 'team_id', 6: 'team_name',
+                            4: 'bat_lineup', 5: 'fielding'}, inplace=True)
         # df1.columns = ['player_id', 'player_nm', 'team', 'bat_lineup', 'fielding']
 
         # insert game_id column -- do not use df1 = df1.insert(...)

@@ -18,6 +18,8 @@ def play_processor2(game_num, the_df):
 
     # store the starting lineup for this game
     lineup = gv.game_roster[gv.game_roster.game_id == the_game_id]
+    print(lineup)
+    exit()
 
     # convert df to dictionary
     fgp = open('GAMEPLAY.LOG', mode='a')
@@ -53,9 +55,10 @@ def play_processor2(game_num, the_df):
             # take out any ! in play
             this_line['play'] = this_line['play'].replace('!', '')
 
-            # store player_id and the play
+            # store player_id, the play, and pitcher_id
             pid = this_line['playerID']
             the_play = this_line['play']
+            # hid = pitcherID
 
             # Case 1: regular single out plays - exclude SH/SF
             if bool(re.search(r'^[1-9]([1-9!]+)?/(G|F|L|P|BG|BP|BL|IF)(?!/(SH|SF))', the_play)) | \
@@ -65,6 +68,10 @@ def play_processor2(game_num, the_df):
                 # stat add: AB, PA, LOB, RLSP
                 st = ['AB', 'PA', 'LOB', 'RLSP']
                 sc.stat_collector(pid, this_line, st)
+
+                # pitch add: IP, BF
+                # pt = ['IP', 'BF']
+                # sc.pitch_collector(hid, this_line, pt)
 
             # Case 2: irregular put-outs, runner is specified
             # i.e. when put out at base not normally covered by that fielder
