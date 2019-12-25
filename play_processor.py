@@ -4,6 +4,7 @@ import stat_collector as sc
 import global_variables as gv
 import base_running as br
 import pandas as pd
+import time as t
 
 
 # re-write the processor based on re.search/re.findall grep searching
@@ -19,6 +20,9 @@ def play_processor2(game_num, the_df):
     # process would go line by line.
     for i in the_df.index:
 
+        # performance checkpoint
+        q1_time = t.time()
+
         # check for new inning
         if i > 0:
             if the_df.at[i, 'half_innings'] == the_df.at[i-1, 'half_innings']:
@@ -33,6 +37,9 @@ def play_processor2(game_num, the_df):
         # store the entire row of game_play
         this_line = the_df.loc[[i]].to_dict('records')
         this_line = this_line[0]
+
+        # performance checkpoint
+        q2_time = t.time()
 
         # for plays
         if this_line['type'] == 'play':
@@ -475,12 +482,21 @@ def play_processor2(game_num, the_df):
                     # replace the person in the lineup
                     lineup.at[sub_index[0], 'player_id'] = pid
 
+        # performance checkpoint
+        q3_time = t.time()
+
         # set the line back to the df to be stored properly.
-        new_line = pd.DataFrame.from_dict(this_line, 'index').transpose()
-        print(new_line)
-        print(type(new_line))
-        print(type(the_df.loc[[i]]))
-        exit()
         the_df.loc[[i]] = pd.DataFrame.from_dict(this_line, 'index').transpose()
+
+        # performance checkpoint
+        q4_time = t.time()
+
+        # performance review
+        print('LINE #', i)
+        print('setup', q2_time - q1_time)
+        print('play/sub', q3_time - q2_time)
+        print('reassign', q4_time - q3_time)
+        print('total', q4_time - q1_time)
+        print('\n')
 
     return the_df
