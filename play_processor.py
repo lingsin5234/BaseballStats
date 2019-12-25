@@ -16,9 +16,20 @@ def play_processor2(game_num, the_df):
     # store the starting lineup for this game
     lineup = gv.game_roster[gv.game_roster.game_id == the_game_id]
 
-    # test big dictionary
-    the_dict = the_df.to_dict('records')
+    # convert df to dictionary
+    fgp = open('GAMEPLAY.LOG', mode='a')
+    qa_time = t.time()
+    the_dict = the_df.to_dict('records')  # ## actual convert task ##
+    qb_time = t.time()
+    fgp.write('CONVERT DICT: ' + str(qb_time - qa_time) + '\n')
+    print('CONVERT DICT: ', qb_time - qa_time)
+    fgp.close()
+
     for i, this_line in enumerate(the_dict):
+
+        # performance checkpoint
+        q1_time = t.time()
+
         # check for new inning
         if i > 0:
             if this_line['half_innings'] == the_dict[i-1]['half_innings']:
@@ -26,35 +37,9 @@ def play_processor2(game_num, the_df):
                 this_line['2B_before'] = the_dict[i-1]['2B_after']
                 this_line['3B_before'] = the_dict[i-1]['3B_after']
                 this_line['outs'] = the_dict[i-1]['outs']
-
-                print(i)
-                print(this_line)
-                exit()
             else:
                 # see if pass works
                 pass
-
-    # print(the_df.index)
-    # process would go line by line.
-    for i in the_df.index:
-
-        # performance checkpoint
-        q1_time = t.time()
-
-        # check for new inning
-        if i > 0:
-            if the_df.at[i, 'half_innings'] == the_df.at[i-1, 'half_innings']:
-                the_df.at[i, '1B_before'] = the_df.at[i-1, '1B_after']
-                the_df.at[i, '2B_before'] = the_df.at[i-1, '2B_after']
-                the_df.at[i, '3B_before'] = the_df.at[i-1, '3B_after']
-                the_df.at[i, 'outs'] = the_df.at[i-1, 'outs']
-            else:
-                # see if pass works
-                pass
-
-        # store the entire row of game_play
-        this_line = the_df.loc[[i]].to_dict('records')
-        this_line = this_line[0]
 
         # performance checkpoint
         q2_time = t.time()
