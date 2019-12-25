@@ -26,8 +26,6 @@ def play_processor2(game_num, the_df):
     qb_time = t.time()
     fgp.write('Pre-play Prep: ' + str(qa_time - q0_time) + '\n')
     fgp.write('CONVERT DICT: ' + str(qb_time - qa_time) + '\n')
-    print('Pre-play Prep: ', qa_time - q0_time)
-    # print('CONVERT DICT: ', qb_time - qa_time)
     fgp.close()
 
     for i, this_line in enumerate(the_dict):

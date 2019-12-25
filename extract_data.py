@@ -119,7 +119,6 @@ for file_nm in all_files:
         # game performance
         a4_time = t.time()
         fgp = open('GAMEPLAY.LOG', mode='a')
-        print('GAME #', e, '-', a4_time - a1_time)
         fgp.write('GAME #:' + str(e) + ' prep: ' + str(a2_time - a1_time) + '\n')
         fgp.write('GAME #:' + str(e) + ' process: ' + str(a3_time - a2_time) + '\n')
         fgp.write('GAME #:' + str(e) + ' reindex: ' + str(a4_time - a3_time) + '\n')
