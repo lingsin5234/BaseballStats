@@ -8,17 +8,17 @@ import time as t
 def stat_collector(pid, the_line, stat_types):
 
     # game info values
-    game_id = the_line['game_id'].values[0]
-    this_half = the_line['half_innings'].values[0]
-    actual_play = the_line['play'].values[0]
+    game_id = the_line['game_id']
+    this_half = the_line['half_innings']
+    actual_play = the_line['play']
 
     # get vis_team and home_team
     curr_game = gv.game_roster.game_id == game_id
-    vis_team = gv.game_roster.loc[curr_game, 'team_name'].values[0]
+    vis_team = gv.game_roster.loc[curr_game, 'team_name']
     home_team = gv.game_roster.loc[curr_game, 'team_name'].values[-1]
 
     # which team? find out in the_line
-    if the_line['team_id'].values[0] == '0':
+    if the_line['team_id'] == '0':
         team_name = vis_team  # visitor
         stat_team = 'VISIT'
     else:
@@ -26,22 +26,42 @@ def stat_collector(pid, the_line, stat_types):
         stat_team = 'HOME'
 
     # gather more information about the play
-    num_outs = the_line['outs'].values[0]
-    bases_taken = [the_line['1B_before'].count(), 2 * the_line['1B_before'].count(), 3 * the_line['1B_before'].count()]
+    num_outs = the_line['outs']
+
+    # base runners
+    bases_taken = []
+    if the_line['1B_before']:
+        bases_taken.append('1')
+    else:
+        bases_taken.append('-')
+    if the_line['2B_before']:
+        bases_taken.append('2')
+    else:
+        bases_taken.append('-')
+    if the_line['3B_before']:
+        bases_taken.append('3')
+    else:
+        bases_taken.append('-')
     bases_taken = ''.join(map(str, bases_taken))
 
     # constants - specific columns for the LOB, RLSP use
     bases_before = ['1B_before', '2B_before', '3B_before']
     scoring_pos = ['2B_before', '3B_before']
 
+    print(the_line[bases_before])
+    print(type(the_line[bases_before]))
+    print(the_line[bases_before].count())
+    print(type(the_line[bases_before].count()))
+    exit()
+
     # for each stat_type, call stat_appender
     for s_type in stat_types:
         if s_type == 'LOB':
-            lobs = the_line[bases_before].count().sum() - the_line['play'].values[0].count(r'-H')
+            lobs = the_line[bases_before].count().sum() - the_line['play'].count(r'-H')
             stat_appender(pid, team_name, game_id, this_half, s_type, lobs, actual_play,
                           num_outs, bases_taken, stat_team)
         elif s_type == 'RLSP':
-            rlsp = the_line[scoring_pos].count().sum() - the_line['play'].values[0].count(r'-H')
+            rlsp = the_line[scoring_pos].count().sum() - the_line['play'].count(r'-H')
             if rlsp < 0:
                 rlsp = 0
             stat_appender(pid, team_name, game_id, this_half, s_type, rlsp, actual_play,
