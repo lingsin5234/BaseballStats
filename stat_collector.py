@@ -44,14 +44,16 @@ def stat_collector(pid, the_line, stat_types):
         bases_taken.append('-')
     bases_taken = ''.join(map(str, bases_taken))
 
-    # constants - specific columns for the LOB, RLSP use
-    bases_before = ['1B_before', '2B_before', '3B_before']
-    scoring_pos = ['2B_before', '3B_before']
+    # get values for specific columns for the LOB, RLSP use
+    bases_before = sum(c.isdigit() for c in bases_taken)
+    scoring_pos = bases_taken.split('1')
+    if len(scoring_pos) > 1:
+        scoring_pos = sum(c.isdigit() for c in scoring_pos[1])
+    else:
+        scoring_pos = 0
+    print('LOB', bases_before)
+    print('RLSP', scoring_pos)`
 
-    print(the_line[bases_before])
-    print(type(the_line[bases_before]))
-    print(the_line[bases_before].count())
-    print(type(the_line[bases_before].count()))
     exit()
 
     # for each stat_type, call stat_appender
