@@ -20,7 +20,7 @@ def stat_collector(pid, the_line, stat_types):
     # which team? find out in the_line
     if the_line['team_id'].values[0] == '0':
         team_name = vis_team  # visitor
-        stat_team = 'VIST'
+        stat_team = 'VISIT'
     else:
         team_name = home_team  # home
         stat_team = 'HOME'
