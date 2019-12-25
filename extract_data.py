@@ -92,15 +92,21 @@ for file_nm in all_files:
     # play_processor2 function
     for e, each_game in enumerate(a_full_df):
         # check by game
-        s2_time = t.time()
+        a1_time = t.time()
 
         # add the game_ids first
         current_game_id = game_ids[e].replace('\n', '')
         current_game_id = current_game_id.replace('id,', '')
         each_game.insert(0, 'game_id', current_game_id)
 
+        # game performance
+        a2_time = t.time()
+
         # then run the processor
         this_game = pp.play_processor2(e+1, each_game)
+
+        # game performance
+        a3_time = t.time()
 
         # reindex the columns once
         this_game = this_game.reindex(this_game.columns, axis=1)
@@ -110,10 +116,14 @@ for file_nm in all_files:
         gv.full_output[gv.fo_idx] = this_dict
         gv.fo_idx += 1
 
-        e2_time = t.time()
-        print('GAME #', e, '-', e2_time - s2_time)
+        # game performance
+        a4_time = t.time()
         fgp = open('GAMEPLAY.LOG', mode='a')
-        fgp.write('GAME #' + str(e) + ' - ' + str(e2_time - s2_time) + '\n')
+        print('GAME #', e, '-', a4_time - a1_time)
+        fgp.write('GAME #:' + str(e) + ' prep: ' + str(a2_time - a1_time) + '\n')
+        fgp.write('GAME #:' + str(e) + ' process: ' + str(a3_time - a2_time) + '\n')
+        fgp.write('GAME #:' + str(e) + ' reindex: ' + str(a4_time - a3_time) + '\n')
+        fgp.write('GAME #:' + str(e) + ' TOTAL: ' + str(a4_time - a1_time) + '\n')
         fgp.close()
 
     # indicator of what is completed
