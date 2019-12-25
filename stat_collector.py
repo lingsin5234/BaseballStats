@@ -51,19 +51,15 @@ def stat_collector(pid, the_line, stat_types):
         scoring_pos = sum(c.isdigit() for c in scoring_pos[1])
     else:
         scoring_pos = 0
-    print('LOB', bases_before)
-    print('RLSP', scoring_pos)`
-
-    exit()
 
     # for each stat_type, call stat_appender
     for s_type in stat_types:
         if s_type == 'LOB':
-            lobs = the_line[bases_before].count().sum() - the_line['play'].count(r'-H')
+            lobs = bases_before - the_line['play'].count(r'-H')
             stat_appender(pid, team_name, game_id, this_half, s_type, lobs, actual_play,
                           num_outs, bases_taken, stat_team)
         elif s_type == 'RLSP':
-            rlsp = the_line[scoring_pos].count().sum() - the_line['play'].count(r'-H')
+            rlsp = scoring_pos - the_line['play'].count(r'-H')
             if rlsp < 0:
                 rlsp = 0
             stat_appender(pid, team_name, game_id, this_half, s_type, rlsp, actual_play,
