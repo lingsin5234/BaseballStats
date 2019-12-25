@@ -132,18 +132,9 @@ for file_nm in all_files:
     fgp.write('COMPLETED: ' + file_nm + ' - ' + str(e_time - s_time) + '\n')
     fgp.close()
 
-# write full_output to file, convert each dictionary set back to data frame and append
-# fo = open('OUTPUT.csv', mode="w")
-# fo.close()
+# Write Output File after converting entire list of dict to data frame
 o1_time = t.time()
 pd.DataFrame(gv.full_output).to_csv('OUTPUT.csv', sep=',', mode='w')
-# for i in gv.full_output:
-#     temp_output = gv.full_output[i]
-#     temp_output = pd.DataFrame.from_dict(temp_output, "index")
-#     if i == 0:
-#         temp_output.transpose().to_csv('OUTPUT.csv', sep=',', mode='a', index=False)
-#     else:
-#         temp_output.transpose().to_csv('OUTPUT.csv', sep=',', mode='a', index=False, header=False)
 
 # WRITING OUTPUT PERFORMANCE
 o2_time = t.time()
