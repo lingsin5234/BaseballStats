@@ -10,6 +10,9 @@ import time as t
 # re-write the processor based on re.search/re.findall grep searching
 def play_processor2(game_num, the_df):
 
+    # performance
+    q0_time = t.time()
+
     # the game id
     the_game_id = the_df.at[0, 'game_id']
 
@@ -21,8 +24,10 @@ def play_processor2(game_num, the_df):
     qa_time = t.time()
     the_dict = the_df.to_dict('records')  # ## actual convert task ##
     qb_time = t.time()
+    fgp.write('Pre-play Prep: ' + str(qa_time - q0_time) + '\n')
     fgp.write('CONVERT DICT: ' + str(qb_time - qa_time) + '\n')
-    print('CONVERT DICT: ', qb_time - qa_time)
+    print('Pre-play Prep: ', qa_time - q0_time)
+    # print('CONVERT DICT: ', qb_time - qa_time)
     fgp.close()
 
     for i, this_line in enumerate(the_dict):
@@ -489,7 +494,7 @@ def play_processor2(game_num, the_df):
         q3_time = t.time()
 
         # set the line back to the df to be stored properly.
-        the_df.loc[[i]] = pd.DataFrame.from_dict(this_line, 'index').transpose()
+        the_dict[i] = this_line
 
         # performance checkpoint
         q4_time = t.time()
@@ -505,4 +510,5 @@ def play_processor2(game_num, the_df):
         fgp.write('total: ' + str(q4_time - q1_time) + '\n')
         fgp.close()
 
-    return the_df
+    # return the dictionary converted back as data frame
+    return pd.DataFrame(the_dict)
