@@ -134,7 +134,7 @@ for file_nm in all_files:
 
 # Write Output File after converting entire list of dict to data frame
 o1_time = t.time()
-pd.DataFrame(gv.full_output).to_csv('OUTPUT.csv', sep=',', mode='w')
+pd.DataFrame(gv.full_output).transpose().to_csv('OUTPUT.csv', sep=',', mode='w')
 
 # WRITING OUTPUT PERFORMANCE
 o2_time = t.time()
