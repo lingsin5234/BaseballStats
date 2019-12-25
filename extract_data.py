@@ -36,6 +36,10 @@ all_files = os.listdir(dir_str)
 fs = open('STARTERS.csv', "w")
 fs.close()
 
+# overwrite GAMEPLAY.LOG
+fgp = open('GAMEPLAY.LOG', mode="w")
+fgp.close()
+
 for file_nm in all_files:
     # start timer
     s_time = t.time()
@@ -108,10 +112,16 @@ for file_nm in all_files:
 
         e2_time = t.time()
         print('GAME #', e, '-', e2_time - s2_time)
+        fgp = open('GAMEPLAY.LOG', mode='a')
+        fgp.write('GAME #' + str(e) + ' - ' + str(e2_time - s2_time) + '\n')
+        fgp.close()
 
     # indicator of what is completed
     e_time = t.time()
     print('COMPLETED: ', file_nm, ' - ', e_time - s_time)
+    fgp = open('GAMEPLAY.LOG', mode='a')
+    fgp.write('COMPLETED: ' + file_nm + ' - ' + str(e_time - s_time) + '\n')
+    fgp.close()
 
 # write full_output to file, convert each dictionary set back to data frame and append
 fo = open('OUTPUT.csv', mode="w")
