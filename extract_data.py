@@ -123,6 +123,7 @@ for file_nm in all_files:
         fgp.write('GAME #:' + str(e) + ' process: ' + str(a3_time - a2_time) + '\n')
         fgp.write('GAME #:' + str(e) + ' reindex: ' + str(a4_time - a3_time) + '\n')
         fgp.write('GAME #:' + str(e) + ' TOTAL: ' + str(a4_time - a1_time) + '\n')
+        print('GAME #:', str(e), ' TOTAL: ', str(a4_time - a1_time))
         fgp.close()
 
     # indicator of what is completed

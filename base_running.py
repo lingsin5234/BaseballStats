@@ -6,7 +6,7 @@ import global_variables as gv
 
 
 # stolen base tracking
-def steal_processor(this_line):
+def steal_processor(this_line, lineup):
 
     # check if steal, then which base(s)
     if re.search(r'SB', this_line['play']):
@@ -17,7 +17,7 @@ def steal_processor(this_line):
 
             # stat add: SB
             st = ['SB']
-            sc.stat_collector(this_line['1B_before'], this_line, st)
+            sc.stat_collector(this_line['1B_before'], lineup, this_line, st)
 
         if re.search(r'SB3', this_line['play']):
             # if NOT an error on throwing
@@ -26,7 +26,7 @@ def steal_processor(this_line):
 
             # stat add: SB
             st = ['SB']
-            sc.stat_collector(this_line['2B_before'], this_line, st)
+            sc.stat_collector(this_line['2B_before'], lineup, this_line, st)
 
         if re.search(r'SBH', this_line['play']):
             # if NOT an error on throwing
@@ -35,30 +35,30 @@ def steal_processor(this_line):
 
             # stat add: SB, R
             st = ['SB', 'R']
-            sc.stat_collector(this_line['3B_before'], this_line, st)
+            sc.stat_collector(this_line['3B_before'], lineup, this_line, st)
 
     # check if caught stealing, then which base(s)
     if re.search(r'CS', this_line['play']):
         if re.search(r'CS2', this_line['play']):
             # stat add: CS
             st = ['CS']
-            sc.stat_collector(this_line['1B_before'], this_line, st)
+            sc.stat_collector(this_line['1B_before'], lineup, this_line, st)
 
         if re.search(r'CS3', this_line['play']):
             # stat add: CS
             st = ['CS']
-            sc.stat_collector(this_line['2B_before'], this_line, st)
+            sc.stat_collector(this_line['2B_before'], lineup, this_line, st)
 
         if re.search(r'CSH', this_line['play']):
             # stat add: CS
             st = ['CS']
-            sc.stat_collector(this_line['3B_before'], this_line, st)
+            sc.stat_collector(this_line['3B_before'], lineup, this_line, st)
 
     return this_line
 
 
 # baserunner movements
-def base_running(this_line):
+def base_running(this_line, lineup):
     
     # case: FO|FC|DP
     if re.search(r'(FC|FO|DP)', this_line['play']):
@@ -104,12 +104,12 @@ def base_running(this_line):
             runners = this_line['play'].split('.')[1].split(';')
 
             for r in runners:
-                this_line = runner_processor(r, this_line)
+                this_line = runner_processor(r, this_line, lineup)
 
         # single baserunner
         else:
             runners = this_line['play'].split('.')[1].split(';')[0]
-            this_line = runner_processor(runners, this_line)
+            this_line = runner_processor(runners, this_line, lineup)
 
     # case: steal or CS
     # not a double/triple steal then process stand-still runners
@@ -160,7 +160,7 @@ def base_running(this_line):
 
 
 # one-by-one base runner movements
-def runner_processor(runner, this_line):
+def runner_processor(runner, this_line, lineup):
 
     # scored
     if re.search(r'-H', runner):
@@ -169,14 +169,14 @@ def runner_processor(runner, this_line):
         # stat add: R
         st = ['R']
         if re.search(r'3-', runner):
-            sc.stat_collector(this_line['3B_before'], this_line, st)
+            sc.stat_collector(this_line['3B_before'], lineup, this_line, st)
         elif re.search(r'2-', runner):
-            sc.stat_collector(this_line['2B_before'], this_line, st)
+            sc.stat_collector(this_line['2B_before'], lineup, this_line, st)
         elif re.search(r'1-', runner):
-            sc.stat_collector(this_line['1B_before'], this_line, st)
+            sc.stat_collector(this_line['1B_before'], lineup, this_line, st)
         elif bool(re.search(r'B-', runner)) & \
                 (not(re.search(r'^(H/|HR|([0-9]+)?E)', this_line['play']))):
-            sc.stat_collector(this_line['playerID'], this_line, st)
+            sc.stat_collector(this_line['playerID'], lineup, this_line, st)
 
         # check rbi awarded or not
         if bool(re.search(r'[B123]-H([(UR)/THE0-9]+)?(\((NR|NORBI)\))', runner)) | \
@@ -188,7 +188,7 @@ def runner_processor(runner, this_line):
         else:
             # stat add: RBI
             st = ['RBI']
-            sc.stat_collector(this_line['playerID'], this_line, st)
+            sc.stat_collector(this_line['playerID'], lineup, this_line, st)
 
     # stay put
     elif re.search(r'3-3', runner):
@@ -217,7 +217,7 @@ def runner_processor(runner, this_line):
         # stat add: AB, PA -- if NOT already added on a hit
         if not(re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', this_line['play'])):
             st = ['AB', 'PA']
-            sc.stat_collector(this_line['playerID'], this_line, st)
+            sc.stat_collector(this_line['playerID'], lineup, this_line, st)
 
         # handle the now existing runner
         if this_line['1B_after'] == this_line['playerID']:

@@ -24,7 +24,7 @@ def assign_pitcher(lineup, this_line, is_sub):
 
 
 # pitching stats collector
-def pitch_collector(hid, the_line, stat_types):
+def pitch_collector(hid, lineup, the_line, stat_types):
 
     # game info values
     game_id = the_line['game_id']
@@ -32,9 +32,8 @@ def pitch_collector(hid, the_line, stat_types):
     actual_play = the_line['play']
 
     # get vis_team and home_team
-    curr_game = gv.game_roster.game_id == game_id
-    vis_team = gv.game_roster.loc[curr_game, 'team_name'].values[0]
-    home_team = gv.game_roster.loc[curr_game, 'team_name'].values[-1]
+    vis_team = lineup.loc[0, 'team_name']
+    home_team = lineup.loc[10, 'team_name']
 
     # which team? find out in the_line -- THIS IS OPPOSITE to stat_collector!
     if the_line['team_id'] == '0':
