@@ -19,6 +19,7 @@ def play_processor2(game_num, the_df):
 
     # store the starting lineup for this game
     lineup = gv.game_roster[gv.game_roster.game_id == the_game_id]
+    lineup = lineup.reset_index(drop=True)
 
     # convert df to dictionary
     fgp = open('GAMEPLAY.LOG', mode='a')
@@ -69,11 +70,11 @@ def play_processor2(game_num, the_df):
 
                 # stat add: AB, PA, LOB, RLSP
                 st = ['AB', 'PA', 'LOB', 'RLSP']
-                sc.stat_collector(pid, this_line, st)
+                sc.stat_collector(pid, lineup, this_line, st)
 
                 # pitch add: IP, BF
                 pt = ['IP', 'BF']
-                po.pitch_collector(hid, this_line, pt)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
             # Case 2: irregular put-outs, runner is specified
             # i.e. when put out at base not normally covered by that fielder
@@ -90,11 +91,11 @@ def play_processor2(game_num, the_df):
 
                 # stat add: AB, PA, LOB, RLSP
                 st = ['AB', 'PA', 'LOB', 'RLSP']
-                sc.stat_collector(pid, this_line, st)
+                sc.stat_collector(pid, lineup, this_line, st)
 
                 # pitch add: IP, BF
                 pt = ['IP', 'BF']
-                po.pitch_collector(hid, this_line, pt)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
             # Case 3: explicit force out plays
             elif re.search(r'^[1-9]([1-9]+)?\([B123]\)/FO', the_play):
@@ -116,11 +117,11 @@ def play_processor2(game_num, the_df):
 
                 # stat add: AB, PA, LOB, RLSP
                 st = ['AB', 'PA', 'LOB', 'RLSP']
-                sc.stat_collector(pid, this_line, st)
+                sc.stat_collector(pid, lineup, this_line, st)
 
                 # pitch add: IP, BF
                 pt = ['IP', 'BF']
-                po.pitch_collector(hid, this_line, pt)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
             # Case 4: sacrifice hit / fly
             elif re.search(r'^[1-9]([1-9]+)?.*/(SH|SF)', the_play):
@@ -131,11 +132,11 @@ def play_processor2(game_num, the_df):
                     st = ['SF', 'PA']
                 else:
                     st = ['SH', 'PA']
-                sc.stat_collector(pid, this_line, st)
+                sc.stat_collector(pid, lineup, this_line, st)
 
                 # pitch add: IP, BF
                 pt = ['IP', 'BF']
-                po.pitch_collector(hid, this_line, pt)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
             # Case 5: fielders' choice
             elif re.search(r'^FC[1-9]', the_play):
@@ -145,7 +146,7 @@ def play_processor2(game_num, the_df):
 
                     # pitch add: IP, BF
                     pt = ['IP', 'BF']
-                    po.pitch_collector(hid, this_line, pt)
+                    po.pitch_collector(hid, lineup, this_line, pt)
                 
                 # move batter if explicitly mentioned
                 if re.search(r'B-2', the_play):
@@ -155,7 +156,7 @@ def play_processor2(game_num, the_df):
                 elif re.search(r'B-H', the_play):
                     this_line['runs_scored'] += 1
                     st = ['R']
-                    sc.stat_collector(pid, this_line, st)
+                    sc.stat_collector(pid, lineup, this_line, st)
                 
                 # batter is out!
                 elif re.search(r'BX[123H]', the_play):
@@ -165,7 +166,7 @@ def play_processor2(game_num, the_df):
 
                 # stat add: AB, PA, LOB, RLSP
                 st = ['AB', 'PA', 'LOB', 'RLSP']
-                sc.stat_collector(pid, this_line, st)
+                sc.stat_collector(pid, lineup, this_line, st)
 
             # Case 6: strike out with NO event
             elif re.search(r'^K([1-9]+)?(?!\+)', the_play):
@@ -173,11 +174,11 @@ def play_processor2(game_num, the_df):
 
                 # stat add: AB, K, PA, LOB, RLSP
                 st = ['AB', 'K', 'PA', 'LOB', 'RLSP']
-                sc.stat_collector(pid, this_line, st)
+                sc.stat_collector(pid, lineup, this_line, st)
 
                 # pitch add: IP, BF, K
                 pt = ['IP', 'BF', 'K']
-                po.pitch_collector(hid, this_line, pt)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
             # Case 7: strike out + event
             elif re.search(r'^K\+', the_play):
@@ -189,12 +190,12 @@ def play_processor2(game_num, the_df):
                 # determine if next play is out or not.
                 # determine which base stolen
                 if re.search(r'SB', the_play):
-                    the_df.loc[[i]] = br.steal_processor(this_line)
+                    the_df.loc[[i]] = br.steal_processor(this_line, lineup)
 
                 # determine which base runner was caught
                 elif re.search(r'CS', the_play):
                     this_line['outs'] += 1
-                    this_line = br.steal_processor(this_line)
+                    this_line = br.steal_processor(this_line, lineup)
 
                 # if explicitly moves the batter on passed ball or WP
                 elif re.search(r'(WP|PB)\..*B-[123H]', the_play):
@@ -235,7 +236,7 @@ def play_processor2(game_num, the_df):
                 elif re.search(r'PO[123].*/DP', the_play):
                     # runner is also out
                     this_line['outs'] += 1
-                    pt.extend('IP', 'POA', 'PO')
+                    pt.extend(['IP', 'POA', 'PO'])
 
                     if re.search(r'PO1', the_play):
                         this_line['1B_after'] = 'X'
@@ -257,10 +258,10 @@ def play_processor2(game_num, the_df):
 
                 # stat add: AB, K, PA, LOB, RLSP
                 st = ['AB', 'K', 'PA', 'LOB', 'RLSP']
-                sc.stat_collector(pid, this_line, st)
+                sc.stat_collector(pid, lineup, this_line, st)
 
                 # pitcher stats add
-                po.pitch_collector(hid, this_line, pt)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
             # Case 8: routine double plays
             elif re.search(r'.*DP', the_play):
@@ -281,11 +282,11 @@ def play_processor2(game_num, the_df):
 
                 # stat add: AB, PA, LOB, RLSP
                 st = ['AB', 'PA', 'LOB', 'RLSP']
-                sc.stat_collector(pid, this_line, st)
+                sc.stat_collector(pid, lineup, this_line, st)
 
                 # pitch add: IP, IP, BF
                 pt = ['IP', 'IP', 'BF']
-                po.pitch_collector(hid, this_line, pt)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
             # Case 9: triple plays
             elif re.search(r'.*TP', the_play):
@@ -293,11 +294,11 @@ def play_processor2(game_num, the_df):
 
                 # stat add: AB, PA, LOB, RLSP
                 st = ['AB', 'PA', 'LOB', 'RLSP']
-                sc.stat_collector(pid, this_line, st)
+                sc.stat_collector(pid, lineup, this_line, st)
 
                 # pitch add: IP, IP, IP, BF
                 pt = ['IP', 'IP', 'IP', 'BF']
-                po.pitch_collector(hid, this_line, pt)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
             # Case 10: catcher interference or pitcher/1B interference
             elif re.search(r'^C/E[1-9]', the_play):
@@ -305,11 +306,11 @@ def play_processor2(game_num, the_df):
 
                 # stat add: PA
                 st = ['PA']
-                sc.stat_collector(pid, this_line, st)
+                sc.stat_collector(pid, lineup, this_line, st)
 
                 # pitch add: BF, CI
                 pt = ['BF', 'CI']
-                po.pitch_collector(hid, this_line, pt)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
             # Case 11: hit! -- the fielder(s) after letter is optional; HIT + Errors are Resolved here too.
             elif re.search(r'^((S|D|T)([1-9]+)?/?|H/|HR|DGR)', the_play):
@@ -335,7 +336,7 @@ def play_processor2(game_num, the_df):
                             pt.append('R')
                     else:
                         this_line['1B_after'] = pid
-                    sc.stat_collector(pid, this_line, st)
+                    sc.stat_collector(pid, lineup, this_line, st)
 
                 elif re.search(r'^(D([1-9]+)?|DGR)', the_play):
 
@@ -353,7 +354,7 @@ def play_processor2(game_num, the_df):
                             pt.append('R')
                     else:
                         this_line['2B_after'] = pid
-                    sc.stat_collector(pid, this_line, st)
+                    sc.stat_collector(pid, lineup, this_line, st)
 
                 elif re.search(r'^T([1-9]+)?', the_play):
 
@@ -368,22 +369,22 @@ def play_processor2(game_num, the_df):
                         pt.append('R')
                     else:
                         this_line['3B_after'] = pid
-                    sc.stat_collector(pid, this_line, st)
+                    sc.stat_collector(pid, lineup, this_line, st)
 
                 else:
                     this_line['runs_scored'] += 1
 
                     # stat add: AB, PA, H, HR, R
                     st = ['AB', 'PA', 'H', 'HR', 'R']
-                    pt.append('HR', 'R')
+                    pt.extend(['HR', 'R'])
 
                     # score the RBI if not NR or NORBI
                     if not (re.search(r'B-H\((NR|NORBI)\)', the_play)):
                         st.append('RBI')
                     if not (re.search(r'B-H([(NRORBI)]+)?\(UR\)', the_play)):
                         pt.append('ER')
-                    sc.stat_collector(pid, this_line, st)
-                po.pitch_collector(hid, this_line, pt)
+                    sc.stat_collector(pid, lineup, this_line, st)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
             # Case 12: walk or hit by pitch
             elif re.search(r'^(HP|IW|W(?!P))(?!\+)', the_play):
@@ -398,15 +399,13 @@ def play_processor2(game_num, the_df):
                     st.append('HBP')
                     pt.append('HBP')
                 elif re.search(r'^IW', the_play):
-                    st.append('IW')
-                    st.append('W')
-                    pt.append('IBB')
-                    pt.append('BB')
+                    st.extend(['IW', 'W'])
+                    pt.extend(['IBB', 'BB'])
                 else:
                     st.append('W')
                     pt.append('BB')
-                sc.stat_collector(pid, this_line, st)
-                po.pitch_collector(hid, this_line, pt)
+                sc.stat_collector(pid, lineup, this_line, st)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
             # Case 13: walk + event
             elif re.search(r'^(HP|IW|W(?!P))\+', the_play):
@@ -421,15 +420,13 @@ def play_processor2(game_num, the_df):
                     st.append('HBP')
                     pt.append('HBP')
                 elif re.search(r'^IW', the_play):
-                    st.append('IW')
-                    st.append('W')
-                    pt.append('IBB')
-                    pt.append('BB')
+                    st.extend(['IW', 'W'])
+                    pt.extend(['IBB', 'BB'])
                 else:
                     st.append('W')
                     pt.append('BB')
-                sc.stat_collector(pid, this_line, st)
-                po.pitch_collector(hid, this_line, pt)
+                sc.stat_collector(pid, lineup, this_line, st)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
                 # DOES NOT DO ANYTHING ELSE!??!?! #
 
@@ -469,8 +466,8 @@ def play_processor2(game_num, the_df):
                     # assume they reached first base safely
                     this_line['1B_after'] = pid
 
-                sc.stat_collector(pid, this_line, st)
-                po.pitch_collector(hid, this_line, pt)
+                sc.stat_collector(pid, lineup, this_line, st)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
             # Case 16: wild pitch or balk
             elif re.search(r'^(WP|BK)', the_play):
@@ -478,7 +475,7 @@ def play_processor2(game_num, the_df):
                     pt = ['WP']
                 else:
                     pt = ['BK']
-                po.pitch_collector(hid, this_line, pt)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
             # Case 17: no pitch
             elif re.search(r'^NP$', the_play):
@@ -487,35 +484,35 @@ def play_processor2(game_num, the_df):
             # Case 18: stolen base
             elif re.search(r'^SB', the_play):
                 # print('Stolen Base: ', the_play)
-                this_line = br.steal_processor(this_line)
+                this_line = br.steal_processor(this_line, lineup)
 
             # Case 19: defensive indifference
             elif re.search(r'^DI', the_play):
                 # pitch add: DI
                 pt = ['DI']
-                po.pitch_collector(hid, this_line, pt)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
             # Case 20: caught stealing
             elif re.search(r'^CS', the_play):
                 # print('Caught Stealing: ', the_play)
                 this_line['outs'] += 1
-                this_line = br.steal_processor(this_line)
+                this_line = br.steal_processor(this_line, lineup)
 
             # Case 21: pick off and/or caught stealing
             elif re.search(r'^PO(CS)?[123H]', the_play):
                 # print('Picked Off &/ Caught Stealing: ', the_play)
                 this_line['outs'] += 1
-                this_line = br.steal_processor(this_line)
+                this_line = br.steal_processor(this_line, lineup)
 
                 # pitch add:
                 pt = ['POA', 'PO']
-                po.pitch_collector(hid, this_line, pt)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
             # Case 22: passed ball
             elif re.search(r'^PB', the_play):
                 # pitch add:
                 pt = ['PB']
-                po.pitch_collector(hid, this_line, pt)
+                po.pitch_collector(hid, lineup, this_line, pt)
 
             # Case 23: unexpected runner advance
             elif re.search(r'^OA', the_play):
@@ -540,7 +537,7 @@ def play_processor2(game_num, the_df):
                 print('Game #: ', the_game_id, 'CASE NEEDED: ', the_play)
 
             # HANDLING BASERUNNERS
-            this_line = br.base_running(this_line)
+            this_line = br.base_running(this_line, lineup)
 
         # this line item is substitution
         else:
