@@ -119,7 +119,10 @@ def stat_organizer(player_dict):
     print(list(gv.bat_stats.keys()))
     print(type(list(gv.bat_stats.keys())))
     print(type(stats_tb["batting"]))
-    stats_tb["batting"] = stats_tb["batting"][list(gv.bat_stats.keys())]
+    bat_col = ['player_id', 'team_name']
+    bat_col.extend(list(gv.bat_stats.keys()))
+    print(bat_col)
+    stats_tb["batting"] = stats_tb["batting"][bat_col]
     print(stats_tb["batting"])
     # print(stats_tb)
     exit()
