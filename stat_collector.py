@@ -55,24 +55,24 @@ def stat_collector(pid, lineup, the_line, stat_types):
     for s_type in stat_types:
         if s_type == 'LOB':
             lobs = bases_before - the_line['play'].count(r'-H')
-            stat_appender(pid, team_name, game_id, this_half, s_type, lobs, actual_play,
-                          num_outs, bases_taken, stat_team)
+            stat_appender(pid, team_name, game_id, this_half, s_type, lobs, actual_play, num_outs, bases_taken,
+                          stat_team, 'batting')
         elif s_type == 'RLSP':
             rlsp = scoring_pos - the_line['play'].count(r'-H')
             if rlsp < 0:
                 rlsp = 0
-            stat_appender(pid, team_name, game_id, this_half, s_type, rlsp, actual_play,
-                          num_outs, bases_taken, stat_team)
+            stat_appender(pid, team_name, game_id, this_half, s_type, rlsp, actual_play, num_outs, bases_taken,
+                          stat_team, 'batting')
         else:
-            stat_appender(pid, team_name, game_id, this_half, s_type, 1, actual_play,
-                          num_outs, bases_taken, stat_team)
+            stat_appender(pid, team_name, game_id, this_half, s_type, 1, actual_play, num_outs, bases_taken,
+                          stat_team, 'batting')
 
     return True
 
 
 # stat appender
 def stat_appender(player_id, team_name, game_id, this_half, stat_type, stat_value, actual_play,
-                  num_outs, bases_taken, stat_team):
+                  num_outs, bases_taken, stat_team, bat_pitch):
 
     # store into player dict using the player_idx index
     gv.player[gv.player_idx] = {"player_id": player_id,
@@ -84,7 +84,8 @@ def stat_appender(player_id, team_name, game_id, this_half, stat_type, stat_valu
                                 "actual_play": actual_play,
                                 "num_outs": num_outs,
                                 "bases_taken": bases_taken,
-                                "stat_team": stat_team}
+                                "stat_team": stat_team,
+                                "bat_pitch": bat_pitch}
     gv.player_idx += 1  # increment index for next use
     return True
 
@@ -95,6 +96,8 @@ def stat_organizer(player_dict):
     # convert player_dict into table
     player_tb = pd.DataFrame.from_dict(player_dict, "index")
     player_tb.to_csv('PRE_STATS.csv', sep=',')
+
+    # separate pitching, batting and fielding stats here
 
     # reshape the data
     player_tb = player_tb.groupby(['player_id', 'team_name', 'stat_type']).size().reset_index()

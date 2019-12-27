@@ -64,6 +64,7 @@ def pitch_collector(hid, lineup, the_line, stat_types):
 
     # for each stat_type, call stat_appender
     for s_type in stat_types:
-        sc.stat_appender(hid, team_name, game_id, this_half, s_type, 1, actual_play, num_outs, bases_taken, stat_team)
+        sc.stat_appender(hid, team_name, game_id, this_half, s_type, 1, actual_play, num_outs, bases_taken,
+                         stat_team, 'pitching')
 
     return True
