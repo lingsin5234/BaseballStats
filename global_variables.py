@@ -32,9 +32,9 @@ bat_stats = {
     'RLSP': 'rlsp',
     'HBP': 'hit_by_pitch',
     'SH': 'sac_hit',
-    'SF': 'sac_fly',
-    'GP': 'games_played',
-    'GS': 'games_started',
-    'PH': 'pinch_hit',
-    'PR': 'pinch_run'
+    'SF': 'sac_fly'
+    # 'GP': 'games_played',
+    # 'GS': 'games_started',
+    # 'PH': 'pinch_hit',
+    # 'PR': 'pinch_run'
 }
