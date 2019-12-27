@@ -94,20 +94,35 @@ def stat_appender(player_id, team_name, game_id, this_half, stat_type, stat_valu
 def stat_organizer(player_dict):
 
     # convert player_dict into table
-    player_tb = pd.DataFrame.from_dict(player_dict, "index")
-    player_tb.to_csv('PRE_STATS.csv', sep=',')
+    # player_tb = pd.DataFrame.from_dict(player_dict, "index")
+    # player_tb.to_csv('PRE_STATS.csv', sep=',')
 
-    # separate pitching, batting and fielding stats here
+    player_tb = player_dict
 
     # reshape the data
-    player_tb = player_tb.groupby(['player_id', 'team_name', 'stat_type']).size().reset_index()
+    player_tb = player_tb.groupby(['player_id', 'team_name', 'bat_pitch', 'stat_type']).size().reset_index()
+
     # rename the "0" column to values
     player_tb.rename(columns={0: 'values'}, inplace=True)
     # set index to BOTH player_id and team_name and pivot based on stat_type column and values
-    player_tb = player_tb.set_index(['player_id', 'team_name']).pivot(columns='stat_type')['values']
+    player_tb = player_tb.set_index(['player_id', 'team_name', 'bat_pitch']).pivot(columns='stat_type')['values']
+
     # reset index and rename to fix the structure of the columns
     player_tb = player_tb.reset_index().rename_axis(None, axis=1)
     player_tb = player_tb.fillna(0)
+
+    # separate pitching, batting and fielding stats here
+    stats_tb = {"pitching": player_tb[player_tb.bat_pitch == 'pitching'],
+                "batting": player_tb[player_tb.bat_pitch == 'batting']}
+
+    # only include relevant columns for each type of stat
+    print(list(gv.bat_stats.keys()))
+    print(type(list(gv.bat_stats.keys())))
+    print(type(stats_tb["batting"]))
+    stats_tb["batting"] = stats_tb["batting"][list(gv.bat_stats.keys())]
+    print(stats_tb["batting"])
+    # print(stats_tb)
+    exit()
 
     return player_tb
 
