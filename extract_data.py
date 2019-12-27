@@ -148,7 +148,8 @@ all_files = os.listdir(dir_str)
 t1_time = t.time()
 gv.player = pd.read_csv('PRE_STATS.csv')
 gv.player_stats = sc.stat_organizer(gv.player)
-gv.player_stats.to_csv('STATS.csv', sep=',', index=False)
+gv.player_stats['batting'].to_csv('BATTING.csv', sep=',', index=False)
+gv.player_stats['pitching'].to_csv('PITCHING.csv', sep=',', index=False)
 
 # WRITING STATS PERFORMANCE
 t2_time = t.time()
