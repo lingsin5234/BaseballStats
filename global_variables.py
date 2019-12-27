@@ -16,6 +16,8 @@ fo_idx = 0
 
 # global dictionary for stat types
 bat_stats = {
+    # 'GP': 'games_played',
+    # 'GS': 'games_started',
     'AB': 'at_bat',
     'PA': 'plate_app',
     'H': 'hits',
@@ -33,8 +35,31 @@ bat_stats = {
     'HBP': 'hit_by_pitch',
     'SH': 'sac_hit',
     'SF': 'sac_fly'
+    # 'PH': 'pinch_hit',
+    # 'PR': 'pinch_run',
+}
+
+pitch_stats = {
     # 'GP': 'games_played',
     # 'GS': 'games_started',
-    # 'PH': 'pinch_hit',
-    # 'PR': 'pinch_run'
+    'IP': 'innings_pitched',
+    'BF': 'batters_faced',
+    # 'W': 'wins',
+    # 'L': 'losses',
+    # 'HD': 'holds',
+    # 'SV': 'saves',
+    'R': 'runs_allowed',
+    'ER': 'earned_runs',
+    'H': 'hits_allowed',
+    'HR': 'home_runs',
+    'BB': 'walks',
+    'IBB': 'intentional_walks',
+    'HBP': 'hit_batters',
+    'POA': 'pick-off_attempts',
+    'PO': 'pick-offs',
+    'WP': 'wild_pitches',
+    'PB': 'passed_balls',
+    'BK': 'balks',
+    'DI': 'defensive_indifference',
+    'CI': 'catcher_interference'
 }

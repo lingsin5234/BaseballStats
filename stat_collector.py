@@ -116,18 +116,16 @@ def stat_organizer(player_dict):
                 "batting": player_tb[player_tb.bat_pitch == 'batting']}
 
     # only include relevant columns for each type of stat
-    print(list(gv.bat_stats.keys()))
-    print(type(list(gv.bat_stats.keys())))
-    print(type(stats_tb["batting"]))
     bat_col = ['player_id', 'team_name']
     bat_col.extend(list(gv.bat_stats.keys()))
-    print(bat_col)
-    stats_tb["batting"] = stats_tb["batting"][bat_col]
-    print(stats_tb["batting"])
-    # print(stats_tb)
-    exit()
+    pitch_col = ['player_id', 'team_name']
+    pitch_col.extend(list(gv.pitch_stats.keys()))
 
-    return player_tb
+    # assign the appropriate columns
+    stats_tb['batting'] = stats_tb['batting'][bat_col]
+    stats_tb['pitching'] = stats_tb['pitching'][pitch_col]
+
+    return stats_tb
 
 
 # game start tracker
