@@ -3,6 +3,7 @@
 import re
 import stat_collector as sc
 import global_variables as gv
+import pitcher_oper as po
 
 
 # stolen base tracking
@@ -58,7 +59,7 @@ def steal_processor(this_line, lineup):
 
 
 # baserunner movements
-def base_running(this_line, lineup):
+def base_running(this_line, lineup, pitcher_id):
     
     # case: FO|FC|DP
     if re.search(r'(FC|FO|DP)', this_line['play']):
@@ -104,12 +105,12 @@ def base_running(this_line, lineup):
             runners = this_line['play'].split('.')[1].split(';')
 
             for r in runners:
-                this_line = runner_processor(r, this_line, lineup)
+                this_line = runner_processor(r, this_line, lineup, pitcher_id)
 
         # single baserunner
         else:
             runners = this_line['play'].split('.')[1].split(';')[0]
-            this_line = runner_processor(runners, this_line, lineup)
+            this_line = runner_processor(runners, this_line, lineup, pitcher_id)
 
     # case: steal or CS
     # not a double/triple steal then process stand-still runners
@@ -160,7 +161,10 @@ def base_running(this_line, lineup):
 
 
 # one-by-one base runner movements
-def runner_processor(runner, this_line, lineup):
+def runner_processor(runner, this_line, lineup, pitcher_id):
+
+    # assign pitcher_id to short form to match conversion from outside functions
+    hid = pitcher_id  # hurler_id
 
     # scored
     if re.search(r'-H', runner):
@@ -168,6 +172,9 @@ def runner_processor(runner, this_line, lineup):
 
         # stat add: R
         st = ['R']
+        # pitch add: R
+        pt = ['R']
+
         if re.search(r'3-', runner):
             sc.stat_collector(this_line['3B_before'], lineup, this_line, st)
         elif re.search(r'2-', runner):
@@ -190,6 +197,10 @@ def runner_processor(runner, this_line, lineup):
             st = ['RBI']
             sc.stat_collector(this_line['playerID'], lineup, this_line, st)
 
+        # check earned run counted or not
+        if not (re.search(r'[B123]-H([/THE0-9NOBI]+)?\(UR\)', runner)):
+            pt.append('ER')
+        po.pitch_collector(hid, lineup, this_line, pt)
     # stay put
     elif re.search(r'3-3', runner):
         this_line['3B_after'] = this_line['3B_before']
@@ -218,6 +229,10 @@ def runner_processor(runner, this_line, lineup):
         if not(re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', this_line['play'])):
             st = ['AB', 'PA']
             sc.stat_collector(this_line['playerID'], lineup, this_line, st)
+
+            # pitch add: IP, BF, H
+            # pt = ['IP', 'BF', 'H']
+            print('WEIRD OUTS: ', this_line['play'])
 
         # handle the now existing runner
         if this_line['1B_after'] == this_line['playerID']:

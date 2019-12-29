@@ -537,7 +537,7 @@ def play_processor2(game_num, the_df):
                 print('Game #: ', the_game_id, 'CASE NEEDED: ', the_play)
 
             # HANDLING BASERUNNERS
-            this_line = br.base_running(this_line, lineup)
+            this_line = br.base_running(this_line, lineup, hid)
 
         # this line item is substitution
         else:
