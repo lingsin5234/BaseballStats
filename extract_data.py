@@ -88,7 +88,9 @@ for file_nm in all_files:
 
     # convert all games for 1 file
     a_full_df = g.convert_games(games)
-
+    # print(a_full_df)
+    print(type(a_full_df))
+    exit()
     # play_processor2 function
     for e, each_game in enumerate(a_full_df):
         # check by game
