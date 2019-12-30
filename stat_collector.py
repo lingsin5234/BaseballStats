@@ -93,10 +93,10 @@ def stat_appender(player_id, team_name, game_id, this_half, stat_type, stat_valu
 # stat organizer
 def stat_organizer(player_dict):
 
-    # # convert player_dict into table
-    # player_tb = pd.DataFrame.from_dict(player_dict, "index")
-    # player_tb.to_csv('PRE_STATS.csv', sep=',')
-    player_tb = player_dict
+    # convert player_dict into table
+    player_tb = pd.DataFrame.from_dict(player_dict, "index")
+    player_tb.to_csv('PRE_STATS.csv', sep=',')
+    # player_tb = player_dict
 
     # reshape the data
     player_tb = player_tb.groupby(['player_id', 'team_name', 'bat_pitch', 'stat_type']).size().reset_index()
@@ -128,8 +128,6 @@ def stat_organizer(player_dict):
     floor_innings = stats_tb['pitching']['IP'] // 3
     modulus_innings = stats_tb['pitching']['IP'] % 3 / 10
     stats_tb['pitching']['IP'] = floor_innings + modulus_innings
-    print(stats_tb['pitching']['IP'])
-    exit()
 
     return stats_tb
 
