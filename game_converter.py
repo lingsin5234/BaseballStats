@@ -12,9 +12,6 @@ def convert_games(all_games):
     games_dfs = []
     for g, each_game in enumerate(all_games):
 
-        # performance
-        g1_time = t.time()
-
         # convert to dictionary
         game_dict = {}
         idx = 0
@@ -30,7 +27,7 @@ def convert_games(all_games):
                        'type': i[0],
                        'inning': i[1],
                        'half': i[2],
-                       'half_inning': i[1] + '_' + i[2],
+                       'half_innings': i[1] + '_' + i[2],
                        'playerID': i[3],
                        'count': i[4],
                        'pitches': i[5],
@@ -55,7 +52,7 @@ def convert_games(all_games):
                        'type': i[0],
                        'inning': None,
                        'half': None,
-                       'half_inning': None,
+                       'half_innings': None,
                        'playerID': i[1],
                        'count': None,
                        'pitches': None,
@@ -79,9 +76,5 @@ def convert_games(all_games):
             idx += 1
 
         games_dfs.append(game_dict)
-
-        # performance
-        g2_time = t.time()
-        print('Game:', g, g2_time - g1_time)
 
     return games_dfs
