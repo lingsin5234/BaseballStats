@@ -1,5 +1,6 @@
 # libraries
 import pandas as pd
+import time as t
 
 
 # convert play by play to tables
@@ -7,6 +8,40 @@ def convert_games(all_games):
 
     games_dfs = []
     for g in range(len(all_games)):
+
+        #  ## performance analysis: DICTIONARY ##
+        d1_time = t.time()
+
+        # convert to dictionary
+        game_dict = {}
+        idx = 0
+
+        # remove \n, then split by comma
+        this_list = [i.split('\n')[0] for i in all_games[g][-1]]
+        this_list = [i.split(',') for i in this_list]
+
+        # loop through and assign dict value
+        for i in this_list:
+            if i[0] == 'play':
+                dct = {'type': i[0],
+                       'inning': i[1],
+                       'half': i[2],
+                       'playerID': i[3],
+                       'count': i[4],
+                       'pitches': i[5],
+                       'play': i[6]}
+            else:
+                dct = {'type': i[0],
+                       'playerID': i[1],
+                       'name': i[2],
+                       'team_id': i[3],
+                       'batting': i[4],
+                       'fielding': i[5]}
+            game_dict[idx] = dct
+            idx += 1
+
+        print(game_dict)
+        exit()
 
         # convert to table
         pdf = pd.DataFrame(all_games[g][-1])  # last item is entire game_play
