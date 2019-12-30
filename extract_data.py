@@ -88,31 +88,21 @@ for file_nm in all_files:
 
     # convert all games for 1 file
     a_full_df = g.convert_games(games)
-    exit()
-    print(a_full_df)
-    print(type(a_full_df))
-    exit()
+
     # play_processor2 function
     for e, each_game in enumerate(a_full_df):
-        # check by game
-        a1_time = t.time()
-
-        # add the game_ids first
-        current_game_id = game_ids[e].replace('\n', '')
-        current_game_id = current_game_id.replace('id,', '')
-        each_game.insert(0, 'game_id', current_game_id)
 
         # game performance
-        a2_time = t.time()
+        a1_time = t.time()
 
         # then run the processor
         this_game = pp.play_processor2(e+1, each_game)
 
         # game performance
-        a3_time = t.time()
+        a2_time = t.time()
 
         # reindex the columns once
-        this_game = this_game.reindex(this_game.columns, axis=1)
+        this_game = this_game.transpose().reindex(this_game.transpose().columns, axis=1)
 
         # convert to dict, store into full_output
         this_dict = this_game.to_dict()
@@ -120,13 +110,12 @@ for file_nm in all_files:
         gv.fo_idx += 1
 
         # game performance
-        a4_time = t.time()
+        a3_time = t.time()
         fgp = open('GAMEPLAY.LOG', mode='a')
-        fgp.write('GAME #:' + str(e) + ' prep: ' + str(a2_time - a1_time) + '\n')
-        fgp.write('GAME #:' + str(e) + ' process: ' + str(a3_time - a2_time) + '\n')
-        fgp.write('GAME #:' + str(e) + ' reindex: ' + str(a4_time - a3_time) + '\n')
-        fgp.write('GAME #:' + str(e) + ' TOTAL: ' + str(a4_time - a1_time) + '\n')
-        # print('GAME #:', str(e), ' TOTAL: ', str(a4_time - a1_time))
+        fgp.write('GAME #:' + str(e) + ' process: ' + str(a2_time - a1_time) + '\n')
+        fgp.write('GAME #:' + str(e) + ' reindex: ' + str(a3_time - a2_time) + '\n')
+        fgp.write('GAME #:' + str(e) + ' TOTAL: ' + str(a3_time - a1_time) + '\n')
+        print('GAME #:', str(e), ' TOTAL: ', str(a3_time - a1_time))
         fgp.close()
 
     # indicator of what is completed
@@ -135,6 +124,7 @@ for file_nm in all_files:
     fgp = open('GAMEPLAY.LOG', mode='a')
     fgp.write('COMPLETED: ' + file_nm + ' - ' + str(e_time - s_time) + '\n')
     fgp.close()
+    exit()
 
 # Write Output File after converting entire list of dict to data frame
 o1_time = t.time()

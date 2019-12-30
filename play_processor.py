@@ -9,28 +9,28 @@ import pitcher_oper as po
 
 
 # re-write the processor based on re.search/re.findall grep searching
-def play_processor2(game_num, the_df):
+def play_processor2(game_num, the_dict):
 
     # performance
     q0_time = t.time()
 
     # the game id
-    the_game_id = the_df.at[0, 'game_id']
+    the_game_id = the_dict[0]['game_id']
 
     # store the starting lineup for this game
     lineup = gv.game_roster[gv.game_roster.game_id == the_game_id]
     lineup = lineup.reset_index(drop=True)
 
-    # convert df to dictionary
-    fgp = open('GAMEPLAY.LOG', mode='a')
-    qa_time = t.time()
-    the_dict = the_df.to_dict('records')  # ## actual convert task ##
-    qb_time = t.time()
-    fgp.write('Pre-play Prep: ' + str(qa_time - q0_time) + '\n')
-    fgp.write('CONVERT DICT: ' + str(qb_time - qa_time) + '\n')
-    fgp.close()
+    # # convert df to dictionary
+    # fgp = open('GAMEPLAY.LOG', mode='a')
+    # qa_time = t.time()
+    # the_dict = the_df.to_dict('records')  # ## actual convert task ##
+    # qb_time = t.time()
+    # fgp.write('Pre-play Prep: ' + str(qa_time - q0_time) + '\n')
+    # fgp.write('CONVERT DICT: ' + str(qb_time - qa_time) + '\n')
+    # fgp.close()
 
-    for i, this_line in enumerate(the_dict):
+    for i, this_line in enumerate(the_dict.values()):
 
         # performance checkpoint
         q1_time = t.time()
@@ -190,7 +190,7 @@ def play_processor2(game_num, the_df):
                 # determine if next play is out or not.
                 # determine which base stolen
                 if re.search(r'SB', the_play):
-                    the_df.loc[[i]] = br.steal_processor(this_line, lineup)
+                    this_line = br.steal_processor(this_line, lineup)
 
                 # determine which base runner was caught
                 elif re.search(r'CS', the_play):
@@ -541,10 +541,10 @@ def play_processor2(game_num, the_df):
 
         # this line item is substitution
         else:
-            this_line['1B_after'] = the_df.at[i - 1, '1B_before']
-            this_line['2B_after'] = the_df.at[i - 1, '2B_before']
-            this_line['3B_after'] = the_df.at[i - 1, '3B_before']
-            this_line['outs'] = the_df.at[i - 1, 'outs']
+            this_line['1B_after'] = the_dict[i-1]['1B_before']
+            this_line['2B_after'] = the_dict[i-1]['2B_before']
+            this_line['3B_after'] = the_dict[i-1]['3B_before']
+            this_line['outs'] = the_dict[i-1]['outs']
 
             # if pinch-runner, put in the runner
             # batting team = the half inning
