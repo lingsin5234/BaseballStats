@@ -125,6 +125,9 @@ def stat_organizer(player_dict):
     stats_tb['pitching'] = stats_tb['pitching'][pitch_col]
 
     # innings - divided into 3 outs
+    floor_innings = stats_tb['pitching']['IP'] // 3
+    modulus_innings = stats_tb['pitching']['IP'] % 3 / 10
+    stats_tb['pitching']['IP'] = floor_innings + modulus_innings
     print(stats_tb['pitching']['IP'])
     exit()
 
