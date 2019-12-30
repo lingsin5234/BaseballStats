@@ -3,7 +3,6 @@ import re
 import stat_collector as sc
 import global_variables as gv
 import base_running as br
-import pandas as pd
 import time as t
 import pitcher_oper as po
 
@@ -11,24 +10,12 @@ import pitcher_oper as po
 # re-write the processor based on re.search/re.findall grep searching
 def play_processor2(game_num, the_dict):
 
-    # performance
-    q0_time = t.time()
-
     # the game id
     the_game_id = the_dict[0]['game_id']
 
     # store the starting lineup for this game
     lineup = gv.game_roster[gv.game_roster.game_id == the_game_id]
     lineup = lineup.reset_index(drop=True)
-
-    # # convert df to dictionary
-    # fgp = open('GAMEPLAY.LOG', mode='a')
-    # qa_time = t.time()
-    # the_dict = the_df.to_dict('records')  # ## actual convert task ##
-    # qb_time = t.time()
-    # fgp.write('Pre-play Prep: ' + str(qa_time - q0_time) + '\n')
-    # fgp.write('CONVERT DICT: ' + str(qb_time - qa_time) + '\n')
-    # fgp.close()
 
     for i, this_line in enumerate(the_dict.values()):
 
@@ -614,5 +601,4 @@ def play_processor2(game_num, the_dict):
         fgp.write('total: ' + str(q4_time - q1_time) + '\n')
         fgp.close()
 
-    # return the dictionary converted back as data frame
-    return pd.DataFrame(the_dict)
+    return the_dict
