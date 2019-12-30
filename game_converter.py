@@ -74,7 +74,8 @@ def convert_games(all_games):
             idx += 1
 
         print(game_dict)
-        exit()
+        print(len(game_dict[88]))
+        print(len(game_dict[90]))
 
         #  ## performance analysis: DICTIONARY ##
         d2_time = t.time()
@@ -143,7 +144,7 @@ def convert_games(all_games):
         # ## performance analysis results ##
         print('DICTIONARY: ', d2_time - d1_time)
         print('DATA FRAME: ', t2_time - t1_time)
-
+        exit()
         # add to full game_dfs list
         games_dfs.append(df1.copy())
         # print(g, ': ', len(games_dfs), ' df: ', len(df1))
