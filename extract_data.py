@@ -101,16 +101,27 @@ for file_nm in all_files:
         # game performance
         a2_time = t.time()
 
-        # store into full_output
-        gv.full_output.append(this_game)
-        # gv.fo_idx = len(gv.full_output)
+        # reindex the DICTIONARY keys
+        row_idx = 0
+        if e > 0:
+            row_idx += gv.fo_idx
+        this_game = dict((int(k)+row_idx, value) for (k, value) in this_game.items())
+        gv.fo_idx += len(this_game)
 
         # game performance
         a3_time = t.time()
+
+        # store into full_output
+        gv.full_output.update(this_game)
+
+        # game performance
+        a4_time = t.time()
         fgp = open('GAMEPLAY.LOG', mode='a')
         fgp.write('GAME #:' + str(e) + ' process: ' + str(a2_time - a1_time) + '\n')
-        fgp.write('GAME #:' + str(e) + ' store: ' + str(a3_time - a2_time) + '\n')
-        fgp.write('GAME #:' + str(e) + ' TOTAL: ' + str(a3_time - a1_time) + '\n')
+        fgp.write('GAME #:' + str(e) + ' reindex: ' + str(a3_time - a2_time) + '\n')
+        fgp.write('GAME #:' + str(e) + ' store: ' + str(a4_time - a3_time) + '\n')
+        fgp.write('GAME #:' + str(e) + ' TOTAL: ' + str(a4_time - a1_time) + '\n')
+        print('GAME #:', e, ' TOTAL: ', a4_time - a1_time)
         fgp.close()
 
     # indicator of what is completed
@@ -119,6 +130,8 @@ for file_nm in all_files:
     fgp = open('GAMEPLAY.LOG', mode='a')
     fgp.write('COMPLETED: ' + file_nm + ' - ' + str(e_time - s_time) + '\n')
     fgp.close()
+    pd.DataFrame(gv.full_output).transpose().to_csv('OUTPUT.csv', sep=',', mode='w')
+    exit()
 
 # Write Output File after converting entire list of dict to data frame
 o1_time = t.time()
