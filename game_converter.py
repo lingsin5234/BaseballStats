@@ -1,10 +1,13 @@
 # libraries
-import pandas as pd
 import time as t
+import global_variables as gv
 
 
 # convert play by play to tables
 def convert_games(all_games):
+
+    # get game id from game_rosters
+    game_id = gv.game_roster.game_id.unique()
 
     games_dfs = []
     for g, each_game in enumerate(all_games):
@@ -23,7 +26,7 @@ def convert_games(all_games):
         # loop through and assign dict value
         for i in this_list:
             if i[0] == 'play':
-                dct = {'game_id': None,
+                dct = {'game_id': game_id[g],
                        'type': i[0],
                        'inning': i[1],
                        'half': i[2],
@@ -48,7 +51,7 @@ def convert_games(all_games):
                        'runs_scored': 0,
                        'total_scored': 0}
             else:
-                dct = {'game_id': None,
+                dct = {'game_id': game_id[g],
                        'type': i[0],
                        'inning': None,
                        'half': None,
