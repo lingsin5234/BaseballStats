@@ -216,7 +216,7 @@ def play_processor2(game_num, the_dict, games_roster):
                     pt.append('WP')
 
                 # Pick Off Error
-                elif re.search(r'PO[123]([()E0-9/TH])', the_play):
+                elif re.search(r'PO[123]\(([0-9]+)?E', the_play):
                     # batter is still out.
                     pt.append('POA')
 
@@ -494,7 +494,8 @@ def play_processor2(game_num, the_dict, games_roster):
             # Case 21: pick off and/or caught stealing
             elif re.search(r'^PO(CS)?[123H]', the_play):
                 # print('Picked Off &/ Caught Stealing: ', the_play)
-                this_line['outs'] += 1
+                if not(re.search(r'PO[123]\(([0-9]+)?E', the_play)):
+                    this_line['outs'] += 1
                 this_line = br.steal_processor(this_line, lineup)
 
                 # pitch add:
