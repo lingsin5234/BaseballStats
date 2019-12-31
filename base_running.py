@@ -201,29 +201,30 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
         if not (re.search(r'[B123]-H([/THE0-9NOBI]+)?\(UR\)', runner)):
             pt.append('ER')
         po.pitch_collector(hid, lineup, this_line, pt)
+
     # stay put
-    elif re.search(r'3-3', runner):
+    elif bool(re.search(r'3-3', runner)) | bool(re.search(r'3X3\(([0-9]+)?E', runner)):
         this_line['3B_after'] = this_line['3B_before']
-    elif re.search(r'2-2', runner):
+    elif bool(re.search(r'2-2', runner)) | bool(re.search(r'2X2\(([0-9]+)?E', runner)):
         this_line['2B_after'] = this_line['2B_before']
-    elif re.search(r'1-1', runner):
+    elif bool(re.search(r'1-1', runner)) | bool(re.search(r'1X1\(([0-9]+)?E', runner)):
         this_line['1B_after'] = this_line['1B_before']
 
     # advanced
-    elif re.search(r'2-3', runner):
+    elif bool(re.search(r'2-3', runner)) | bool(re.search(r'2X3\(([0-9]+)?E', runner)):
         this_line['3B_after'] = this_line['2B_before']
-    elif re.search(r'1-2', runner):
+    elif bool(re.search(r'1-2', runner)) | bool(re.search(r'1X2\(([0-9]+)?E', runner)):
         this_line['2B_after'] = this_line['1B_before']
-    if re.search(r'1-3', runner):
+    elif bool(re.search(r'1-3', runner)) | bool(re.search(r'1X3\(([0-9]+)?E', runner)):
         this_line['3B_after'] = this_line['1B_before']
 
-    # remove runners that are explicitly out but not FC
+    # remove runners that are explicitly out but not FC nor the error above
     if re.search(r'[123]X[123H]', runner):
-        if not(re.search(r'^FC', this_line['play'])):
+        if bool(not(re.search(r'^FC', this_line['play']))) & bool(not(re.search(r'E', runner))):
             this_line['outs'] += 1
 
-    # handle weird outs for the batter previously marked on base.
-    if re.search(r'BX[123H]', runner):
+    # handle weird outs for the batter previously marked on base and NOT Error, e.g. BX1(6E1)
+    if bool(re.search(r'BX[123H]', runner)) & bool(not(re.search(r'E', runner))):
         this_line['outs'] += 1
 
         # stat add: AB, PA -- if NOT already added on a hit
@@ -244,5 +245,25 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
             this_line['3B_after'] = 'X'
         if re.search(r'(H[1-9]|HR).*\..*BXH', this_line['play']):
             this_line['runs_scored'] -= 1
+
+    # batter on base due to error
+    if re.search(r'BX[123H]\(([0-9]+)?E', runner):
+
+        # move batter
+        if re.search(r'BX1', runner):
+            this_line['1B_after'] = this_line['playerID']
+        elif re.search(r'BX2', runner):
+            this_line['2B_after'] = this_line['playerID']
+        elif re.search(r'BX3', runner):
+            this_line['3B_after'] = this_line['playerID']
+        elif re.search(r'BXH', runner):
+            this_line['runs_scored'] += 1
+
+            # no rbi for this one.
+            st = ['R']
+            sc.stat_collector(this_line['playerID'], lineup, this_line, st)
+            # definitely an unearned run too
+            pt = ['R']
+            po.pitch_collector(hid, lineup, this_line, pt)
 
     return this_line
