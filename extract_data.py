@@ -121,7 +121,7 @@ for file_nm in all_files:
         fgp.write('GAME #:' + str(e) + ' reindex: ' + str(a3_time - a2_time) + '\n')
         fgp.write('GAME #:' + str(e) + ' store: ' + str(a4_time - a3_time) + '\n')
         fgp.write('GAME #:' + str(e) + ' TOTAL: ' + str(a4_time - a1_time) + '\n')
-        print('GAME #:', e, ' TOTAL: ', a4_time - a1_time)
+        # print('GAME #:', e, ' TOTAL: ', a4_time - a1_time)
         fgp.close()
 
     # indicator of what is completed
@@ -130,8 +130,6 @@ for file_nm in all_files:
     fgp = open('GAMEPLAY.LOG', mode='a')
     fgp.write('COMPLETED: ' + file_nm + ' - ' + str(e_time - s_time) + '\n')
     fgp.close()
-    pd.DataFrame(gv.full_output).transpose().to_csv('OUTPUT.csv', sep=',', mode='w')
-    exit()
 
 # Write Output File after converting entire list of dict to data frame
 o1_time = t.time()
