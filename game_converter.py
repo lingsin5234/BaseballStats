@@ -4,10 +4,10 @@ import global_variables as gv
 
 
 # convert play by play to tables
-def convert_games(all_games):
+def convert_games(all_games, games_roster):
 
     # get game id from game_rosters
-    game_id = gv.game_roster.game_id.unique()
+    game_id = games_roster.game_id.unique()
 
     games_dfs = []
     for g, each_game in enumerate(all_games):

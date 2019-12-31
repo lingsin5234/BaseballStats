@@ -83,11 +83,12 @@ for file_nm in all_files:
     f1 = None
 
     # extract all starting lineups by game (replaced each iteration in the variable)
-    gv.game_roster = sc.game_tracker(games, game_ids)
-    gv.game_roster.to_csv('STARTERS.csv', sep=',', mode='a', index=False)
+    gv.game_roster = sc.game_tracker(games)
+    games_roster = pd.DataFrame(gv.game_roster).transpose()
+    games_roster.to_csv('STARTERS.csv', sep=',', mode='a', index=False)
 
     # convert all games for 1 file
-    a_full_df = g.convert_games(games)
+    a_full_df = g.convert_games(games, games_roster)
 
     # play_processor2 function
     for e, each_game in enumerate(a_full_df):
@@ -96,7 +97,7 @@ for file_nm in all_files:
         a1_time = t.time()
 
         # then run the processor
-        this_game = pp.play_processor2(e+1, each_game)
+        this_game = pp.play_processor2(e+1, each_game, games_roster)
 
         # game performance
         a2_time = t.time()

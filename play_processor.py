@@ -8,13 +8,13 @@ import pitcher_oper as po
 
 
 # re-write the processor based on re.search/re.findall grep searching
-def play_processor2(game_num, the_dict):
+def play_processor2(game_num, the_dict, games_roster):
 
     # the game id
     the_game_id = the_dict[0]['game_id']
 
     # store the starting lineup for this game
-    lineup = gv.game_roster[gv.game_roster.game_id == the_game_id]
+    lineup = games_roster[games_roster.game_id == the_game_id]
     lineup = lineup.reset_index(drop=True)
 
     for i, this_line in enumerate(the_dict.values()):

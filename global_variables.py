@@ -2,7 +2,6 @@
 import pandas as pd
 
 # create global tables.
-game_roster = pd.DataFrame(columns=('game_id', 'player_id', 'player_nm', 'team', 'bat_lineup', 'fielding'))
 player_stats = pd.DataFrame()
 
 # create dictionary for storing player data to be processed later
@@ -13,6 +12,10 @@ player_idx = 0
 # create another dictionary for storing temp EVENT output data
 full_output = {}
 fo_idx = 0
+
+# dictionary for game roster
+game_roster = {}
+gr_idx = 0
 
 # global dictionary for stat types
 bat_stats = {
