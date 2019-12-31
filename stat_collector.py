@@ -135,6 +135,21 @@ def stat_organizer(player_dict):
 # game start tracker
 def game_tracker(all_starts, all_game_ids):
 
+    # compare performance again - DICTIONARY
+    d1_time = t.time()
+
+    games_dict = {}
+    for g in range(len(all_starts)):
+        # get the visiting and home teams
+        vis_team = all_starts[g][2].split(',')[2]
+        home_team = all_starts[g][3].split(',')[2]
+        lineups = all_starts[g][-2]  # 2nd last item is all starting lineups
+
+        print(lineups)
+        print(vis_team)
+        print(home_team)
+        exit()
+
     # get all the game ids
     games_ids = pd.DataFrame(all_game_ids)
     games_ids[0] = games_ids[0].str.replace('\n', '')
