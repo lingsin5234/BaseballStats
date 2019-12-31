@@ -145,9 +145,10 @@ def play_processor2(game_num, the_dict, games_roster):
                     st = ['R']
                     sc.stat_collector(pid, lineup, this_line, st)
                 
-                # batter is out!
+                # batter is out and not a double play (DP handled in base_runner)
                 elif re.search(r'BX[123H]', the_play):
-                    this_line['outs'] += 1
+                    if not(re.search(r'DP', the_play)):
+                        this_line['outs'] += 1
                 else:
                     this_line['1B_after'] = pid
 
@@ -215,7 +216,7 @@ def play_processor2(game_num, the_dict, games_roster):
                     pt.append('WP')
 
                 # Pick Off Error
-                elif re.search(r'PO[123]\(([0-9]+)?E([0-9]+)?\)', the_play):
+                elif re.search(r'PO[123]([()E0-9/TH])', the_play):
                     # batter is still out.
                     pt.append('POA')
 
@@ -237,6 +238,11 @@ def play_processor2(game_num, the_dict, games_roster):
                     # a runner is also out
                     # this_line['outs'] += 1 -- this is already recorded
                     pt.append('IP')
+
+                # Error on Swing Striking 3
+                elif re.search(r'K+E[0-9]', the_play):
+                    # let the base_runner function handle the rest.
+                    this_line['outs'] -= 1
 
                 # else
                 else:
@@ -448,7 +454,7 @@ def play_processor2(game_num, the_dict, games_roster):
                             st.append('RBI')
                         if not (re.search(r'B-H([(NRORBI)]+)?\(UR\)', the_play)):
                             pt.append('ER')
-                    # other cases are BX[123H] - just ignore
+                    # other cases are BX[123H] - base_runner function will handle.
                 else:
                     # assume they reached first base safely
                     this_line['1B_after'] = pid
@@ -531,7 +537,7 @@ def play_processor2(game_num, the_dict, games_roster):
             this_line['1B_after'] = the_dict[i-1]['1B_before']
             this_line['2B_after'] = the_dict[i-1]['2B_before']
             this_line['3B_after'] = the_dict[i-1]['3B_before']
-            this_line['outs'] = the_dict[i-1]['outs']
+            # this_line['outs'] = the_dict[i-1]['outs']
             pid = this_line['playerID']
 
             # if pinch-runner, put in the runner
@@ -590,6 +596,10 @@ def play_processor2(game_num, the_dict, games_roster):
 
                     # add games played stat - as "pitching" stat
                     po.pitch_collector(pid, lineup, this_line, ['GP'])
+
+        # do a check for > 3 outs
+        if this_line['outs'] > 3:
+            print('BAD OUTS:', this_line['game_id'], '-', the_play, ' ', this_line['outs'])
 
         # performance checkpoint
         q3_time = t.time()
