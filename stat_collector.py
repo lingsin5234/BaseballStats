@@ -133,25 +133,22 @@ def stat_organizer(player_dict):
 
 
 # game start tracker
-def game_tracker(all_starts, all_game_ids):
+def game_tracker(all_starts):
 
-    # compare performance again - DICTIONARY
-    d1_time = t.time()
-
+    # convert to dictionary
     games_dict = {}
-    idx = 0
     for g in range(len(all_starts)):
         # get team and lineup info
-        game_id = all_starts[g][0].split(',')[1]
-        vis_team = all_starts[g][2].split(',')[2]
-        home_team = all_starts[g][3].split(',')[2]
+        game_id = all_starts[g][0].split(',')[1].split('\n')[0]
+        vis_team = all_starts[g][2].split(',')[2].split('\n')[0]
+        home_team = all_starts[g][3].split(',')[2].split('\n')[0]
         lineups = all_starts[g][-2]  # 2nd last item is all starting lineups
 
         # push lineup into dictionary
         for starter in lineups:
 
             ss = starter.split('\n')[0].split(',')
-            if ss[3] == 0:
+            if ss[3] == '0':
                 team_nm = vis_team
             else:
                 team_nm = home_team
@@ -162,60 +159,8 @@ def game_tracker(all_starts, all_game_ids):
                            'team_name': team_nm,
                            'bat_lineup': ss[4],
                            'fielding': ss[5]}
-            games_dict[idx] = lineup_dict
-            idx += 1
+            games_dict[gv.gr_idx] = lineup_dict
+            gv.gr_idx += 1
 
-    d2_time = t.time()
-
-    # get all the game ids
-    games_ids = pd.DataFrame(all_game_ids)
-    games_ids[0] = games_ids[0].str.replace('\n', '')
-    games_ids[0] = games_ids[0].str.replace('id,', '')
-
-    # sort all the game starts
-    games_dfs = pd.DataFrame()
-    for g in range(len(all_starts)):
-        # get the visiting and home teams
-        vis_team = all_starts[g][2]
-        home_team = all_starts[g][3]
-
-        # convert to table
-        pdf = pd.DataFrame(all_starts[g][-2])  # 2nd last item is all starting lineups
-        df1 = pd.concat([pdf[0].str.split(',', expand=True)], axis=1)
-
-        # remove line break in last column
-        df1[5] = df1[5].str.replace('\n', '')
-
-        # insert team_name
-        df1.insert(6, 6, '0')
-
-        # table edits
-        df1.drop(0, axis=1, inplace=True)
-        df1.rename(columns={1: 'player_id', 2: 'player_nm', 3: 'team_id', 6: 'team_name',
-                            4: 'bat_lineup', 5: 'fielding'}, inplace=True)
-        # df1.columns = ['player_id', 'player_nm', 'team', 'bat_lineup', 'fielding']
-
-        # insert game_id column -- do not use df1 = df1.insert(...)
-        df1.insert(0, 'game_id', games_ids.loc[g, 0])
-
-        # replace 0 with vis_team; 1 with home_team
-        df1.loc[df1.team_id == '0', 'team_name'] = vis_team.replace('info,visteam,', '').replace('\n', '')
-        df1.loc[df1.team_id == '1', 'team_name'] = home_team.replace('info,hometeam,', '').replace('\n', '')
-
-        # add game starters to the table
-        games_dfs = games_dfs.append(df1.copy())
-
-    d3_time = t.time()
-
-    # reset the index
-    games_dfs = games_dfs.reset_index(drop=True)
-
-    d4_time = t.time()
-
-    # performance
-    print('Dictionary:', d2_time - d1_time)
-    print('Data Frame:', d3_time - d2_time)
-    print('Reindexing:', d4_time - d3_time)
-    exit()
-    return games_dfs
+    return games_dict
 
