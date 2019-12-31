@@ -139,16 +139,33 @@ def game_tracker(all_starts, all_game_ids):
     d1_time = t.time()
 
     games_dict = {}
+    idx = 0
     for g in range(len(all_starts)):
-        # get the visiting and home teams
+        # get team and lineup info
+        game_id = all_starts[g][0].split(',')[1]
         vis_team = all_starts[g][2].split(',')[2]
         home_team = all_starts[g][3].split(',')[2]
         lineups = all_starts[g][-2]  # 2nd last item is all starting lineups
 
-        print(lineups)
-        print(vis_team)
-        print(home_team)
-        exit()
+        # push lineup into dictionary
+        for starter in lineups:
+
+            ss = starter.split('\n')[0].split(',')
+            if ss[3] == 0:
+                team_nm = vis_team
+            else:
+                team_nm = home_team
+            lineup_dict = {'game_id': game_id,
+                           'player_id': ss[1],
+                           'player_nm': ss[2],
+                           'team_id': ss[3],
+                           'team_name': team_nm,
+                           'bat_lineup': ss[4],
+                           'fielding': ss[5]}
+            games_dict[idx] = lineup_dict
+            idx += 1
+
+    d2_time = t.time()
 
     # get all the game ids
     games_ids = pd.DataFrame(all_game_ids)
@@ -188,8 +205,17 @@ def game_tracker(all_starts, all_game_ids):
         # add game starters to the table
         games_dfs = games_dfs.append(df1.copy())
 
+    d3_time = t.time()
+
     # reset the index
     games_dfs = games_dfs.reset_index(drop=True)
 
+    d4_time = t.time()
+
+    # performance
+    print('Dictionary:', d2_time - d1_time)
+    print('Data Frame:', d3_time - d2_time)
+    print('Reindexing:', d4_time - d3_time)
+    exit()
     return games_dfs
 
