@@ -163,11 +163,11 @@ def game_tracker(all_starts):
             gv.gr_idx += 1
 
             # stat appender
-            if ss[4] > 0:  # batter excluding AL pitchers
+            if int(ss[4]) > 0:  # batter excluding AL pitchers
                 stat_appender(ss[1], team_nm, game_id, 0, 'GS', 1, None, 0, '---', ss[3], 'batting')
-            if ss[5] == 1:  # pitcher
+            if int(ss[5]) == 1:  # pitcher
                 stat_appender(ss[1], team_nm, game_id, 0, 'GS', 1, None, 0, '---', ss[3], 'pitching')
-            if ss[5] < 10:  # not DH PH PR, is a fielder
+            if int(ss[5]) < 10:  # not DH PH PR, is a fielder
                 stat_appender(ss[1], team_nm, game_id, 0, 'GS', 1, None, 0, '---', ss[3], 'fielding')
 
     return games_dict

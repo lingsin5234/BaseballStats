@@ -563,7 +563,7 @@ def play_processor2(game_num, the_dict, games_roster):
                     lineup.at[sub_index[0], 'player_nm'] = this_line['name']
 
                     # add games played stat - as "batting" stat
-                    sc.stat_collector(pid, lineup, this_line, 'GP')
+                    sc.stat_collector(pid, lineup, this_line, ['GP'])
 
                 # pinch hitter only
                 elif this_line['fielding'] == '11':
@@ -578,7 +578,7 @@ def play_processor2(game_num, the_dict, games_roster):
                     lineup.at[sub_index[0], 'player_nm'] = this_line['name']
 
                     # add games played stat - as "batting" stat
-                    sc.stat_collector(pid, lineup, this_line, 'GP')
+                    sc.stat_collector(pid, lineup, this_line, ['GP'])
 
             # fielding team = the half inning
             else:
@@ -589,7 +589,7 @@ def play_processor2(game_num, the_dict, games_roster):
                     lineup.at[pitch_index, 'player_nm'] = this_line['name']
 
                     # add games played stat - as "pitching" stat
-                    po.pitch_collector(pid, lineup, this_line, 'GP')
+                    po.pitch_collector(pid, lineup, this_line, ['GP'])
 
         # performance checkpoint
         q3_time = t.time()
