@@ -217,9 +217,10 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
     if re.search(r'1-3', runner):
         this_line['3B_after'] = this_line['1B_before']
 
-    # remove runners that are explicitly out
+    # remove runners that are explicitly out but not FC
     if re.search(r'[123]X[123H]', runner):
-        this_line['outs'] += 1
+        if not(re.search(r'^FC', this_line['play'])):
+            this_line['outs'] += 1
 
     # handle weird outs for the batter previously marked on base.
     if re.search(r'BX[123H]', runner):
