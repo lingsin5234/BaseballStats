@@ -19,8 +19,8 @@ gr_idx = 0
 
 # global dictionary for stat types
 bat_stats = {
-    # 'GP': 'games_played',
-    # 'GS': 'games_started',
+    'GP': 'games_played',
+    'GS': 'games_started',
     'AB': 'at_bat',
     'PA': 'plate_app',
     'H': 'hits',
@@ -43,8 +43,8 @@ bat_stats = {
 }
 
 pitch_stats = {
-    # 'GP': 'games_played',
-    # 'GS': 'games_started',
+    'GP': 'games_played',
+    'GS': 'games_started',
     'IP': 'innings_pitched',
     'BF': 'batters_faced',
     # 'W': 'wins',

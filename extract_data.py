@@ -103,10 +103,7 @@ for file_nm in all_files:
         a2_time = t.time()
 
         # reindex the DICTIONARY keys
-        row_idx = 0
-        if e > 0:
-            row_idx += gv.fo_idx
-        this_game = dict((int(k)+row_idx, value) for (k, value) in this_game.items())
+        this_game = dict((int(k)+gv.fo_idx, value) for (k, value) in this_game.items())
         gv.fo_idx += len(this_game)
 
         # game performance
