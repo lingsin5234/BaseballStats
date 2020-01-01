@@ -76,10 +76,31 @@ def play_processor3(the_dict, games_roster):
                 if bool(re.search(r'^(IW|HBP|W|K)', begin_play)):
 
                     # handle these scenarios normally
+                    if bool(re.search(r'K', begin_play)):
+                        st = ['AB', 'PA', 'K']
+                        sc.stat_collector(pid, lineup, this_line, st)
+                        pt = ['IP', 'BF', 'K']
+                        po.pitch_collector(pid, lineup, this_line, pt)
+
+                    elif bool(re.search(r'HBP', begin_play)):
+                        st = ['PA', 'HBP']
+                        sc.stat_collector(pid, lineup, this_line, st)
+                        pt = ['BF', 'HBP']
+                        po.pitch_collector(pid, lineup, this_line, pt)
+
+                    else:
+                        st = ['PA', 'W']
+                        pt = ['BF', 'BB']
+                        if bool(re.search(r'^IW', begin_play)):
+                            st.append('IW')
+                            pt.append('IBB')
+                        sc.stat_collector(pid, lineup, this_line, st)
+                        po.pitch_collector(pid, lineup, this_line, pt)
 
                     # check if additional event happened
                     if bool(re.search(r'\+', begin_play)):
-                        print('EXTRA event', begin_play)
+                        # print(br.check_runner_movement(), begin_play)
+                        pass
 
 
 

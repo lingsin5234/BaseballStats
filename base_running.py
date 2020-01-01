@@ -270,3 +270,15 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
             po.pitch_collector(hid, lineup, this_line, pt)
 
     return this_line
+
+
+# track any runner movement for event
+def check_runner_movement(this_line):
+    # this will ignore SOLO HOME RUNS!
+    if this_line['1B_before'] != this_line['1B_after']:
+        return False
+    if this_line['2B_before'] != this_line['2B_after']:
+        return False
+    if this_line['3B_before'] != this_line['3B_after']:
+        return False
+    return True
