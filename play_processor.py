@@ -69,7 +69,8 @@ def play_processor3(the_dict, games_roster):
 
                 # if it is a HIT
                 if bool(re.search(r'^((S|D|T)([1-9]+)?/?|H/|HR|DGR)', begin_play)):
-                    print('HIT:', begin_play)
+                    # print('HIT:', begin_play)
+                    pass
 
                 # Walk or Strikeout
                 if bool(re.search(r'^(IW|HBP|W|K)', begin_play)):

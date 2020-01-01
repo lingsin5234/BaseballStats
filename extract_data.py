@@ -122,9 +122,9 @@ for file_nm in all_files:
         print('GAME #:', e, ' TOTAL: ', a4_time - a1_time)
         fgp.close()
 
-        # testing play_processor3
-        pd.DataFrame(gv.full_output).transpose().to_csv('OUTPUT.csv', sep=',', mode='w')
-        exit()
+    # testing play_processor3
+    pd.DataFrame(gv.full_output).transpose().to_csv('OUTPUT.csv', sep=',', mode='w')
+    exit()
 
     # indicator of what is completed
     e_time = t.time()
