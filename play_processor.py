@@ -59,10 +59,26 @@ def play_processor3(the_dict, games_roster):
 
             # divide up begin_play into plate-appearance (PA) plays and non-PA plays
             if bool(re.search(r'^(WP|NP|BK|PB|FLE|OA|SB|CS|PO|DI)', begin_play)):
-                print('NON-PA', begin_play)
+
+                # if there is a running play, handle it
+                if run_play is not None:
+                    print('NON-PA:', begin_play, '==', run_play)
+
             # plate-appearance play
             else:
-                print('PA play', begin_play)
+
+                # if it is a HIT
+                if bool(re.search(r'^((S|D|T)([1-9]+)?/?|H/|HR|DGR)', begin_play)):
+                    print('HIT:', begin_play)
+
+                # Walk or Strikeout
+                if bool(re.search(r'^(IW|HBP|W|K)', begin_play)):
+
+                    # handle these scenarios normally
+
+                    # check if additional event happened
+                    if bool(re.search(r'\+', begin_play)):
+                        print('EXTRA event', begin_play)
 
 
 
