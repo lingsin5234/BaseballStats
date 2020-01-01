@@ -59,7 +59,9 @@ def steal_processor(this_line, lineup):
 
 
 # baserunner movements
-def base_running2(this_line, run_play, lineup, pid, pitcher_id):
+def base_running2(this_line, run_play, bases_after, lineup, pid, pitcher_id):
+
+    curr_bases = bases_after
 
     # if there is running plays, then process
     if run_play is not None:
@@ -68,27 +70,30 @@ def base_running2(this_line, run_play, lineup, pid, pitcher_id):
         for r in runners:
             this_line = runner_processor(r, this_line, lineup, pitcher_id)
 
-    # now check for stand-still runners
-    check_move = check_runner_movement(this_line)
-    if bool(run_play is None) & bool(not(check_move)):
+        curr_bases = bases_occupied(this_line)
+    # # now check for stand-still runners
+    # check_move = check_runner_movement(this_line)
+    # if bool(run_play is None) & bool(not(check_move)):
+    #
+    #     # first base
+    #     if bool(this_line['1B_after'] != pid) & bool(this_line['1B_before'] is not None):
+    #         if bool(this_line['1B_after'] is None):
+    #             # stay put
+    #             this_line['1B_after'] = this_line['1B_before']
+    #
+    #     # second base
+    #     if bool(this_line['2B_after'] != pid) & bool(this_line['2B_before'] is not None):
+    #         if bool(this_line['2B_after'] is None):
+    #             # stay put
+    #             this_line['2B_after'] = this_line['2B_before']
+    #
+    #     if bool(this_line['3B_after'] != pid) & bool(this_line['3B_before'] is not None):
+    #         if bool(this_line['3B_after'] is None):
+    #             # stay put
+    #             this_line['3B_after'] = this_line['3B_before']
 
-        # first base
-        if bool(this_line['1B_after'] != pid) & bool(this_line['1B_before'] is not None):
-            if bool(this_line['1B_after'] is None):
-                this_line['1B_after'] = this_line['1B_before']
-            else:
-                print(this_line)
-        # second base
-        if bool(this_line['2B_after'] != pid) & bool(this_line['2B_before'] is not None):
-            if bool(this_line['2B_after'] is None):
-                this_line['2B_after'] = this_line['2B_before']
-            else:
-                print(this_line)
-        if bool(this_line['3B_after'] != pid) & bool(this_line['3B_before'] is not None):
-            if bool(this_line['3B_after'] is None):
-                this_line['3B_after'] = this_line['3B_before']
-            else:
-                print(this_line)
+    if bases_after != curr_bases:
+        print(this_line['play'], bases_after, '=>', curr_bases)
 
     return this_line
 
@@ -317,3 +322,25 @@ def check_runner_movement(this_line):
     if this_line['3B_before'] != this_line['3B_after']:
         return False
     return True
+
+
+# bases occupied
+def bases_occupied(this_line):
+
+    # before
+    bases_taken = []
+    if this_line['1B_before']:
+        bases_taken.append('1')
+    else:
+        bases_taken.append('-')
+    if this_line['2B_before']:
+        bases_taken.append('2')
+    else:
+        bases_taken.append('-')
+    if this_line['3B_before']:
+        bases_taken.append('3')
+    else:
+        bases_taken.append('-')
+    bases_taken = ''.join(map(str, bases_taken))
+
+    return bases_taken
