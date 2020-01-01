@@ -145,10 +145,14 @@ def play_processor2(game_num, the_dict, games_roster):
                     st = ['R']
                     sc.stat_collector(pid, lineup, this_line, st)
                 
-                # batter is out and not a double play (DP handled in base_runner)
+                # batter is out and not a double play
                 elif re.search(r'BX[123H]', the_play):
                     if not(re.search(r'DP', the_play)):
                         this_line['outs'] += 1
+                    else:
+                        # nothing happens here if double play
+                        # base_runner will handle both outs
+                        this_line['outs'] -= 1
                 else:
                     this_line['1B_after'] = pid
 

@@ -224,11 +224,13 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
             this_line['outs'] += 1
 
     # handle weird outs for the batter previously marked on base and NOT Error, e.g. BX1(6E1)
-    if bool(re.search(r'BX[123H]', runner)) & bool(not(re.search(r'E', runner))):
+    if bool(re.search(r'BX[123H]', runner)) & bool(not(re.search(r'E', runner))) & \
+            bool(not(re.search(r'^([0-9]+)?E', this_line['play']))):
         this_line['outs'] += 1
 
-        # stat add: AB, PA -- if NOT already added on a hit
-        if not(re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', this_line['play'])):
+        # stat add: AB, PA -- if NOT already added on a hit or DP (incl. FC.*DP)
+        if bool(not(re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', this_line['play']))) & \
+                bool(not(re.search(r'DP', this_line['play']))):
             st = ['AB', 'PA']
             sc.stat_collector(this_line['playerID'], lineup, this_line, st)
 
@@ -247,7 +249,8 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
             this_line['runs_scored'] -= 1
 
     # batter on base due to error
-    if re.search(r'BX[123H]\(([0-9]+)?E', runner):
+    if bool(re.search(r'BX[123H]\(([0-9]+)?E', runner)) | \
+            bool(re.search(r'^([0-9]+)?E.*BX[123H]', this_line['play'])):
 
         # move batter
         if re.search(r'BX1', runner):
