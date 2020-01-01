@@ -8,7 +8,7 @@ import pitcher_oper as po
 
 
 # re-write the processor based on re.search/re.findall grep searching
-def play_processor3(the_dict, games_roster):
+def play_processor2(game_num, the_dict, games_roster):
 
     # the game id
     the_game_id = the_dict[0]['game_id']
@@ -49,18 +49,6 @@ def play_processor3(the_dict, games_roster):
             pid = this_line['playerID']
             the_play = this_line['play']
             hid = this_line['pitcherID']
-
-            # divide up beginning scenario with the running scenarios
-            split_play = this_line['play'].split(',')
-            begin_play = split_play[0]
-            run_play = None
-            if len(split_play) > 1:
-                run_play = split_play[1]
-
-            print(begin_play)
-            print(run_play)
-            print(split_play)
-            exit()
 
             # Case 1: regular single out plays - exclude SH/SF
             if bool(re.search(r'^[1-9]([1-9!]+)?/(G|F|L|P|BG|BP|BL|IF)(?!/(SH|SF))', the_play)) | \
