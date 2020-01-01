@@ -59,7 +59,7 @@ def steal_processor(this_line, lineup):
 
 
 # baserunner movements
-def base_running2(this_line, run_play, lineup, pitcher_id):
+def base_running2(this_line, run_play, lineup, pid, pitcher_id):
 
     # if there is running plays, then process
     if run_play is not None:
@@ -67,6 +67,28 @@ def base_running2(this_line, run_play, lineup, pitcher_id):
 
         for r in runners:
             this_line = runner_processor(r, this_line, lineup, pitcher_id)
+
+    # now check for stand-still runners
+    check_move = check_runner_movement(this_line)
+    if bool(run_play is None) & bool(not(check_move)):
+
+        # first base
+        if bool(this_line['1B_after'] != pid) & bool(this_line['1B_before'] is not None):
+            if bool(this_line['1B_after'] is None):
+                this_line['1B_after'] = this_line['1B_before']
+            else:
+                print(this_line)
+        # second base
+        if bool(this_line['2B_after'] != pid) & bool(this_line['2B_before'] is not None):
+            if bool(this_line['2B_after'] is None):
+                this_line['2B_after'] = this_line['2B_before']
+            else:
+                print(this_line)
+        if bool(this_line['3B_after'] != pid) & bool(this_line['3B_before'] is not None):
+            if bool(this_line['3B_after'] is None):
+                this_line['3B_after'] = this_line['3B_before']
+            else:
+                print(this_line)
 
     return this_line
 
