@@ -5,6 +5,7 @@ import global_variables as gv
 import base_running as br
 import time as t
 import pitcher_oper as po
+import non_plate_appearance as npa
 
 
 # re-write the processor based on re.search/re.findall grep searching
@@ -101,7 +102,7 @@ def play_processor3(the_dict, games_roster):
                     if bool(re.search(r'\+', begin_play)):
 
                         # run the NON-PA function
-                        pass
+                        this_line = npa.non_pa(this_line, begin_play, run_play, lineup, pid, hid)
 
                     # check move, TRUE means no movements!
                     check_move = br.check_runner_movement(this_line)
@@ -109,8 +110,10 @@ def play_processor3(the_dict, games_roster):
                     # if no movements, then put batter on first!
                     if check_move:
                         this_line['1B_after'] = pid
+
                         # now process any base runners normally
-                        # print(this_line)
+                        this_line = br.base_running2(this_line, run_play, lineup, hid)
+                        print(this_line)
 
             # # Case 1: regular single out plays - exclude SH/SF
             # if bool(re.search(r'^[1-9]([1-9!]+)?/(G|F|L|P|BG|BP|BL|IF)(?!/(SH|SF))', the_play)) | \

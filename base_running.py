@@ -59,6 +59,19 @@ def steal_processor(this_line, lineup):
 
 
 # baserunner movements
+def base_running2(this_line, run_play, lineup, pitcher_id):
+
+    # if there is running plays, then process
+    if run_play is not None:
+        runners = run_play.split(';')
+
+        for r in runners:
+            this_line = runner_processor(r, this_line, lineup, pitcher_id)
+
+    return this_line
+
+
+# baserunner movements
 def base_running(this_line, lineup, pitcher_id):
     
     # case: FO|FC|DP
