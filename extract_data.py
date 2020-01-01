@@ -97,7 +97,7 @@ for file_nm in all_files:
         a1_time = t.time()
 
         # then run the processor
-        this_game = pp.play_processor2(e+1, each_game, games_roster)
+        this_game = pp.play_processor3(each_game, games_roster)
 
         # game performance
         a2_time = t.time()
@@ -119,8 +119,12 @@ for file_nm in all_files:
         fgp.write('GAME #:' + str(e) + ' reindex: ' + str(a3_time - a2_time) + '\n')
         fgp.write('GAME #:' + str(e) + ' store: ' + str(a4_time - a3_time) + '\n')
         fgp.write('GAME #:' + str(e) + ' TOTAL: ' + str(a4_time - a1_time) + '\n')
-        # print('GAME #:', e, ' TOTAL: ', a4_time - a1_time)
+        print('GAME #:', e, ' TOTAL: ', a4_time - a1_time)
         fgp.close()
+
+        # testing play_processor3
+        pd.DataFrame(gv.full_output).transpose().to_csv('OUTPUT.csv', sep=',', mode='w')
+        exit()
 
     # indicator of what is completed
     e_time = t.time()
