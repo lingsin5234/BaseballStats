@@ -61,10 +61,8 @@ def play_processor3(the_dict, games_roster):
             # divide up begin_play into plate-appearance (PA) plays and non-PA plays
             if bool(re.search(r'^(WP|NP|BK|PB|FLE|OA|SB|CS|PO|DI)', begin_play)):
 
-                
-                # if there is a running play, handle it
-                # if run_play is not None:
-                    # print('NON-PA:', begin_play, '==', run_play)
+                # handles all non-PA and running events thereafter
+                this_line = npa.non_pa(this_line, begin_play, run_play, lineup, pid, hid)
 
             # plate-appearance play
             else:
@@ -102,7 +100,7 @@ def play_processor3(the_dict, games_roster):
                         po.pitch_collector(hid, lineup, this_line, pt)
 
                         # base_runner movements
-                        this_line = br.base_running2(this_line, run_play, lineup, hid)
+                        this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
                     else:
                         print('Hit + Error on batter:', begin_play, '==', run_play)
@@ -139,15 +137,19 @@ def play_processor3(the_dict, games_roster):
                         this_line = npa.non_pa(this_line, begin_play, run_play, lineup, pid, hid)
 
                     # check move, TRUE means no movements!
-                    check_move = br.check_runner_movement(this_line)
+                    # check_move = br.check_runner_movement(this_line)
 
-                    # if no movements, then put batter on first!
-                    if check_move & bool(not(re.search(r'K', begin_play))):
-                        this_line['1B_after'] = pid
+                    # if no batter movements, then put batter on first!
+                    if run_play is not None:
+                        if bool(not(re.search(r'B', run_play))) & bool(not(re.search(r'K', begin_play))):
+                            this_line['1B_after'] = pid
+                    else:
+                        if bool(not(re.search(r'K', begin_play))):
+                            this_line['1B_after'] = pid
 
-                        # now process any base runners normally
-                        this_line = br.base_running2(this_line, run_play, lineup, hid)
-                        # print(this_line)
+                    # now process any base runners normally
+                    this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
+                    # print(this_line)
 
             # # Case 1: regular single out plays - exclude SH/SF
             # if bool(re.search(r'^[1-9]([1-9!]+)?/(G|F|L|P|BG|BP|BL|IF)(?!/(SH|SF))', the_play)) | \
