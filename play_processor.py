@@ -99,10 +99,18 @@ def play_processor3(the_dict, games_roster):
 
                     # check if additional event happened
                     if bool(re.search(r'\+', begin_play)):
-                        # print(br.check_runner_movement(), begin_play)
+
+                        # run the NON-PA function
                         pass
 
+                    # check move, TRUE means no movements!
+                    check_move = br.check_runner_movement(this_line)
 
+                    # if no movements, then put batter on first!
+                    if check_move:
+                        this_line['1B_after'] = pid
+                        # now process any base runners normally
+                        # print(this_line)
 
             # # Case 1: regular single out plays - exclude SH/SF
             # if bool(re.search(r'^[1-9]([1-9!]+)?/(G|F|L|P|BG|BP|BL|IF)(?!/(SH|SF))', the_play)) | \
