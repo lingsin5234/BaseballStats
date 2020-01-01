@@ -52,7 +52,7 @@ def play_processor3(the_dict, games_roster):
             hid = this_line['pitcherID']
 
             # divide up beginning scenario with the running scenarios
-            split_play = this_line['play'].split(',')
+            split_play = this_line['play'].split('.')
             begin_play = split_play[0]
             run_play = None
             if len(split_play) > 1:
@@ -61,17 +61,51 @@ def play_processor3(the_dict, games_roster):
             # divide up begin_play into plate-appearance (PA) plays and non-PA plays
             if bool(re.search(r'^(WP|NP|BK|PB|FLE|OA|SB|CS|PO|DI)', begin_play)):
 
+                
                 # if there is a running play, handle it
-                if run_play is not None:
-                    print('NON-PA:', begin_play, '==', run_play)
+                # if run_play is not None:
+                    # print('NON-PA:', begin_play, '==', run_play)
 
             # plate-appearance play
             else:
 
                 # if it is a HIT
                 if bool(re.search(r'^((S|D|T)([1-9]+)?/?|H/|HR|DGR)', begin_play)):
-                    # print('HIT:', begin_play)
-                    pass
+
+                    if bool(not(re.search(r'E[0-9]+', begin_play))):
+
+                        # stats
+                        st = ['AB', 'PA', 'H']
+                        pt = ['BF', 'H']
+
+                        # single
+                        if re.search(r'^S', begin_play):
+                            this_line['1B_after'] = pid
+                        # double
+                        elif re.search(r'^D', begin_play):
+                            this_line['2B_after'] = pid
+                            st.append('D')
+                            pt.append('D')
+                        # triple
+                        elif re.search(r'^T', begin_play):
+                            this_line['3B_after'] = pid
+                            st.append('T')
+                            pt.append('T')
+                        # home run
+                        else:
+                            this_line['runs_scored'] += 1
+                            st.extend(['HR', 'R', 'RBI'])
+                            pt.extend(['HR', 'R', 'ER'])
+
+                        # stat process
+                        sc.stat_collector(pid, lineup, this_line, st)
+                        po.pitch_collector(hid, lineup, this_line, pt)
+
+                        # base_runner movements
+                        this_line = br.base_running2(this_line, run_play, lineup, hid)
+
+                    else:
+                        print('Hit + Error on batter:', begin_play, '==', run_play)
 
                 # Walk or Strikeout
                 if bool(re.search(r'^(IW|HBP|W|K)', begin_play)):
@@ -108,12 +142,12 @@ def play_processor3(the_dict, games_roster):
                     check_move = br.check_runner_movement(this_line)
 
                     # if no movements, then put batter on first!
-                    if check_move:
+                    if check_move & bool(not(re.search(r'K', begin_play))):
                         this_line['1B_after'] = pid
 
                         # now process any base runners normally
                         this_line = br.base_running2(this_line, run_play, lineup, hid)
-                        print(this_line)
+                        # print(this_line)
 
             # # Case 1: regular single out plays - exclude SH/SF
             # if bool(re.search(r'^[1-9]([1-9!]+)?/(G|F|L|P|BG|BP|BL|IF)(?!/(SH|SF))', the_play)) | \
@@ -674,8 +708,8 @@ def play_processor3(the_dict, games_roster):
         # # performance checkpoint
         # q3_time = t.time()
         #
-        # # set the line back to the df to be stored properly.
-        # the_dict[i] = this_line
+        # set the line back to the df to be stored properly.
+        the_dict[i] = this_line
         #
         # # performance checkpoint
         # q4_time = t.time()
