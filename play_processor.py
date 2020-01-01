@@ -51,6 +51,10 @@ def play_processor3(the_dict, games_roster):
             the_play = this_line['play']
             hid = this_line['pitcherID']
 
+            # bases occupied
+            bases_before = br.bases_occupied(this_line)
+            bases_after = bases_before
+
             # divide up beginning scenario with the running scenarios
             split_play = this_line['play'].split('.')
             begin_play = split_play[0]
@@ -79,19 +83,23 @@ def play_processor3(the_dict, games_roster):
                         # single
                         if re.search(r'^S', begin_play):
                             this_line['1B_after'] = pid
+                            bases_after = 'B' + bases_after
                         # double
                         elif re.search(r'^D', begin_play):
                             this_line['2B_after'] = pid
+                            bases_after = '-B' + bases_after
                             st.append('D')
                             pt.append('D')
                         # triple
                         elif re.search(r'^T', begin_play):
                             this_line['3B_after'] = pid
+                            bases_after = '--B' + bases_after
                             st.append('T')
                             pt.append('T')
                         # home run
                         else:
                             this_line['runs_scored'] += 1
+                            bases_after = '---'
                             st.extend(['HR', 'R', 'RBI'])
                             pt.extend(['HR', 'R', 'ER'])
 
@@ -100,13 +108,13 @@ def play_processor3(the_dict, games_roster):
                         po.pitch_collector(hid, lineup, this_line, pt)
 
                         # base_runner movements
-                        this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
+                        this_line = br.base_running2(this_line, run_play, bases_after, lineup, pid, hid)
 
                     else:
                         print('Hit + Error on batter:', begin_play, '==', run_play)
 
                 # Walk or Strikeout
-                if bool(re.search(r'^(IW|HBP|W|K)', begin_play)):
+                elif bool(re.search(r'^(IW|HBP|W|K)', begin_play)):
 
                     # handle these scenarios normally
                     if bool(re.search(r'K', begin_play)):
@@ -136,9 +144,6 @@ def play_processor3(the_dict, games_roster):
                         # run the NON-PA function
                         this_line = npa.non_pa(this_line, begin_play, run_play, lineup, pid, hid)
 
-                    # check move, TRUE means no movements!
-                    # check_move = br.check_runner_movement(this_line)
-
                     # if no batter movements, then put batter on first!
                     if run_play is not None:
                         if bool(not(re.search(r'B', run_play))) & bool(not(re.search(r'K', begin_play))):
@@ -148,8 +153,50 @@ def play_processor3(the_dict, games_roster):
                             this_line['1B_after'] = pid
 
                     # now process any base runners normally
-                    this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
-                    # print(this_line)
+                    this_line = br.base_running2(this_line, run_play, bases_after, lineup, pid, hid)
+
+                # Fielding Plays that are not FC
+                elif bool(re.search(r'^[0-9]+', begin_play)):
+
+                    # stats
+                    st = ['AB', 'PA']
+                    pt = ['IP', 'BF']
+
+                    # DP or TP
+                    if bool(re.search(r'(DP|TP)', begin_play)):
+                        this_line['outs'] += 2
+
+                        # batter is one of the outs
+                        if not(re.search(r'\([123]\)([0-9]+)?\([123]\)', begin_play)):
+                            # find out where the other out is
+                            if re.search(r'\(1\)', begin_play):
+                                bases_after = '--' + bases_after[1:2]
+                            elif re.search(r'\(2\)', begin_play):
+                                bases_after = '-' + bases_after[0:1] + '-'
+                            else:
+                                bases_after = '-' + bases_after[:2]
+                        # batter is safe
+                        else:
+                            if bool(re.search(r'\(1\)', begin_play)) & bool(re.search(r'\(2\)', begin_play)):
+                                bases_after = 'B--'
+                            elif bool(re.search(r'\(1\)', begin_play)) & bool(re.search(r'\(3\)', begin_play)):
+                                bases_after = 'B-2'
+                            else:
+                                bases_after = 'B1-'
+
+                        if bool(re.search(r'TP', begin_play)):
+                            this_line['outs'] += 3
+                            bases_after = '---'
+
+                        if re.search('GDP', begin_play):
+                            st.append('GDP')
+                            pt.append('IDP')
+                        sc.stat_collector(pid, lineup, this_line, st)
+                        po.pitch_collector(pid, lineup, this_line, pt)
+
+                        # now process any base runners normally
+                        this_line = br.base_running2(this_line, run_play, bases_after, lineup, pid, hid)
+                        print(this_line)
 
             # # Case 1: regular single out plays - exclude SH/SF
             # if bool(re.search(r'^[1-9]([1-9!]+)?/(G|F|L|P|BG|BP|BL|IF)(?!/(SH|SF))', the_play)) | \
