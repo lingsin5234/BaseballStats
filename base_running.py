@@ -59,9 +59,9 @@ def steal_processor(this_line, lineup):
 
 
 # baserunner movements
-def base_running2(this_line, run_play, bases_after, lineup, pid, pitcher_id):
+def base_running2(this_line, run_play, lineup, pid, pitcher_id):
 
-    curr_bases = bases_after
+    curr_bases = gv.bases_after
 
     # if there is running plays, then process
     if run_play is not None:
@@ -92,8 +92,8 @@ def base_running2(this_line, run_play, bases_after, lineup, pid, pitcher_id):
     #             # stay put
     #             this_line['3B_after'] = this_line['3B_before']
 
-    if bases_after != curr_bases:
-        print(this_line['play'], bases_after, '=>', curr_bases)
+    if gv.bases_after != curr_bases:
+        print(this_line['play'], gv.bases_after, '=>', curr_bases)
 
     return this_line
 
