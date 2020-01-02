@@ -118,6 +118,8 @@ def play_processor3(the_dict, games_roster):
 
                     # handle these scenarios normally
                     if bool(re.search(r'K', begin_play)):
+                        this_line['outs'] += 1
+
                         st = ['AB', 'PA', 'K']
                         sc.stat_collector(pid, lineup, this_line, st)
                         pt = ['IP', 'BF', 'K']
@@ -191,6 +193,18 @@ def play_processor3(the_dict, games_roster):
                         if re.search('GDP', begin_play):
                             st.append('GDP')
                             pt.append('IDP')
+                        sc.stat_collector(pid, lineup, this_line, st)
+                        po.pitch_collector(pid, lineup, this_line, pt)
+
+                        # now process any base runners normally
+                        this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
+
+                    # normal out - NOT an error
+                    elif bool(re.search(r'^[0-9]+(?!E)', begin_play)):
+                        this_line['outs'] += 1
+
+                        # batter is out
+                        gv.bases_after = '-' + gv.bases_after
                         sc.stat_collector(pid, lineup, this_line, st)
                         po.pitch_collector(pid, lineup, this_line, pt)
 
@@ -758,8 +772,8 @@ def play_processor3(the_dict, games_roster):
         #
         # set the line back to the df to be stored properly.
         the_dict[i] = this_line
-        print(gv.bases_after, the_play, this_line['1B_before'], this_line['2B_before'], this_line['3B_before'],
-              this_line['outs'], this_line['1B_after'], this_line['2B_after'], this_line['3B_after'])
+        print(the_play, bases_before, this_line['1B_before'], this_line['2B_before'], this_line['3B_before'],
+              this_line['outs'], this_line['1B_after'], this_line['2B_after'], this_line['3B_after'], gv.bases_after)
         #
         # # performance checkpoint
         # q4_time = t.time()
