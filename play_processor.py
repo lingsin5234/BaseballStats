@@ -114,7 +114,7 @@ def play_processor3(the_dict, games_roster):
                         print('Hit + Error on batter:', begin_play, '==', run_play)
 
                 # Walk or Strikeout
-                elif bool(re.search(r'^(IW|HBP|W|K)', begin_play)):
+                elif bool(re.search(r'^(IW|HP|W|K)', begin_play)):
 
                     # handle these scenarios normally
                     if bool(re.search(r'K', begin_play)):
@@ -126,7 +126,7 @@ def play_processor3(the_dict, games_roster):
                         pt = ['IP', 'BF', 'K']
                         po.pitch_collector(pid, lineup, this_line, pt)
 
-                    elif bool(re.search(r'HBP', begin_play)):
+                    elif bool(re.search(r'HP', begin_play)):
                         gv.bases_after = 'B' + gv.bases_after
 
                         st = ['PA', 'HBP']
@@ -163,7 +163,7 @@ def play_processor3(the_dict, games_roster):
                     this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
                 # Fielding Plays that are not FC
-                elif bool(re.search(r'^[0-9]+', begin_play)):
+                elif bool(re.search(r'^([0-9]+)?E?[0-9]+', begin_play)):
 
                     # stats
                     st = ['AB', 'PA']
@@ -226,9 +226,30 @@ def play_processor3(the_dict, games_roster):
                         # now process any base runners normally
                         this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
-                    # normal out - NOT an error
-                    elif bool(re.search(r'^[0-9]+(?!E)', begin_play)):
+                    # fielding error
+                    elif bool(re.search(r'^([0-9]+)?E', begin_play)):
+                        # batter is safe - unless specified in run_play
+                        gv.bases_after = 'B' + gv.bases_after
+                        st.append('ROE')  # reached on error
+                        pt = ['BF']
+
+                        sc.stat_collector(pid, lineup, this_line, st)
+                        po.pitch_collector(pid, lineup, this_line, pt)
+
+                        # now process any base runners normally
+                        this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
+
+                    # normal out -- this should be last to handle all cases prior
+                    elif bool(re.search(r'^[0-9]+', begin_play)):
                         this_line['outs'] += 1
+
+                        # this case might come back: 54(B)/BG25/SH.1-2
+                        # putout by fielder not normally covering that base
+
+                        if bool(re.search(r'SH', begin_play)):
+                            st.append('SH')
+                        elif bool(re.search(r'SF', begin_play)):
+                            st.append('SF')
 
                         # batter is out
                         # using dash instead of X as this will hold runners unless run_play includes them
@@ -238,6 +259,35 @@ def play_processor3(the_dict, games_roster):
 
                         # now process any base runners normally
                         this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
+
+                # Fielder's Choice
+                elif bool(re.search(r'^FC', begin_play)):
+                    # DPs are handled by the runner marked out.
+                    this_line['outs'] += 1
+                    st = ['AB', 'PA']
+                    pt = ['IP', 'BF']
+
+                    # determine who is out
+                    if re.search(r'\(B\)', begin_play):
+                        gv.bases_after = 'X' + gv.bases_after
+                    elif re.search(r'\(1\)', begin_play):
+                        gv.bases_after = 'BX' + gv.bases_after[1:]
+                        this_line['1B_after'] = pid
+                    elif re.search(r'\(2\)', begin_play):
+                        gv.bases_after = 'B' + gv.bases_after[0:1] + 'X' + gv.bases_after[2]
+                        this_line['1B_after'] = pid
+                    else:
+                        gv.bases_after = 'B' + gv.bases_after[:2] + 'X'
+                        this_line['1B_after'] = pid
+                    sc.stat_collector(pid, lineup, this_line, st)
+                    po.pitch_collector(pid, lineup, this_line, pt)
+
+                    # now process any base runners normally
+                    this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
+
+                # find other plays:
+                else:
+                    print('Category Needed: ', begin_play)
 
             # # Case 1: regular single out plays - exclude SH/SF
             # if bool(re.search(r'^[1-9]([1-9!]+)?/(G|F|L|P|BG|BP|BL|IF)(?!/(SH|SF))', the_play)) | \
