@@ -15,6 +15,7 @@ def steal_processor(this_line, lineup):
             # if NOT an error on throwing
             if not(re.search(r'SB2.1-[23H]\(([0-9]+)?E([0-9]+)?', this_line['play'])):
                 this_line['2B_after'] = this_line['1B_before']
+                gv.bases_after = '-1' + gv.bases_after[len(gv.bases_after)-2:]
 
             # stat add: SB
             st = ['SB']
@@ -24,6 +25,8 @@ def steal_processor(this_line, lineup):
             # if NOT an error on throwing
             if not (re.search(r'SB3.2-[3H]\(([0-9]+)?E([0-9]+)?', this_line['play'])):
                 this_line['3B_after'] = this_line['2B_before']
+                gv.bases_after = gv.bases_after[:len(gv.bases_after)-2] + '-2' + \
+                                 gv.bases_after[len(gv.bases_after)-1:]
 
             # stat add: SB
             st = ['SB']
@@ -33,6 +36,7 @@ def steal_processor(this_line, lineup):
             # if NOT an error on throwing
             if not (re.search(r'SBH.3-[H]\(([0-9]+)?E([0-9]+)?', this_line['play'])):
                 this_line['runs_scored'] += 1
+                gv.bases_after = gv.bases_after.replace('3', 'R')
 
             # stat add: SB, R
             st = ['SB', 'R']
@@ -41,16 +45,19 @@ def steal_processor(this_line, lineup):
     # check if caught stealing, then which base(s)
     if re.search(r'CS', this_line['play']):
         if re.search(r'CS2', this_line['play']):
+            gv.bases_after = gv.bases_after.replace('1', 'X')
             # stat add: CS
             st = ['CS']
             sc.stat_collector(this_line['1B_before'], lineup, this_line, st)
 
         if re.search(r'CS3', this_line['play']):
+            gv.bases_after = gv.bases_after.replace('2', 'X')
             # stat add: CS
             st = ['CS']
             sc.stat_collector(this_line['2B_before'], lineup, this_line, st)
 
         if re.search(r'CSH', this_line['play']):
+            gv.bases_after = gv.bases_after.replace('3', 'X')
             # stat add: CS
             st = ['CS']
             sc.stat_collector(this_line['3B_before'], lineup, this_line, st)

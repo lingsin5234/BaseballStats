@@ -280,9 +280,24 @@ def play_processor3(the_dict, games_roster):
                     elif re.search(r'\(2\)', begin_play):
                         gv.bases_after = 'B' + gv.bases_after[0:1] + 'X' + gv.bases_after[2]
                         this_line['1B_after'] = pid
-                    else:
+                    elif re.search(r'\(3\)', begin_play):
                         gv.bases_after = 'B' + gv.bases_after[:2] + 'X'
                         this_line['1B_after'] = pid
+                    else:
+                        # NO ONE IS OUT
+                        gv.bases_after = 'B' + gv.bases_after
+                        this_line['outs'] -= 1
+                    sc.stat_collector(pid, lineup, this_line, st)
+                    po.pitch_collector(pid, lineup, this_line, pt)
+
+                    # now process any base runners normally
+                    this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
+
+                # Catcher Interference
+                elif bool(re.search(r'C/E[1-3]', begin_play)):
+                    st = ['PA']
+                    pt = ['BF']
+                    this_line['1B_after'] = pid
                     sc.stat_collector(pid, lineup, this_line, st)
                     po.pitch_collector(pid, lineup, this_line, pt)
 
@@ -845,9 +860,9 @@ def play_processor3(the_dict, games_roster):
         #             # add games played stat - as "pitching" stat
         #             po.pitch_collector(pid, lineup, this_line, ['GP'])
         #
-        # # do a check for > 3 outs
-        # if this_line['outs'] > 3:
-        #     print('BAD OUTS:', this_line['game_id'], '-', the_play, ' ', this_line['outs'])
+        # do a check for > 3 outs
+        if this_line['outs'] > 3:
+            print('BAD OUTS:', this_line['game_id'], '-', the_play, ' ', this_line['outs'])
         #
         # # performance checkpoint
         # q3_time = t.time()
