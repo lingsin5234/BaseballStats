@@ -89,7 +89,7 @@ for file_nm in all_files:
 
     # convert all games for 1 file
     a_full_df = g.convert_games(games, games_roster)
-    print('########## EASIER TO FIND ###########')
+
     # play_processor2 function
     for e, each_game in enumerate(a_full_df):
 
@@ -98,7 +98,7 @@ for file_nm in all_files:
 
         # then run the processor
         this_game = pp.play_processor3(each_game, games_roster)
-        exit()
+
         # game performance
         a2_time = t.time()
 
