@@ -231,7 +231,8 @@ def play_processor3(the_dict, games_roster):
                         this_line['outs'] += 1
 
                         # batter is out
-                        gv.bases_after = 'X' + gv.bases_after
+                        # using dash instead of X as this will hold runners unless run_play includes them
+                        gv.bases_after = '-' + gv.bases_after
                         sc.stat_collector(pid, lineup, this_line, st)
                         po.pitch_collector(pid, lineup, this_line, pt)
 
@@ -799,8 +800,8 @@ def play_processor3(the_dict, games_roster):
         #
         # set the line back to the df to be stored properly.
         the_dict[i] = this_line
-        print(the_play, bases_before, this_line['1B_before'], this_line['2B_before'], this_line['3B_before'],
-              this_line['outs'], this_line['1B_after'], this_line['2B_after'], this_line['3B_after'], gv.bases_after)
+        # print(the_play, bases_before, this_line['1B_before'], this_line['2B_before'], this_line['3B_before'],
+        #       this_line['outs'], this_line['1B_after'], this_line['2B_after'], this_line['3B_after'], gv.bases_after)
         #
         # # performance checkpoint
         # q4_time = t.time()
