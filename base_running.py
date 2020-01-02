@@ -267,6 +267,12 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
             pt = ['R']
             po.pitch_collector(hid, lineup, this_line, pt)
 
+    # batter on base due to PB or WP
+    if bool(re.search(r'^K\+(WP|PB).*B-1', this_line['play'])):
+        this_line['outs'] -= 1
+        this_line['1B_after'] = this_line['playerID']
+        gv.bases_after = 'B' + gv.bases_after[1:]  # to replace the initial - placed by the K
+
     return this_line
 
 
