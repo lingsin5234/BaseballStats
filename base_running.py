@@ -216,10 +216,13 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
         pt = ['R']
 
         if re.search(r'3-', runner):
+            gv.bases_after = gv.bases_after.replace('3', '-')
             sc.stat_collector(this_line['3B_before'], lineup, this_line, st)
         elif re.search(r'2-', runner):
+            gv.bases_after = gv.bases_after.replace('2', '-')
             sc.stat_collector(this_line['2B_before'], lineup, this_line, st)
         elif re.search(r'1-', runner):
+            gv.bases_after = gv.bases_after.replace('1', '-')
             sc.stat_collector(this_line['1B_before'], lineup, this_line, st)
         elif bool(re.search(r'B-', runner)) & \
                 (not(re.search(r'^(H/|HR|([0-9]+)?E)', this_line['play']))):
@@ -252,16 +255,38 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
 
     # advanced
     elif bool(re.search(r'2-3', runner)) | bool(re.search(r'2X3\(([0-9]+)?E', runner)):
+
+        # keep everything before last two characters, then tack on the second last character
+        gv.bases_after = gv.bases_after[:len(gv.bases_after)-2] + \
+                         gv.bases_after[len(gv.bases_after)-2:len(gv.bases_after)-1]
         this_line['3B_after'] = this_line['2B_before']
     elif bool(re.search(r'1-2', runner)) | bool(re.search(r'1X2\(([0-9]+)?E', runner)):
+
+        # remove the 2B runner (either - or 2, this should have moved first based on running event order
+        # e.g. .2-H;1-2
+        gv.bases_after = gv.bases_after[:len(gv.bases_after)-3] + \
+                         gv.bases_after[len(gv.bases_after)-3:len(gv.bases_after)-2] + \
+                         gv.bases_after[len(gv.bases_after)-1:]
         this_line['2B_after'] = this_line['1B_before']
     elif bool(re.search(r'1-3', runner)) | bool(re.search(r'1X3\(([0-9]+)?E', runner)):
+
+        # remove the 2B and 3B runners; this should have moved already
+        gv.bases_after = gv.bases_after[:len(gv.bases_after)-2]
+        # tack on bases if missing; could be SF, SH, or a single, etc.
+        if len(gv.bases_after) < 2:
+            gv.bases_after = gv.bases_after.replace('1', '-1')
+        if len(gv.bases_after) < 3:
+            gv.bases_after = gv.bases_after.replace('1', '-1')
         this_line['3B_after'] = this_line['1B_before']
 
     # remove runners that are explicitly out but not FC nor the error above
     if re.search(r'[123]X[123H]', runner):
         if bool(not(re.search(r'^FC', this_line['play']))) & bool(not(re.search(r'E', runner))):
             this_line['outs'] += 1
+
+            # first character is runner
+            the_runner = runner[0]
+            gv.bases_after = gv.bases_after.replace(the_runner, '-')
 
     # handle weird outs for the batter previously marked on base and NOT Error, e.g. BX1(6E1)
     if bool(re.search(r'BX[123H]', runner)) & bool(not(re.search(r'E', runner))) & \
@@ -294,12 +319,16 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
 
         # move batter
         if re.search(r'BX1', runner):
+            gv.bases_after = 'B' + gv.bases_after
             this_line['1B_after'] = this_line['playerID']
         elif re.search(r'BX2', runner):
+            gv.bases_after = '-B' + gv.bases_after
             this_line['2B_after'] = this_line['playerID']
         elif re.search(r'BX3', runner):
+            gv.bases_after = '--B' + gv.bases_after
             this_line['3B_after'] = this_line['playerID']
         elif re.search(r'BXH', runner):
+            gv.bases_after = '---'
             this_line['runs_scored'] += 1
 
             # no rbi for this one.

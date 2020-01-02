@@ -196,7 +196,6 @@ def play_processor3(the_dict, games_roster):
 
                         # now process any base runners normally
                         this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
-                        print(this_line)
 
             # # Case 1: regular single out plays - exclude SH/SF
             # if bool(re.search(r'^[1-9]([1-9!]+)?/(G|F|L|P|BG|BP|BL|IF)(?!/(SH|SF))', the_play)) | \
@@ -759,6 +758,8 @@ def play_processor3(the_dict, games_roster):
         #
         # set the line back to the df to be stored properly.
         the_dict[i] = this_line
+        print(gv.bases_after, the_play, this_line['1B_before'], this_line['2B_before'], this_line['3B_before'],
+              this_line['outs'], this_line['1B_after'], this_line['2B_after'], this_line['3B_after'])
         #
         # # performance checkpoint
         # q4_time = t.time()

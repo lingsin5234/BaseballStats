@@ -98,7 +98,7 @@ for file_nm in all_files:
 
         # then run the processor
         this_game = pp.play_processor3(each_game, games_roster)
-
+        exit()
         # game performance
         a2_time = t.time()
 
