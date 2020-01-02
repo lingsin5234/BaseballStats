@@ -119,6 +119,7 @@ def play_processor3(the_dict, games_roster):
                     # handle these scenarios normally
                     if bool(re.search(r'K', begin_play)):
                         this_line['outs'] += 1
+                        gv.bases_after = '-' + gv.bases_after
 
                         st = ['AB', 'PA', 'K']
                         sc.stat_collector(pid, lineup, this_line, st)
@@ -126,12 +127,16 @@ def play_processor3(the_dict, games_roster):
                         po.pitch_collector(pid, lineup, this_line, pt)
 
                     elif bool(re.search(r'HBP', begin_play)):
+                        gv.bases_after = 'B' + gv.bases_after
+
                         st = ['PA', 'HBP']
                         sc.stat_collector(pid, lineup, this_line, st)
                         pt = ['BF', 'HBP']
                         po.pitch_collector(pid, lineup, this_line, pt)
 
                     else:
+                        gv.bases_after = 'B' + gv.bases_after
+
                         st = ['PA', 'W']
                         pt = ['BF', 'BB']
                         if bool(re.search(r'^IW', begin_play)):
