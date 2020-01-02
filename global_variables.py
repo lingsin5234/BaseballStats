@@ -17,6 +17,9 @@ fo_idx = 0
 game_roster = {}
 gr_idx = 0
 
+# for tracking baserunners
+bases_after = '---'
+
 # global dictionary for stat types
 bat_stats = {
     'GP': 'games_played',
