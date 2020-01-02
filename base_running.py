@@ -71,29 +71,22 @@ def base_running2(this_line, run_play, lineup, pid, pitcher_id):
             this_line = runner_processor(r, this_line, lineup, pitcher_id)
 
         curr_bases = bases_occupied(this_line)
-    # # now check for stand-still runners
-    # check_move = check_runner_movement(this_line)
-    # if bool(run_play is None) & bool(not(check_move)):
-    #
-    #     # first base
-    #     if bool(this_line['1B_after'] != pid) & bool(this_line['1B_before'] is not None):
-    #         if bool(this_line['1B_after'] is None):
-    #             # stay put
-    #             this_line['1B_after'] = this_line['1B_before']
-    #
-    #     # second base
-    #     if bool(this_line['2B_after'] != pid) & bool(this_line['2B_before'] is not None):
-    #         if bool(this_line['2B_after'] is None):
-    #             # stay put
-    #             this_line['2B_after'] = this_line['2B_before']
-    #
-    #     if bool(this_line['3B_after'] != pid) & bool(this_line['3B_before'] is not None):
-    #         if bool(this_line['3B_after'] is None):
-    #             # stay put
-    #             this_line['3B_after'] = this_line['3B_before']
 
-    if gv.bases_after != curr_bases:
-        print(this_line['play'], gv.bases_after, '=>', curr_bases)
+    # now check for stand-still runners
+    # first base
+    if re.search(r'^1', gv.bases_after):
+        this_line['1B_after'] = this_line['1B_before']
+
+    # second base
+    if re.search(r'^.2', gv.bases_after):
+        this_line['2B_after'] = this_line['2B_before']
+
+    if re.search(r'3$', gv.bases_after):
+        # stay put
+        this_line['3B_after'] = this_line['3B_before']
+
+    # if gv.bases_after != curr_bases:
+        # print(this_line['play'], gv.bases_after, '=>', curr_bases)
 
     return this_line
 
@@ -216,13 +209,13 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
         pt = ['R']
 
         if re.search(r'3-', runner):
-            gv.bases_after = gv.bases_after.replace('3', '-')
+            gv.bases_after = gv.bases_after.replace('3', '')
             sc.stat_collector(this_line['3B_before'], lineup, this_line, st)
         elif re.search(r'2-', runner):
-            gv.bases_after = gv.bases_after.replace('2', '-')
+            gv.bases_after = gv.bases_after.replace('2', '')
             sc.stat_collector(this_line['2B_before'], lineup, this_line, st)
         elif re.search(r'1-', runner):
-            gv.bases_after = gv.bases_after.replace('1', '-')
+            gv.bases_after = gv.bases_after.replace('1', '')
             sc.stat_collector(this_line['1B_before'], lineup, this_line, st)
         elif bool(re.search(r'B-', runner)) & \
                 (not(re.search(r'^(H/|HR|([0-9]+)?E)', this_line['play']))):
