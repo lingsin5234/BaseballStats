@@ -73,9 +73,19 @@ def base_running2(this_line, run_play, lineup, pid, pitcher_id):
         curr_bases = bases_occupied(this_line)
 
     # fix bases_after to correct length
+    # replace runs-scored with -
+    gv.bases_after = gv.bases_after.replace('R', '-')
+
     if len(gv.bases_after) > 3:
         # only replace first occurrence
         gv.bases_after = gv.bases_after.replace('-', '', 1)
+
+    # replace processed outs (FO/DP) with -
+    gv.bases_after = gv.bases_after.replace('X', '-')
+
+    # replace the empty bases - 0 with '-'
+    gv.bases_after = gv.bases_after.replace('0', '-')
+    gv.bases_after = gv.bases_after[:3]
 
     # now check for stand-still runners
     # first base
@@ -123,13 +133,13 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
         pt = ['R']
 
         if re.search(r'3-', runner):
-            gv.bases_after = gv.bases_after.replace('3', '')
+            gv.bases_after = gv.bases_after.replace('3', 'R')
             sc.stat_collector(this_line['3B_before'], lineup, this_line, st)
         elif re.search(r'2-', runner):
-            gv.bases_after = gv.bases_after.replace('2', '')
+            gv.bases_after = gv.bases_after.replace('2', 'R')
             sc.stat_collector(this_line['2B_before'], lineup, this_line, st)
         elif re.search(r'1-', runner):
-            gv.bases_after = gv.bases_after.replace('1', '')
+            gv.bases_after = gv.bases_after.replace('1', 'R')
             sc.stat_collector(this_line['1B_before'], lineup, this_line, st)
         elif bool(re.search(r'B-', runner)) & \
                 (not(re.search(r'^(H/|HR|([0-9]+)?E)', this_line['play']))):
