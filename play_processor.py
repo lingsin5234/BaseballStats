@@ -162,6 +162,7 @@ def play_processor3(the_dict, games_roster):
                     else:
                         if bool(not(re.search(r'K', begin_play))):
                             this_line['1B_after'] = pid
+                    # the K+WP.B-1 or K+PB.B-1 scenarios - runner is moved by below.
 
                     # now process any base runners normally
                     this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
