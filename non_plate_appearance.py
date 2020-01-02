@@ -61,6 +61,9 @@ def non_pa(this_line, begin_play, run_play, lineup, pid, hid):
             elif re.search(r'PO3', begin_play):
                 gv.bases_after = gv.bases_after.replace('3', 'X')
 
+            # run steal_processor
+            this_line = br.steal_processor(this_line, lineup)
+
     if re.search(r'DI', begin_play):
         pass
 

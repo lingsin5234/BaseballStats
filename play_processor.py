@@ -68,6 +68,10 @@ def play_processor3(the_dict, games_roster):
                 # handles all non-PA and running events thereafter
                 this_line = npa.non_pa(this_line, begin_play, run_play, lineup, pid, hid)
 
+                # base_runner movements
+                if run_play is not None:
+                    this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
+
             # plate-appearance play
             else:
 
