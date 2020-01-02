@@ -87,13 +87,13 @@ def play_processor3(the_dict, games_roster):
                         # double
                         elif re.search(r'^D', begin_play):
                             this_line['2B_after'] = pid
-                            gv.bases_after = '-B' + gv.bases_after
+                            gv.bases_after = '0B' + gv.bases_after
                             st.append('D')
                             pt.append('D')
                         # triple
                         elif re.search(r'^T', begin_play):
                             this_line['3B_after'] = pid
-                            gv.bases_after = '--B' + gv.bases_after
+                            gv.bases_after = '00B' + gv.bases_after
                             st.append('T')
                             pt.append('T')
                         # home run
@@ -177,19 +177,19 @@ def play_processor3(the_dict, games_roster):
                         if not(re.search(r'\([123]\)([0-9]+)?\([123]\)', begin_play)):
                             # find out where the other out is
                             if re.search(r'\(1\)', begin_play):
-                                gv.bases_after = '--' + gv.bases_after[1:2]
+                                gv.bases_after = 'XX' + gv.bases_after[1:]
                             elif re.search(r'\(2\)', begin_play):
-                                gv.bases_after = '-' + gv.bases_after[0:1] + '-'
+                                gv.bases_after = 'X' + gv.bases_after[0:1] + 'X' + gv.bases_after[2]
                             else:
-                                gv.bases_after = '-' + gv.bases_after[:2]
+                                gv.bases_after = 'X' + gv.bases_after[:2] + 'X'
                         # batter is safe
                         else:
                             if bool(re.search(r'\(1\)', begin_play)) & bool(re.search(r'\(2\)', begin_play)):
-                                gv.bases_after = 'B--'
+                                gv.bases_after = 'BXX'
                             elif bool(re.search(r'\(1\)', begin_play)) & bool(re.search(r'\(3\)', begin_play)):
-                                gv.bases_after = 'B-2'
+                                gv.bases_after = 'BX2'
                             else:
-                                gv.bases_after = 'B1-'
+                                gv.bases_after = 'B1X'
 
                         if bool(re.search(r'TP', begin_play)):
                             this_line['outs'] += 3
@@ -204,12 +204,34 @@ def play_processor3(the_dict, games_roster):
                         # now process any base runners normally
                         this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
+                    # check force out before normal outs
+                    elif bool(re.search(r'^[0-9]+.*/FO', begin_play)):
+                        this_line['outs'] += 1
+
+                        # a runner is out
+                        if re.search(r'\(B\)', begin_play):
+                            gv.bases_after = 'X' + gv.bases_after
+                        elif re.search(r'\(1\)', begin_play):
+                            gv.bases_after = 'BX' + gv.bases_after[1:]
+                            this_line['1B_after'] = pid
+                        elif re.search(r'\(2\)', begin_play):
+                            gv.bases_after = 'B' + gv.bases_after[0:1] + 'X' + gv.bases_after[2]
+                            this_line['1B_after'] = pid
+                        else:
+                            gv.bases_after = 'B' + gv.bases_after[:2] + 'X'
+                            this_line['1B_after'] = pid
+                        sc.stat_collector(pid, lineup, this_line, st)
+                        po.pitch_collector(pid, lineup, this_line, pt)
+
+                        # now process any base runners normally
+                        this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
+
                     # normal out - NOT an error
                     elif bool(re.search(r'^[0-9]+(?!E)', begin_play)):
                         this_line['outs'] += 1
 
                         # batter is out
-                        gv.bases_after = '-' + gv.bases_after
+                        gv.bases_after = 'X' + gv.bases_after
                         sc.stat_collector(pid, lineup, this_line, st)
                         po.pitch_collector(pid, lineup, this_line, pt)
 
