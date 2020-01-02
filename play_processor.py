@@ -260,6 +260,10 @@ def play_processor3(the_dict, games_roster):
                         # now process any base runners normally
                         this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
+                    # fielding plays that are not included above
+                    else:
+                        print('Fielding Plays not included: ', begin_play)
+
                 # Fielder's Choice
                 elif bool(re.search(r'^FC', begin_play)):
                     # DPs are handled by the runner marked out.

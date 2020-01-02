@@ -108,8 +108,12 @@ def base_running2(this_line, run_play, lineup, pid, pitcher_id):
             this_line['2B_after'] = this_line['1B_before']
         elif gv.bases_after[2] == '2':
             this_line['3B_after'] = this_line['2B_before']
+        elif gv.bases_after[2] == '3':
+            this_line['3B-after'] = this_line['3B_before']  # R3 did not run
+        elif gv.bases_after == '---':
+            pass  # do nothing
         else:
-            print('AWKWARD DOUBLE PLAY?', this_line['play'], gv.bases_after)
+            print('AWKWARD DOUBLE PLAY?', curr_bases, this_line['play'], gv.bases_after)
 
     # if gv.bases_after != curr_bases:
         # print(this_line['play'], gv.bases_after, '=>', curr_bases)
