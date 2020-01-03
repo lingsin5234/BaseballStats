@@ -113,15 +113,15 @@ def base_running2(this_line, run_play, lineup, pid, pitcher_id):
         if gv.bases_after[0] == 'B':
             this_line['1B_after'] = pid
         elif gv.bases_after[0] == '1':
-            this_line['1B_after'] = this_line['1B_before']
+            this_line['1B_after'] = this_line['1B_before']  # R1 did not run
         elif gv.bases_after[1] == '1':
             this_line['2B_after'] = this_line['1B_before']
         elif gv.bases_after[1] == '2':
-            this_line['2B_after'] = this_line['2B_before']
+            this_line['2B_after'] = this_line['2B_before']  # R2 did not run
         elif gv.bases_after[2] == '2':
             this_line['3B_after'] = this_line['2B_before']
         elif gv.bases_after[2] == '3':
-            this_line['3B-after'] = this_line['3B_before']  # R3 did not run
+            this_line['3B_after'] = this_line['3B_before']  # R3 did not run
         elif gv.bases_after == '---':
             pass  # do nothing
         else:
