@@ -10,6 +10,7 @@ import game_converter as g
 import play_processor as pp
 import stat_collector as sc
 import global_variables as gv
+import csv
 
 
 # get argument
@@ -122,6 +123,9 @@ for file_nm in all_files:
         # print('GAME #:', e, ' TOTAL: ', a4_time - a1_time)
         fgp.close()
 
+        if e == 0:
+            break
+
     # testing play_processor3
     # pd.DataFrame(gv.full_output).transpose().to_csv('OUTPUT.csv', sep=',', mode='a', index=False)
     # exit()
@@ -139,6 +143,24 @@ pd.DataFrame(gv.full_output).transpose().to_csv('OUTPUT.csv', sep=',', mode='w',
 
 # WRITING OUTPUT PERFORMANCE
 o2_time = t.time()
+
+# output method 2
+csv_columns = list(gv.full_output[0].keys())
+csv_file = 'OUTPUT2.csv'
+try:
+    with open(csv_file, 'w') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
+        writer.writeheader()
+        for l in gv.full_output:
+            writer.writerow(gv.full_output[l])
+except IOError:
+    print("I/O error")
+
+o3_time = t.time()
+print('Processing Games Output File (PANDA): ', o2_time - o1_time)
+print('Processing Games Output File (DICT ): ', o3_time - o2_time)
+exit()
+
 fgp = open('GAMEPLAY.LOG', mode='a')
 fgp.write('Processing Games Output File: ' + str(o2_time - o1_time) + '\n')
 print('Processing Games Output File: ', o2_time - o1_time)
