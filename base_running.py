@@ -75,8 +75,6 @@ def base_running2(this_line, run_play, lineup, pid, pitcher_id):
         runners = run_play.split(';')
 
         for r in runners:
-            if this_line['play'] == '8/SF/DP.2-H(UR);1X1(8423)':
-                print(curr_bases, this_line['play'], this_line['outs'], gv.bases_after)
             this_line = runner_processor(r, this_line, lineup, pitcher_id)
 
         curr_bases = bases_occupied(this_line)
