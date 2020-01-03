@@ -65,7 +65,7 @@ def non_pa(this_line, begin_play, run_play, lineup, pid, hid):
             this_line = br.steal_processor(this_line, lineup)
 
     if re.search(r'DI', begin_play):
-        pass
+        pt = ['DI']
 
     if pt is not None:
         po.pitch_collector(hid, lineup, this_line, pt)

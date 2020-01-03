@@ -125,7 +125,7 @@ def play_processor3(the_dict, games_roster):
                         this_line['outs'] += 1
                         gv.bases_after = '-' + gv.bases_after
 
-                        st = ['AB', 'PA', 'K']
+                        st = ['AB', 'PA', 'K', 'LOB', 'RLSP']
                         sc.stat_collector(pid, lineup, this_line, st)
                         pt = ['IP', 'BF', 'K']
                         po.pitch_collector(pid, lineup, this_line, pt)
@@ -159,7 +159,7 @@ def play_processor3(the_dict, games_roster):
                     if run_play is not None:
                         if bool(not(re.search(r'B', run_play))) & bool(not(re.search(r'K', begin_play))):
                             this_line['1B_after'] = pid
-                        elif bool(re.search('K.*B-', begin_play)) & bool(not(re.search('\+', begin_play))):
+                        elif bool(re.search('K.*B-', this_line['play'])) & bool(not(re.search('\+', begin_play))):
                             this_line['outs'] -= 1
                             # let base_runner function handle this.
                     else:
@@ -250,11 +250,13 @@ def play_processor3(the_dict, games_roster):
                     else:
                         print('Fielding Plays not included: ', begin_play)
 
-                    # record any SH/SF
+                    # record any SH/SF otherwise, all are LOB/RLSP if not an error
                     if bool(re.search(r'SH', begin_play)):
                         st.append('SH')
                     elif bool(re.search(r'SF', begin_play)):
                         st.append('SF')
+                    elif bool(not(re.search(r'E', begin_play))):
+                        st.extend(['LOB', 'RLSP'])
                     sc.stat_collector(pid, lineup, this_line, st)
                     po.pitch_collector(pid, lineup, this_line, pt)
 
@@ -271,15 +273,19 @@ def play_processor3(the_dict, games_roster):
                     # determine who is out
                     if re.search(r'\(B\)', begin_play):
                         gv.bases_after = 'X' + gv.bases_after
+                        st.append('LOB', 'RLSP')
                     elif re.search(r'\(1\)', begin_play):
                         gv.bases_after = 'BX' + gv.bases_after[1:]
                         this_line['1B_after'] = pid
+                        st.append('LOB', 'RLSP')
                     elif re.search(r'\(2\)', begin_play):
                         gv.bases_after = 'B' + gv.bases_after[0:1] + 'X' + gv.bases_after[2]
                         this_line['1B_after'] = pid
+                        st.append('LOB', 'RLSP')
                     elif re.search(r'\(3\)', begin_play):
                         gv.bases_after = 'B' + gv.bases_after[:2] + 'X'
                         this_line['1B_after'] = pid
+                        st.append('LOB', 'RLSP')
                     else:
                         # NO ONE IS OUT
                         gv.bases_after = 'B' + gv.bases_after
@@ -293,7 +299,7 @@ def play_processor3(the_dict, games_roster):
                 # Catcher Interference
                 elif bool(re.search(r'C/E[1-3]', begin_play)):
                     st = ['PA']
-                    pt = ['BF']
+                    pt = ['BF', 'CI']
                     this_line['1B_after'] = pid
                     sc.stat_collector(pid, lineup, this_line, st)
                     po.pitch_collector(pid, lineup, this_line, pt)

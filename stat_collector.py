@@ -2,6 +2,7 @@
 import global_variables as gv
 import pandas as pd
 import time as t
+import base_running as br
 
 
 # stat collector
@@ -28,20 +29,7 @@ def stat_collector(pid, lineup, the_line, stat_types):
     num_outs = the_line['outs']
 
     # base runners
-    bases_taken = []
-    if the_line['1B_before']:
-        bases_taken.append('1')
-    else:
-        bases_taken.append('-')
-    if the_line['2B_before']:
-        bases_taken.append('2')
-    else:
-        bases_taken.append('-')
-    if the_line['3B_before']:
-        bases_taken.append('3')
-    else:
-        bases_taken.append('-')
-    bases_taken = ''.join(map(str, bases_taken))
+    bases_taken = br.bases_occupied(the_line)
 
     # get values for specific columns for the LOB, RLSP use
     bases_before = sum(c.isdigit() for c in bases_taken)
@@ -165,10 +153,13 @@ def game_tracker(all_starts):
             # stat appender
             if int(ss[4]) > 0:  # batter excluding AL pitchers
                 stat_appender(ss[1], team_nm, game_id, 0, 'GS', 1, None, 0, '---', ss[3], 'batting')
+                stat_appender(ss[1], team_nm, game_id, 0, 'GP', 1, None, 0, '---', ss[3], 'batting')
             if int(ss[5]) == 1:  # pitcher
                 stat_appender(ss[1], team_nm, game_id, 0, 'GS', 1, None, 0, '---', ss[3], 'pitching')
+                stat_appender(ss[1], team_nm, game_id, 0, 'GP', 1, None, 0, '---', ss[3], 'pitching')
             if int(ss[5]) < 10:  # not DH PH PR, is a fielder
                 stat_appender(ss[1], team_nm, game_id, 0, 'GS', 1, None, 0, '---', ss[3], 'fielding')
+                stat_appender(ss[1], team_nm, game_id, 0, 'GP', 1, None, 0, '---', ss[3], 'fielding')
 
     return games_dict
 
