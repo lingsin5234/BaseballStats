@@ -140,7 +140,7 @@ o1_time = t.time()
 csv_columns = list(gv.full_output[0].keys())
 csv_file = 'OUTPUT.csv'
 try:
-    with open(csv_file, 'w') as csvfile:
+    with open(csv_file, 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
         writer.writeheader()
         for l in gv.full_output:
