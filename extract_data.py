@@ -123,9 +123,6 @@ for file_nm in all_files:
         # print('GAME #:', e, ' TOTAL: ', a4_time - a1_time)
         fgp.close()
 
-        if e == 0:
-            break
-
     # testing play_processor3
     # pd.DataFrame(gv.full_output).transpose().to_csv('OUTPUT.csv', sep=',', mode='a', index=False)
     # exit()
