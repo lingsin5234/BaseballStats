@@ -107,8 +107,9 @@ def base_running2(this_line, run_play, lineup, pid, pitcher_id):
         # stay put
         this_line['3B_after'] = this_line['3B_before']
 
-    # if DP advanced runners with NO run play
-    if bool(re.search(r'DP', this_line['play'])) & bool(run_play is None):
+    # if DP advanced runners with NO run play (and not SB/CS)
+    if bool(re.search(r'DP', this_line['play'])) & bool(run_play is None) & \
+            bool(not(re.search('(SB|CS)', this_line['play']))):
         if gv.bases_after[0] == 'B':
             this_line['1B_after'] = pid
         elif gv.bases_after[1] == '1':
@@ -207,10 +208,10 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
             gv.bases_after = gv.bases_after.replace('1', '-1')
         this_line['3B_after'] = this_line['1B_before']
 
-    # remove runners that are explicitly out but not FC nor the error above
+    # remove runners that are explicitly out but not FC nor the error above or DP/TP
     if re.search(r'[123]X[123H]', runner):
         if bool(not(re.search(r'^FC', this_line['play']))) & bool(not(re.search(r'E', runner))) & \
-                bool(not(re.search(r'DP', this_line['play']))):
+                bool(not(re.search(r'(DP|TP)', this_line['play']))):
             this_line['outs'] += 1
 
         # first character is runner

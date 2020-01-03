@@ -197,7 +197,7 @@ def play_processor3(the_dict, games_roster):
                                 gv.bases_after = 'B1X'
 
                         if bool(re.search(r'TP', begin_play)):
-                            this_line['outs'] += 3
+                            this_line['outs'] += 1
                             gv.bases_after = '---'
 
                         if re.search('GDP', begin_play):

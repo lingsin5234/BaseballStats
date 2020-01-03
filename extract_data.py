@@ -123,7 +123,7 @@ for file_nm in all_files:
         fgp.close()
 
     # testing play_processor3
-    pd.DataFrame(gv.full_output).transpose().to_csv('OUTPUT.csv', sep=',', mode='w', index=False)
+    # pd.DataFrame(gv.full_output).transpose().to_csv('OUTPUT.csv', sep=',', mode='a', index=False)
     # exit()
 
     # indicator of what is completed
@@ -136,7 +136,7 @@ for file_nm in all_files:
 # Write Output File after converting entire list of dict to data frame
 o1_time = t.time()
 pd.DataFrame(gv.full_output).transpose().to_csv('OUTPUT.csv', sep=',', mode='w', index=False)
-exit()
+
 # WRITING OUTPUT PERFORMANCE
 o2_time = t.time()
 fgp = open('GAMEPLAY.LOG', mode='a')
