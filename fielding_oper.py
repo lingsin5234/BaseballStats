@@ -12,21 +12,6 @@ def lineup_substitution(this_line, lineup, pid, sub_type, field_pos):
     if sub_type == 'fielding':
         if pid in lineup.player_id.values:
             new_substitution = False
-            print(this_line)
-            print(lineup)
-            exit()
-        if pid in lineup.values:
-            print('Works')
-            exit()
-        if pid == 'gutif001':
-            print(pid in lineup.player_id)
-            print(type(lineup))
-            print(type(pid))
-            print(type(lineup.player_id[1]))
-            print(lineup.player_id)
-            print(pid, lineup.player_id[1])
-            print(pid == lineup.player_id[1])
-            exit()
 
     # check which spot in the lineup, get the playerID:
     sub_filter = (lineup.team_id == this_line['team_id']) & \

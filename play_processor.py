@@ -370,6 +370,7 @@ def play_processor3(the_dict, games_roster):
                     pitch_index = po.assign_pitcher(lineup, this_line, True)[1]
                     lineup.at[pitch_index, 'player_id'] = this_line['playerID']
                     lineup.at[pitch_index, 'player_nm'] = this_line['name']
+                    lineup.at[pitch_index, 'fielding'] == '1'
 
                     # add games played stat - as "pitching" stat
                     po.pitch_collector(pid, lineup, this_line, ['GP'])
