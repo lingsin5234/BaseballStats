@@ -136,14 +136,9 @@ for file_nm in all_files:
 
 # Write Output File after converting entire list of dict to data frame
 o1_time = t.time()
-pd.DataFrame(gv.full_output).transpose().to_csv('OUTPUT.csv', sep=',', mode='w', index=False)
 
-# WRITING OUTPUT PERFORMANCE
-o2_time = t.time()
-
-# output method 2
 csv_columns = list(gv.full_output[0].keys())
-csv_file = 'OUTPUT2.csv'
+csv_file = 'OUTPUT.csv'
 try:
     with open(csv_file, 'w') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
@@ -152,12 +147,10 @@ try:
             writer.writerow(gv.full_output[l])
 except IOError:
     print("I/O error")
+    exit()
 
-o3_time = t.time()
-print('Processing Games Output File (PANDA): ', o2_time - o1_time)
-print('Processing Games Output File (DICT ): ', o3_time - o2_time)
-exit()
-
+# WRITING OUTPUT PERFORMANCE
+o2_time = t.time()
 fgp = open('GAMEPLAY.LOG', mode='a')
 fgp.write('Processing Games Output File: ' + str(o2_time - o1_time) + '\n')
 print('Processing Games Output File: ', o2_time - o1_time)
