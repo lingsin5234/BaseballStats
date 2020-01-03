@@ -159,6 +159,9 @@ def play_processor3(the_dict, games_roster):
                     if run_play is not None:
                         if bool(not(re.search(r'B', run_play))) & bool(not(re.search(r'K', begin_play))):
                             this_line['1B_after'] = pid
+                        elif bool(re.search('K.*B-', begin_play)) & bool(not(re.search('\+', begin_play))):
+                            this_line['outs'] -= 1
+                            # let base_runner function handle this.
                     else:
                         if bool(not(re.search(r'K', begin_play))):
                             this_line['1B_after'] = pid
@@ -185,8 +188,12 @@ def play_processor3(the_dict, games_roster):
                                 gv.bases_after = 'XX' + gv.bases_after[1:]
                             elif re.search(r'\(2\)', begin_play):
                                 gv.bases_after = 'X' + gv.bases_after[0:1] + 'X' + gv.bases_after[2]
-                            else:
+                            elif re.search(r'\(3\)', begin_play):
                                 gv.bases_after = 'X' + gv.bases_after[:2] + 'X'
+                            else:
+                                # baserunners will resolve last out
+                                gv.bases_after = 'X' + gv.bases_after
+                                this_line['outs'] -= 1
                         # batter is safe
                         else:
                             if bool(re.search(r'\(1\)', begin_play)) & bool(re.search(r'\(2\)', begin_play)):
@@ -203,11 +210,6 @@ def play_processor3(the_dict, games_roster):
                         if re.search('GDP', begin_play):
                             st.append('GDP')
                             pt.append('IDP')
-                        sc.stat_collector(pid, lineup, this_line, st)
-                        po.pitch_collector(pid, lineup, this_line, pt)
-
-                        # now process any base runners normally
-                        this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
                     # check force out before normal outs
                     elif bool(re.search(r'^[0-9]+.*/FO', begin_play)):
@@ -225,11 +227,6 @@ def play_processor3(the_dict, games_roster):
                         else:
                             gv.bases_after = 'B' + gv.bases_after[:2] + 'X'
                             this_line['1B_after'] = pid
-                        sc.stat_collector(pid, lineup, this_line, st)
-                        po.pitch_collector(pid, lineup, this_line, pt)
-
-                        # now process any base runners normally
-                        this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
                     # fielding error
                     elif bool(re.search(r'^([0-9]+)?E', begin_play)):
@@ -238,12 +235,6 @@ def play_processor3(the_dict, games_roster):
                         st.append('ROE')  # reached on error
                         pt = ['BF']
 
-                        sc.stat_collector(pid, lineup, this_line, st)
-                        po.pitch_collector(pid, lineup, this_line, pt)
-
-                        # now process any base runners normally
-                        this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
-
                     # normal out -- this should be last to handle all cases prior
                     elif bool(re.search(r'^[0-9]+', begin_play)):
                         this_line['outs'] += 1
@@ -251,23 +242,24 @@ def play_processor3(the_dict, games_roster):
                         # this case might come back: 54(B)/BG25/SH.1-2
                         # putout by fielder not normally covering that base
 
-                        if bool(re.search(r'SH', begin_play)):
-                            st.append('SH')
-                        elif bool(re.search(r'SF', begin_play)):
-                            st.append('SF')
-
                         # batter is out
                         # using dash instead of X as this will hold runners unless run_play includes them
                         gv.bases_after = '-' + gv.bases_after
-                        sc.stat_collector(pid, lineup, this_line, st)
-                        po.pitch_collector(pid, lineup, this_line, pt)
-
-                        # now process any base runners normally
-                        this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
                     # fielding plays that are not included above
                     else:
                         print('Fielding Plays not included: ', begin_play)
+
+                    # record any SH/SF
+                    if bool(re.search(r'SH', begin_play)):
+                        st.append('SH')
+                    elif bool(re.search(r'SF', begin_play)):
+                        st.append('SF')
+                    sc.stat_collector(pid, lineup, this_line, st)
+                    po.pitch_collector(pid, lineup, this_line, pt)
+
+                    # now process any base runners normally
+                    this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
                 # Fielder's Choice
                 elif bool(re.search(r'^FC', begin_play)):
