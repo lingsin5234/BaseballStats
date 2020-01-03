@@ -44,8 +44,9 @@ def play_processor3(the_dict, games_roster):
             # take out any ! in play
             this_line['play'] = this_line['play'].replace('!', '')
 
-            # assign the pitcher
-            this_line['pitcherID'] = po.assign_pitcher(lineup, this_line, False)[0]
+            # assign the pitcher - UNLESS NP
+
+            this_line['pitcherID'] = po.assign_pitcher(lineup, this_line)
 
             # store player_id, the play, and pitcher_id
             pid = this_line['playerID']
@@ -367,11 +368,18 @@ def play_processor3(the_dict, games_roster):
             else:
                 # pitching substitution
                 if this_line['fielding'] == '1':
-                    pitch_index = po.assign_pitcher(lineup, this_line, True)[1]
-                    lineup.at[pitch_index, 'player_id'] = this_line['playerID']
-                    lineup.at[pitch_index, 'player_nm'] = this_line['name']
-                    lineup.at[pitch_index, 'fielding'] == '1'
+                    # print(lineup)
+                    # update the lineup for this pitcher
+                    substitution = fo.lineup_substitution(this_line, lineup, pid, 'pitching', this_line['fielding'])
+                    lineup = substitution[0]
 
+                    # pitch_index = po.assign_pitcher(lineup, this_line, True)[1]
+                    # lineup.at[pitch_index, 'player_id'] = this_line['playerID']
+                    # lineup.at[pitch_index, 'player_nm'] = this_line['name']
+                    # lineup.at[pitch_index, 'fielding'] == '1'
+                    # print(this_line)
+                    # print(lineup)
+                    # exit()
                     # add games played stat - as "pitching" stat
                     po.pitch_collector(pid, lineup, this_line, ['GP'])
 

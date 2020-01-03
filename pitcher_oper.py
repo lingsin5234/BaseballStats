@@ -4,23 +4,28 @@ import global_variables as gv
 
 
 # assign the pitcher
-def assign_pitcher(lineup, this_line, is_sub):
+def assign_pitcher(lineup, this_line):
 
-    if is_sub:
-        pitch_team = this_line['team_id']
+    # check which team is batting
+    if this_line['team_id'] == '0':
+        pitch_team = '1'
     else:
-        # check which team is batting
-        if this_line['team_id'] == '0':
-            pitch_team = '1'
-        else:
-            pitch_team = '0'
+        pitch_team = '0'
 
     # filter the corresponding pitcher_id
     pitch_filter = (lineup.team_id == pitch_team) & (lineup.fielding == '1')
     pitch_index = lineup.index[pitch_filter]
-    pitcher_id = lineup.at[pitch_index[0], 'player_id']
+    if bool(len(pitch_index) == 0) & bool(this_line['play'] == 'NP'):
+        pitcher_id = None
+    elif bool(len(pitch_index) > 0):
+        pitcher_id = lineup.at[pitch_index[0], 'player_id']
+    else:
+        print(lineup)
+        print(this_line)
+        print('Error with Assign Pitcher where the play is not "NP".')
+        exit()
 
-    return pitcher_id, pitch_index[0]
+    return pitcher_id
 
 
 # pitching stats collector
