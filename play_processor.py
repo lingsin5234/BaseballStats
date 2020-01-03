@@ -330,7 +330,7 @@ def play_processor3(the_dict, games_roster):
                 if this_line['fielding'] == '12':
 
                     # update the lineup for this person
-                    substitution = fo.lineup_substitution(this_line, lineup, pid, 'batting')
+                    substitution = fo.lineup_substitution(this_line, lineup, pid, 'batting', '12')
                     lineup = substitution[0]
                     sub_player_id = lineup.at[substitution[1][0], 'player_id']
 
@@ -352,7 +352,7 @@ def play_processor3(the_dict, games_roster):
                 elif this_line['fielding'] == '11':
 
                     # update the lineup for this person
-                    substitution = fo.lineup_substitution(this_line, lineup, pid, 'batting')
+                    substitution = fo.lineup_substitution(this_line, lineup, pid, 'batting', '11')
                     lineup = substitution[0]
 
                     # add games played stat - as "batting" stat
@@ -377,7 +377,7 @@ def play_processor3(the_dict, games_roster):
                 # other fielding substitutions
                 else:
                     # update the lineup for this person
-                    substitution = fo.lineup_substitution(this_line, lineup, pid, 'fielding')
+                    substitution = fo.lineup_substitution(this_line, lineup, pid, 'fielding', this_line['fielding'])
                     lineup = substitution[0]
 
                     # add games played stat - as "batting" stat
