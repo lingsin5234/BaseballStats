@@ -6,6 +6,7 @@ import base_running as br
 import time as t
 import pitcher_oper as po
 import non_plate_appearance as npa
+import fielding_oper as fo
 
 
 # re-write the processor based on re.search/re.findall grep searching
@@ -316,6 +317,9 @@ def play_processor3(the_dict, games_roster):
             this_line['1B_after'] = the_dict[i-1]['1B_before']
             this_line['2B_after'] = the_dict[i-1]['2B_before']
             this_line['3B_after'] = the_dict[i-1]['3B_before']
+            this_line['inning'] = the_dict[i-1]['inning']
+            this_line['half'] = the_dict[i-1]['half']
+            this_line['half_innings'] = the_dict[i-1]['half_innings']
             pid = this_line['playerID']
 
             # if pinch-runner, put in the runner
@@ -325,11 +329,10 @@ def play_processor3(the_dict, games_roster):
                 # pinch runner only
                 if this_line['fielding'] == '12':
 
-                    # check which spot in the lineup, get the playerID:
-                    sub_filter = (lineup.team_id == this_line['team_id']) & \
-                                 (lineup.bat_lineup == this_line['batting'])
-                    sub_index = lineup.index[sub_filter]
-                    sub_player_id = lineup.at[sub_index[0], 'player_id']
+                    # update the lineup for this person
+                    substitution = fo.lineup_substitution(this_line, lineup, pid, 'batting')
+                    lineup = substitution[0]
+                    sub_player_id = lineup.at[substitution[1][0], 'player_id']
 
                     # check the bases for the runner:
                     if this_line['1B_after'] == sub_player_id:
@@ -342,31 +345,27 @@ def play_processor3(the_dict, games_roster):
                         # most likely is Pinch Hitting -- make a check for this later; but should be '11'
                         pass
 
-                    # replace the person in the lineup
-                    lineup.at[sub_index[0], 'player_id'] = pid
-                    lineup.at[sub_index[0], 'player_nm'] = this_line['name']
-
                     # add games played stat - as "batting" stat
                     sc.stat_collector(pid, lineup, this_line, ['GP'])
 
                 # pinch hitter only
                 elif this_line['fielding'] == '11':
 
-                    # check which spot in the lineup, get the playerID:
-                    sub_filter = (lineup.team_id == this_line['team_id']) & \
-                                 (lineup.bat_lineup == this_line['batting'])
-                    sub_index = lineup.index[sub_filter]
-
-                    # replace the person in the lineup
-                    lineup.at[sub_index[0], 'player_id'] = pid
-                    lineup.at[sub_index[0], 'player_nm'] = this_line['name']
+                    # update the lineup for this person
+                    substitution = fo.lineup_substitution(this_line, lineup, pid, 'batting')
+                    lineup = substitution[0]
 
                     # add games played stat - as "batting" stat
                     sc.stat_collector(pid, lineup, this_line, ['GP'])
 
+                # what other scenarios here?
+                else:
+                    print(this_line['half_innings'], this_line['team_id'],
+                          this_line['playerID'], this_line['batting'], this_line['fielding'])
+
             # fielding team = the half inning
             else:
-                # check for only the pitching substitutions for now
+                # pitching substitution
                 if this_line['fielding'] == '1':
                     pitch_index = po.assign_pitcher(lineup, this_line, True)[1]
                     lineup.at[pitch_index, 'player_id'] = this_line['playerID']
@@ -374,6 +373,16 @@ def play_processor3(the_dict, games_roster):
 
                     # add games played stat - as "pitching" stat
                     po.pitch_collector(pid, lineup, this_line, ['GP'])
+
+                # other fielding substitutions
+                else:
+                    # update the lineup for this person
+                    substitution = fo.lineup_substitution(this_line, lineup, pid, 'fielding')
+                    lineup = substitution[0]
+
+                    # add games played stat - as "batting" stat
+                    if substitution[2]:
+                        sc.stat_collector(pid, lineup, this_line, ['GP'])
 
         # do a check for > 3 outs
         if this_line['outs'] > 3:
