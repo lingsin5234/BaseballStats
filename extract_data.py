@@ -41,6 +41,9 @@ fs.close()
 fgp = open('GAMEPLAY.LOG', mode="w")
 fgp.close()
 
+# total time for 1 year of files
+y_time = t.time()
+
 for file_nm in all_files:
     # start timer
     s_time = t.time()
@@ -136,6 +139,8 @@ for file_nm in all_files:
 
 # Write Output File after converting entire list of dict to data frame
 o1_time = t.time()
+
+print('Completed', a_year, ':', o1_time - y_time)
 
 csv_columns = list(gv.full_output[0].keys())
 csv_file = 'OUTPUT.csv'

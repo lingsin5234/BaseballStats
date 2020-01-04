@@ -41,7 +41,7 @@ def pitch_collector(hid, lineup, the_line, stat_types):
     home_team = lineup.loc[10, 'team_name']
 
     # which team? find out in the_line -- THIS IS OPPOSITE to stat_collector!
-    if the_line['team_id'] == '0':
+    if the_line['half'] == '0':
         team_name = home_team  # home is pitching
         stat_team = 'HOME'
     else:
