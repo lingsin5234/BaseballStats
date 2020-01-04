@@ -130,7 +130,7 @@ def play_processor3(the_dict, games_roster):
                         st = ['AB', 'PA', 'K', 'LOB', 'RLSP']
                         sc.stat_collector(pid, lineup, this_line, st)
                         pt = ['IP', 'BF', 'K']
-                        po.pitch_collector(pid, lineup, this_line, pt)
+                        po.pitch_collector(hid, lineup, this_line, pt)
 
                     elif bool(re.search(r'HP', begin_play)):
                         gv.bases_after = 'B' + gv.bases_after
@@ -138,7 +138,7 @@ def play_processor3(the_dict, games_roster):
                         st = ['PA', 'HBP']
                         sc.stat_collector(pid, lineup, this_line, st)
                         pt = ['BF', 'HBP']
-                        po.pitch_collector(pid, lineup, this_line, pt)
+                        po.pitch_collector(hid, lineup, this_line, pt)
 
                     else:
                         gv.bases_after = 'B' + gv.bases_after
@@ -149,7 +149,7 @@ def play_processor3(the_dict, games_roster):
                             st.append('IW')
                             pt.append('IBB')
                         sc.stat_collector(pid, lineup, this_line, st)
-                        po.pitch_collector(pid, lineup, this_line, pt)
+                        po.pitch_collector(hid, lineup, this_line, pt)
 
                     # check if additional event happened
                     if bool(re.search(r'\+', begin_play)):
@@ -260,7 +260,7 @@ def play_processor3(the_dict, games_roster):
                     elif bool(not(re.search(r'E', begin_play))):
                         st.extend(['LOB', 'RLSP'])
                     sc.stat_collector(pid, lineup, this_line, st)
-                    po.pitch_collector(pid, lineup, this_line, pt)
+                    po.pitch_collector(hid, lineup, this_line, pt)
 
                     # now process any base runners normally
                     this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
@@ -293,7 +293,7 @@ def play_processor3(the_dict, games_roster):
                         gv.bases_after = 'B' + gv.bases_after
                         this_line['outs'] -= 1
                     sc.stat_collector(pid, lineup, this_line, st)
-                    po.pitch_collector(pid, lineup, this_line, pt)
+                    po.pitch_collector(hid, lineup, this_line, pt)
 
                     # now process any base runners normally
                     this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
@@ -304,7 +304,7 @@ def play_processor3(the_dict, games_roster):
                     pt = ['BF', 'CI']
                     this_line['1B_after'] = pid
                     sc.stat_collector(pid, lineup, this_line, st)
-                    po.pitch_collector(pid, lineup, this_line, pt)
+                    po.pitch_collector(hid, lineup, this_line, pt)
 
                     # now process any base runners normally
                     this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
