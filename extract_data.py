@@ -10,6 +10,7 @@ import game_converter as g
 import play_processor as pp
 import stat_collector as sc
 import global_variables as gv
+import date_time as dt
 import csv
 
 
@@ -119,10 +120,10 @@ for file_nm in all_files:
         # game performance
         a4_time = t.time()
         fgp = open('GAMEPLAY.LOG', mode='a')
-        fgp.write('GAME #:' + str(e) + ' process: ' + str(a2_time - a1_time) + '\n')
-        fgp.write('GAME #:' + str(e) + ' reindex: ' + str(a3_time - a2_time) + '\n')
-        fgp.write('GAME #:' + str(e) + ' store: ' + str(a4_time - a3_time) + '\n')
-        fgp.write('GAME #:' + str(e) + ' TOTAL: ' + str(a4_time - a1_time) + '\n')
+        fgp.write('GAME #:' + str(e) + ' process: ' + str(dt.seconds_convert(a2_time - a1_time)) + '\n')
+        fgp.write('GAME #:' + str(e) + ' reindex: ' + str(dt.seconds_convert(a3_time - a2_time)) + '\n')
+        fgp.write('GAME #:' + str(e) + ' store: ' + str(dt.seconds_convert(a4_time - a3_time)) + '\n')
+        fgp.write('GAME #:' + str(e) + ' TOTAL: ' + str(dt.seconds_convert(a4_time - a1_time)) + '\n')
         # print('GAME #:', e, ' TOTAL: ', a4_time - a1_time)
         fgp.close()
 
@@ -132,15 +133,15 @@ for file_nm in all_files:
 
     # indicator of what is completed
     e_time = t.time()
-    print('COMPLETED: ', file_nm, ' - ', e_time - s_time)
+    print('COMPLETED: ', file_nm, ' - ', dt.seconds_convert(e_time - s_time))
     fgp = open('GAMEPLAY.LOG', mode='a')
-    fgp.write('COMPLETED: ' + file_nm + ' - ' + str(e_time - s_time) + '\n')
+    fgp.write('COMPLETED: ' + file_nm + ' - ' + str(dt.seconds_convert(e_time - s_time)) + '\n')
     fgp.close()
 
 # Write Output File after converting entire list of dict to data frame
 o1_time = t.time()
 
-print('Completed', a_year, ':', o1_time - y_time)
+print('Completed', a_year, ':', dt.seconds_convert(o1_time - y_time))
 
 csv_columns = list(gv.full_output[0].keys())
 csv_file = 'OUTPUT.csv'
@@ -157,8 +158,8 @@ except IOError:
 # WRITING OUTPUT PERFORMANCE
 o2_time = t.time()
 fgp = open('GAMEPLAY.LOG', mode='a')
-fgp.write('Processing Games Output File: ' + str(o2_time - o1_time) + '\n')
-print('Processing Games Output File: ', o2_time - o1_time)
+fgp.write('Processing Games Output File: ' + str(dt.seconds_convert(o2_time - o1_time)) + '\n')
+print('Processing Games Output File: ', dt.seconds_convert(o2_time - o1_time))
 fgp.close()
 
 # player stats
@@ -171,6 +172,6 @@ gv.player_stats['pitching'].to_csv('PITCHING.csv', sep=',', index=False)
 # WRITING STATS PERFORMANCE
 t2_time = t.time()
 fgp = open('GAMEPLAY.LOG', mode='a')
-fgp.write('Stats Processing: ' + str(t2_time - t1_time) + '\n')
-print('Stats Processing: ', t2_time - t1_time)
+fgp.write('Stats Processing: ' + str(dt.seconds_convert(t2_time - t1_time)) + '\n')
+print('Stats Processing: ', dt.seconds_convert(t2_time - t1_time))
 fgp.close()
