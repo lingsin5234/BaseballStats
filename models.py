@@ -17,7 +17,7 @@ class Team(models.Model):
 
 # Game Info
 class GameInfo(models.Model):
-    game_id = models.IntegerField()
+    game_id = models.CharField(max_length=12)
     home_team = models.ForeignKey(Team, null=True, on_delete=models.SET_NULL, related_name='_home_team')
     away_team = models.ForeignKey(Team, null=True, on_delete=models.SET_NULL, related_name='_away_team')
     game_info = models.CharField(max_length=100)
