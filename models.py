@@ -68,8 +68,23 @@ class Starter(models.Model):
 class GamePlay(models.Model):
     game_id = models.ForeignKey(GameInfo, null=True, on_delete=models.SET_NULL)
     inning = models.IntegerField()
+    which_half = models.IntegerField(choices=WHICH_TEAM)
     half_inning = models.CharField(max_length=4)
     type_of_play = models.CharField(max_length=4, choices=PLAY_TYPE)
     which_team = models.IntegerField(choices=WHICH_TEAM)
     player_id = models.ForeignKey(Player, null=True, on_delete=models.SET_NULL, related_name='_player'))
     pitcher_id = models.ForeignKey(Player, null=True, on_delete=models.SET_NULL, related_name='_pitcher')
+    the_play = models.CharField(max_length=40)
+    1b_before = models.CharField(max_length=12)
+    2b_before = models.CharField(max_length=12)
+    3b_before = models.CharField(max_length=12)
+    1b_after = models.CharField(max_length=12)
+    2b_after = models.CharField(max_length=12)
+    3b_after = models.CharField(max_length=12)
+    runs_scored = models.IntegerField()
+    outs = models.IntegerField()
+    batting_spot = models.IntegerField()
+    fielding_pos = models.IntegerField()
+
+    def __str__(self):
+        return self.game_id + ': ' + self.half_inning + ' - ' + self.the_play
