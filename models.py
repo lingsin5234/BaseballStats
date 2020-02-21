@@ -1,5 +1,9 @@
 from django.db import models
 
+# CHOICES
+WHICH_TEAM = [('away', 0), ('home', 1)]
+PLAY_TYPE = [('play', 'play'), ('sub', 'sub')]
+
 
 # Teams
 class Team(models.Model):
@@ -58,3 +62,14 @@ class Starter(models.Model):
 
     def __str__(self):
         return self.game_id
+
+
+# Game Plays
+class GamePlay(models.Model):
+    game_id = models.ForeignKey(GameInfo, null=True, on_delete=models.SET_NULL)
+    inning = models.IntegerField()
+    half_inning = models.CharField(max_length=4)
+    type_of_play = models.CharField(max_length=4, choices=PLAY_TYPE)
+    which_team = models.IntegerField(choices=WHICH_TEAM)
+    player_id = models.ForeignKey(Player, null=True, on_delete=models.SET_NULL, related_name='_player'))
+    pitcher_id = models.ForeignKey(Player, null=True, on_delete=models.SET_NULL, related_name='_pitcher')
