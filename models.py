@@ -3,6 +3,7 @@ from django.db import models
 # CHOICES
 WHICH_TEAM = [('away', 0), ('home', 1)]
 PLAY_TYPE = [('play', 'play'), ('sub', 'sub')]
+STAT_CATEGORY = [('batting', 0), ('pitching', 1), ('defense', 2)]
 
 
 # Teams
@@ -88,3 +89,21 @@ class GamePlay(models.Model):
 
     def __str__(self):
         return self.game_id + ': ' + self.half_inning + ' - ' + self.the_play
+
+
+# Stat Collector
+class StatCollect(models.Model):
+    player_id = models.ForeignKey(Player, null=True, on_delete=models.SET_NULL)
+    team_name = models.CharField(max_length=3)
+    game_id = models.ForeignKey(GameInfo, null=True, on_delete=models.SET_NULL)
+    half_inning = models.CharField(max_length=4)
+    stat_type = models.CharField(max_length=5)
+    stat_value = models.IntegerField()
+    actual_play = models.CharField(max_length=40)
+    num_of_outs = models.IntegerField()
+    bases_taken = models.CharField(max_length=3)
+    stat_team = models.IntegerField(choices=WHICH_TEAM)
+    stat_category = models.CharField(max_length=8, choices=STAT_CATEGORY)
+
+    def __str__(self):
+        return player_id + ' stat for ' + stat_type + ': ' + stat_value
