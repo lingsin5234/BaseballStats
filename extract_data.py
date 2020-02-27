@@ -175,3 +175,8 @@ fgp = open('GAMEPLAY.LOG', mode='a')
 fgp.write('Stats Processing: ' + str(dt.seconds_convert(t2_time - t1_time)) + '\n')
 print('Stats Processing: ', dt.seconds_convert(t2_time - t1_time))
 fgp.close()
+
+# release variables?
+gv.full_output = {}
+gv.player = {}
+gv.player_stats = pd.DataFrame()
