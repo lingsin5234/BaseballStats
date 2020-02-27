@@ -1,5 +1,5 @@
 # this python script is to import the retrosheet files
-from os import path, mkdir
+from os import path, mkdir, remove
 import urllib.request
 from zipfile import ZipFile as zf
 
@@ -23,12 +23,14 @@ urllib.request.urlretrieve(url+zip_file, 'import/landing/'+zip_file)
 
 # create new folder for the unzipped contents
 if path.exists('import/'+year):
-    print("year folder exists")
     pass
 else:
     mkdir('import/'+year)
-    print("year folder created")
 
 # unzip contents to the year folder
 with zf('import/landing/'+zip_file) as unzip:
     unzip.extractall('import/'+year)
+
+# remove landing file
+if path.exists('import/landing/'+zip_file):
+    remove('import/landing/'+zip_file)
