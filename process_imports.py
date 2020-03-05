@@ -130,8 +130,10 @@ def extract_data_single_team(year, team):
     fgp.close()
 
     # Write Output File after converting entire list of dict to data frame
-    import_to_sql = pd.DataFrame(gv.full_output, index=range(len(gv.full_output)))
-    print(import_to_sql.loc[[0]])
+    transpose_time = t.time()
+    import_to_sql = pd.DataFrame.from_dict(gv.full_output).transpose()
+    print('Transposing takes: ', dt.seconds_convert(t.time() - transpose_time))
+    print(import_to_sql)
     exit()
 
     o1_time = t.time()
