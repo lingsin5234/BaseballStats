@@ -11,9 +11,13 @@ c = conn.cursor()
 # check if table exists
 try:
     table_nm = 'starters'
-    c.execute('''SELECT * FROM ''' + table_nm)
-except sql.Error:
+    value = '1'
+    sql_query = '''SELECT * FROM ''' + table_nm + ''' WHERE fielding = ?'''
+    print(sql_query)
+    c.execute(sql_query, value)
+except sql.Error as e:
     print('ERROR')
+    print(e)
     exit()
 
 # fetch results
