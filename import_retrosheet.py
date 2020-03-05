@@ -2,35 +2,38 @@
 from os import path, mkdir, remove
 import urllib.request
 from zipfile import ZipFile as zf
+import sys
 
-# create import folder if not available
-if path.exists('import'):
-    pass
-else:
-    mkdir('import')
+if len(sys.argv) > 1:
 
-# create landing folder if not available
-if path.exists('import/landing'):
-    pass
-else:
-    mkdir('import/landing')
+    # create import folder if not available
+    if path.exists('import'):
+        pass
+    else:
+        mkdir('import')
 
-# download file into import/landing folder
-url = 'https://www.retrosheet.org/events/'
-year = '2018'
-zip_file = year + 'eve.zip'
-urllib.request.urlretrieve(url+zip_file, 'import/landing/'+zip_file)
+    # create landing folder if not available
+    if path.exists('import/landing'):
+        pass
+    else:
+        mkdir('import/landing')
 
-# create new folder for the unzipped contents
-if path.exists('import/'+year):
-    pass
-else:
-    mkdir('import/'+year)
+    # download file into import/landing folder
+    url = 'https://www.retrosheet.org/events/'
+    year = sys.argv[1]
+    zip_file = year + 'eve.zip'
+    urllib.request.urlretrieve(url+zip_file, 'import/landing/'+zip_file)
 
-# unzip contents to the year folder
-with zf('import/landing/'+zip_file) as unzip:
-    unzip.extractall('import/'+year)
+    # create new folder for the unzipped contents
+    if path.exists('import/'+year):
+        pass
+    else:
+        mkdir('import/'+year)
 
-# remove landing file
-if path.exists('import/landing/'+zip_file):
-    remove('import/landing/'+zip_file)
+    # unzip contents to the year folder
+    with zf('import/landing/'+zip_file) as unzip:
+        unzip.extractall('import/'+year)
+
+    # remove landing file
+    if path.exists('import/landing/'+zip_file):
+        remove('import/landing/'+zip_file)
