@@ -11,6 +11,8 @@ import stat_collector as sc
 import global_variables as gv
 import date_time as dt
 import sqlite3 as sql
+import db_setup as dbs
+import class_structure as cl
 
 
 # extract data for single team
@@ -73,8 +75,10 @@ def extract_data_single_team(year, team):
     # games_roster.to_csv('STARTERS.csv', sep=',', mode='a', index=False)
 
     # write the lineups to database
-    conn = sql.connect('baseball.db')
-    c = conn.cursor()
+    c = dbs.engine.connect()
+    c.execute(cl.starters.insert(), games_roster)
+
+    exit()
 
     # insert row by row
     # all_values = list(games_roster.itertuples(index=False, name=None))
@@ -251,4 +255,4 @@ def extract_data_year(year):
 
 
 # actually run the functions
-extract_data_single_team(2018, 'ATL')
+extract_data_single_team(2018, 'ANA')

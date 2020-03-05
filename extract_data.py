@@ -13,7 +13,6 @@ import global_variables as gv
 import date_time as dt
 import csv
 
-
 # get argument
 year_range = sys.argv[1]
 
