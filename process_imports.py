@@ -76,9 +76,9 @@ def extract_data_single_team(year, team):
 
     # write the lineups to database
     c = dbs.engine.connect()
-    c.execute(cl.starters.insert(), games_roster)
-
-    exit()
+    # print(games_roster.to_dict('records'))
+    # exit()
+    c.execute(cl.starters.insert(), games_roster.to_dict('records'))
 
     # insert row by row
     # all_values = list(games_roster.itertuples(index=False, name=None))
