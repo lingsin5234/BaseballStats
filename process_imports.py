@@ -238,3 +238,7 @@ def extract_data_year(year):
 
     # Write Output File after converting entire list of dict to data frame
     o1_time = t.time()
+
+
+# actually run the functions
+extract_data_single_team(2018, 'ARI')
