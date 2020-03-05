@@ -77,12 +77,12 @@ def extract_data_single_team(year, team):
     c = conn.cursor()
 
     # insert row by row
-    all_values = list(games_roster.itertuples(index=False, name=None))
-    for i, v in enumerate(all_values):
-        print(str(i / len(all_values) * 100) + '%...')
-        c.execute('''INSERT INTO starters
-                        VALUES (?,?,?,?,?,?,?)''', v)
-        conn.commit()
+    # all_values = list(games_roster.itertuples(index=False, name=None))
+    # for i, v in enumerate(all_values):
+    #     print(str(i / len(all_values) * 100) + '%...')
+    #     c.execute('''INSERT INTO starters
+    #                     VALUES (?,?,?,?,?,?,?)''', v)
+    #     conn.commit()
 
     # convert all games for 1 file
     a_full_df = g.convert_games(games, games_roster)
@@ -130,7 +130,8 @@ def extract_data_single_team(year, team):
     fgp.close()
 
     # Write Output File after converting entire list of dict to data frame
-    print(gv.full_output[0])
+    import_to_sql = pd.DataFrame(gv.full_output, index=range(len(gv.full_output)))
+    print(import_to_sql.loc[[0]])
     exit()
 
     o1_time = t.time()
