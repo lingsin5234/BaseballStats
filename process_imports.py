@@ -78,12 +78,11 @@ def extract_data_single_team(year, team):
 
     # insert row by row
     all_values = list(games_roster.itertuples(index=False, name=None))
-    for v in all_values:
+    for i, v in enumerate(all_values):
+        print(str(i / len(all_values) * 100) + '%...')
         c.execute('''INSERT INTO starters
                         VALUES (?,?,?,?,?,?,?)''', v)
         conn.commit()
-
-    exit()
 
     # convert all games for 1 file
     a_full_df = g.convert_games(games, games_roster)
@@ -116,7 +115,7 @@ def extract_data_single_team(year, team):
         fgp.write('GAME #:' + str(e) + ' reindex: ' + str(dt.seconds_convert(a3_time - a2_time)) + '\n')
         fgp.write('GAME #:' + str(e) + ' store: ' + str(dt.seconds_convert(a4_time - a3_time)) + '\n')
         fgp.write('GAME #:' + str(e) + ' TOTAL: ' + str(dt.seconds_convert(a4_time - a1_time)) + '\n')
-        # print('GAME #:', e, ' TOTAL: ', a4_time - a1_time)
+        print('GAME #:', e, ' TOTAL: ', a4_time - a1_time)
         fgp.close()
 
     # testing play_processor3
@@ -125,12 +124,15 @@ def extract_data_single_team(year, team):
 
     # indicator of what is completed
     e_time = t.time()
-    print('COMPLETED: ', file_nm, ' - ', dt.seconds_convert(e_time - s_time))
+    print('COMPLETED: ', file_nm[0], ' - ', dt.seconds_convert(e_time - s_time))
     fgp = open('GAMEPLAY.LOG', mode='a')
-    fgp.write('COMPLETED: ' + file_nm + ' - ' + str(dt.seconds_convert(e_time - s_time)) + '\n')
+    fgp.write('COMPLETED: ' + file_nm[0] + ' - ' + str(dt.seconds_convert(e_time - s_time)) + '\n')
     fgp.close()
 
     # Write Output File after converting entire list of dict to data frame
+    print(gv.full_output[0])
+    exit()
+
     o1_time = t.time()
 
 
@@ -241,4 +243,4 @@ def extract_data_year(year):
 
 
 # actually run the functions
-extract_data_single_team(2018, 'ARI')
+extract_data_single_team(2018, 'ATL')
