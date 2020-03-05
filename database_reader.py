@@ -8,6 +8,14 @@ c = conn.cursor()
 # c.execute('''SELECT * FROM starters''')
 # c.execute('''SELECT COUNT(*) FROM starters''')
 
+# check if table exists
+try:
+    table_nm = 'starters'
+    c.execute('''SELECT * FROM ''' + table_nm)
+except sql.Error:
+    print('ERROR')
+    exit()
+
 # fetch results
 results = c.fetchall()
 print(results)

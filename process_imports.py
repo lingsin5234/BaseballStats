@@ -133,8 +133,13 @@ def extract_data_single_team(year, team):
     transpose_time = t.time()
     import_to_sql = pd.DataFrame.from_dict(gv.full_output).transpose()
     print('Transposing takes: ', dt.seconds_convert(t.time() - transpose_time))
-    print(import_to_sql)
-    exit()
+    # print(import_to_sql)
+
+    # update database
+    update_time = t.time()
+    c.fast_executemany = True
+    import_to_sql.to_sql('gameplay', conn, if_exists='replace', index=False)
+    print('Import to Database: ', dt.seconds_convert(t.time() - update_time))
 
     o1_time = t.time()
 
