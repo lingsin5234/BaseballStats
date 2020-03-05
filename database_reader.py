@@ -7,7 +7,8 @@ engine = sa.create_engine('sqlite:///baseball.db', echo=True)
 
 # query
 c = engine.connect()
-results = c.execute('SELECT * FROM starters LIMIT 5').fetchall()
+# results = c.execute('SELECT * FROM starters LIMIT 5').fetchall()
+results = c.execute('SELECT * FROM gameplay LIMIT 5').fetchall()
 print(results)
 # c.execute('DROP TABLE starters')
 
