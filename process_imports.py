@@ -75,18 +75,8 @@ def extract_data_single_team(year, team):
     # games_roster.to_csv('STARTERS.csv', sep=',', mode='a', index=False)
 
     # write the lineups to database
-    c = dbs.engine.connect()
-    # print(games_roster.to_dict('records'))
-    # exit()
-    c.execute(cl.starters.insert(), games_roster.to_dict('records'))
-
-    # insert row by row
-    # all_values = list(games_roster.itertuples(index=False, name=None))
-    # for i, v in enumerate(all_values):
-    #     print(str(i / len(all_values) * 100) + '%...')
-    #     c.execute('''INSERT INTO starters
-    #                     VALUES (?,?,?,?,?,?,?)''', v)
-    #     conn.commit()
+    conn = dbs.engine.connect()
+    conn.execute(cl.starters.insert(), games_roster.to_dict('records'))
 
     # convert all games for 1 file
     a_full_df = g.convert_games(games, games_roster)
@@ -141,8 +131,8 @@ def extract_data_single_team(year, team):
 
     # update database
     update_time = t.time()
-    c.fast_executemany = True
-    import_to_sql.to_sql('gameplay', conn, if_exists='replace', index=False)
+    conn.fast_executemany = True
+    import_to_sql.to_sql('gameplay', conn, if_exists='append', index=False)
     print('Import to Database: ', dt.seconds_convert(t.time() - update_time))
 
     o1_time = t.time()
