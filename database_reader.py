@@ -1,12 +1,10 @@
 # this is a testing script to read databases for specific entries
 import sqlite3 as sql
 import sqlalchemy as sa
-
-# setup engine and database
-engine = sa.create_engine('sqlite:///baseball.db', echo=True)
+import db_setup as dbs
 
 # query
-c = engine.connect()
+c = dbs.engine.connect()
 results1 = c.execute("SELECT * FROM starters WHERE game_id LIKE 'BOS%' LIMIT 5").fetchall()
 results2 = c.execute("SELECT * FROM gameplay WHERE game_id LIKE 'BOS%' LIMIT 5").fetchall()
 print('STARTERS', results1)
