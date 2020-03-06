@@ -5,10 +5,14 @@ import db_setup as dbs
 
 # query
 c = dbs.engine.connect()
-results1 = c.execute("SELECT * FROM starters WHERE game_id LIKE 'BOS%' LIMIT 5").fetchall()
-results2 = c.execute("SELECT * FROM gameplay WHERE game_id LIKE 'BOS%' LIMIT 5").fetchall()
-print('STARTERS', results1)
-print('GAMEPLAY', results2)
+# results1 = c.execute("SELECT * FROM starters WHERE game_id LIKE 'BOS%' LIMIT 5").fetchall()
+# results2 = c.execute("SELECT * FROM gameplay WHERE game_id LIKE 'BOS%' LIMIT 5").fetchall()
+# print('STARTERS', results1)
+# print('GAMEPLAY', results2)
+# results = c.execute("SELECT * FROM pitching WHERE team_name = 'TOR'").fetchall()
+results = c.execute("SELECT * FROM raw_player_stats WHERE player_id = 'axfoj001' and stat_type = 'BT'").fetchall()
+# results = c.execute("SELECT * FROM pitching WHERE player_id = 'axfoj001'").fetchall()
+print(results)
 # c.execute('DROP TABLE starters')
 
 # conn = sql.connect('baseball.db')

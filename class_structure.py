@@ -113,4 +113,8 @@ pitching_stats = Table('pitching', metadata,
                        Column('passed_balls', Integer),
                        Column('balks', Integer),
                        Column('defensive_indifference', Integer),
-                       Column('catcher_interference', Integer))
+                       Column('catcher_interference', Integer),
+                       Column('pitches_thrown', Integer),
+                       Column('strikes_thrown', Integer),
+                       Column('balls_thrown', Integer),
+                       Column('foul_balls', Integer))

@@ -313,6 +313,9 @@ def play_processor3(the_dict, games_roster):
                 else:
                     print('Category Needed: ', begin_play)
 
+                # record pitcher stats
+                po.pitch_count_collector(hid, pid, lineup, this_line)
+
         # this line item is substitution
         else:
             this_line['after_1B'] = the_dict[i-1]['before_1B']

@@ -69,5 +69,9 @@ pitch_stat_types = {
     'PB': 'passed_balls',
     'BK': 'balks',
     'DI': 'defensive_indifference',
-    'CI': 'catcher_interference'
+    'CI': 'catcher_interference',
+    'PT': 'pitches_thrown',
+    'ST': 'strikes_thrown',
+    'BT': 'balls_thrown',
+    'FL': 'foul_balls'
 }

@@ -87,12 +87,11 @@ def stat_organizer(player_dict):
     # player_tb = player_dict
 
     # reshape the data
-    player_tb = player_tb.groupby(['player_id', 'team_name', 'bat_pitch', 'stat_type']).size().reset_index()
+    player_tb = player_tb.groupby(['player_id', 'team_name', 'bat_pitch', 'stat_type'])\
+        .agg({'stat_value': 'sum'}).reset_index()
 
-    # rename the "0" column to values
-    player_tb.rename(columns={0: 'values'}, inplace=True)
     # set index to BOTH player_id and team_name and pivot based on stat_type column and values
-    player_tb = player_tb.set_index(['player_id', 'team_name', 'bat_pitch']).pivot(columns='stat_type')['values']
+    player_tb = player_tb.set_index(['player_id', 'team_name', 'bat_pitch']).pivot(columns='stat_type')['stat_value']
 
     # reset index and rename to fix the structure of the columns
     player_tb = player_tb.reset_index().rename_axis(None, axis=1)
