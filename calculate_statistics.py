@@ -27,8 +27,7 @@ if len(sys.argv) > 1:
     bat_stats = gv.player_stats['batting']
     pitch_stats = gv.player_stats['pitching']
     bat_stats = bat_stats.rename(columns=gv.bat_stat_types)
-    print(bat_stats.head())
-    exit()
+    pitch_stats = pitch_stats.rename(columns=gv.pitch_stat_types)
 
     # write to BATTING stats database
     update_time = t.time()
@@ -39,7 +38,7 @@ if len(sys.argv) > 1:
     # write to PITCHING stats database
     update_time = t.time()
     conn.fast_executemany = True
-    bat_stats.to_sql('pitching', conn, if_exists='append', index=False)
+    pitch_stats.to_sql('pitching', conn, if_exists='append', index=False)
     print('Import PITCHING STATS to Database: ', dt.seconds_convert(t.time() - update_time))
 
     # WRITING STATS PERFORMANCE
