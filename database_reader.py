@@ -7,9 +7,10 @@ engine = sa.create_engine('sqlite:///baseball.db', echo=True)
 
 # query
 c = engine.connect()
-# results = c.execute('SELECT * FROM starters LIMIT 5').fetchall()
-results = c.execute('SELECT * FROM gameplay LIMIT 5').fetchall()
-print(results)
+results1 = c.execute("SELECT * FROM starters WHERE game_id LIKE 'BOS%' LIMIT 5").fetchall()
+results2 = c.execute("SELECT * FROM gameplay WHERE game_id LIKE 'BOS%' LIMIT 5").fetchall()
+print('STARTERS', results1)
+print('GAMEPLAY', results2)
 # c.execute('DROP TABLE starters')
 
 # conn = sql.connect('baseball.db')
