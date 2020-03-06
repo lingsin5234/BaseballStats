@@ -53,15 +53,15 @@ def pitch_collector(hid, lineup, the_line, stat_types):
 
     # base runners
     bases_taken = []
-    if the_line['1B_before']:
+    if the_line['before_1B']:
         bases_taken.append('1')
     else:
         bases_taken.append('-')
-    if the_line['2B_before']:
+    if the_line['before_2B']:
         bases_taken.append('2')
     else:
         bases_taken.append('-')
-    if the_line['3B_before']:
+    if the_line['before_3B']:
         bases_taken.append('3')
     else:
         bases_taken.append('-')

@@ -27,9 +27,9 @@ def play_processor3(the_dict, games_roster):
         # check for new inning
         if i > 0:
             if this_line['half_innings'] == the_dict[i-1]['half_innings']:
-                this_line['1B_before'] = the_dict[i-1]['1B_after']
-                this_line['2B_before'] = the_dict[i-1]['2B_after']
-                this_line['3B_before'] = the_dict[i-1]['3B_after']
+                this_line['before_1B'] = the_dict[i-1]['after_1B']
+                this_line['before_2B'] = the_dict[i-1]['after_2B']
+                this_line['before_3B'] = the_dict[i-1]['after_3B']
                 this_line['outs'] = the_dict[i-1]['outs']
             else:
                 # see if pass works
@@ -39,7 +39,7 @@ def play_processor3(the_dict, games_roster):
         q2_time = t.time()
 
         # for plays
-        if this_line['type'] == 'play':
+        if this_line['gm_type'] == 'play':
 
             # take out any ! in play
             this_line['play'] = this_line['play'].replace('!', '')
@@ -88,17 +88,17 @@ def play_processor3(the_dict, games_roster):
 
                         # single
                         if re.search(r'^S', begin_play):
-                            this_line['1B_after'] = pid
+                            this_line['after_1B'] = pid
                             gv.bases_after = 'B' + gv.bases_after
                         # double
                         elif re.search(r'^D', begin_play):
-                            this_line['2B_after'] = pid
+                            this_line['after_2B'] = pid
                             gv.bases_after = '0B' + gv.bases_after
                             st.append('D')
                             pt.append('D')
                         # triple
                         elif re.search(r'^T', begin_play):
-                            this_line['3B_after'] = pid
+                            this_line['after_3B'] = pid
                             gv.bases_after = '00B' + gv.bases_after
                             st.append('T')
                             pt.append('T')
@@ -160,13 +160,13 @@ def play_processor3(the_dict, games_roster):
                     # if no batter movements, then put batter on first!
                     if run_play is not None:
                         if bool(not(re.search(r'B', run_play))) & bool(not(re.search(r'K', begin_play))):
-                            this_line['1B_after'] = pid
+                            this_line['after_1B'] = pid
                         elif bool(re.search('K.*B-', this_line['play'])) & bool(not(re.search('\+', begin_play))):
                             this_line['outs'] -= 1
                             # let base_runner function handle this.
                     else:
                         if bool(not(re.search(r'K', begin_play))):
-                            this_line['1B_after'] = pid
+                            this_line['after_1B'] = pid
                     # the K+WP.B-1 or K+PB.B-1 scenarios - runner is moved by below.
 
                     # now process any base runners normally
@@ -222,13 +222,13 @@ def play_processor3(the_dict, games_roster):
                             gv.bases_after = 'X' + gv.bases_after
                         elif re.search(r'\(1\)', begin_play):
                             gv.bases_after = 'BX' + gv.bases_after[1:]
-                            this_line['1B_after'] = pid
+                            this_line['after_1B'] = pid
                         elif re.search(r'\(2\)', begin_play):
                             gv.bases_after = 'B' + gv.bases_after[0:1] + 'X' + gv.bases_after[2]
-                            this_line['1B_after'] = pid
+                            this_line['after_1B'] = pid
                         else:
                             gv.bases_after = 'B' + gv.bases_after[:2] + 'X'
-                            this_line['1B_after'] = pid
+                            this_line['after_1B'] = pid
 
                     # fielding error
                     elif bool(re.search(r'^([0-9]+)?E', begin_play)):
@@ -278,15 +278,15 @@ def play_processor3(the_dict, games_roster):
                         st.append('LOB', 'RLSP')
                     elif re.search(r'\(1\)', begin_play):
                         gv.bases_after = 'BX' + gv.bases_after[1:]
-                        this_line['1B_after'] = pid
+                        this_line['after_1B'] = pid
                         st.append('LOB', 'RLSP')
                     elif re.search(r'\(2\)', begin_play):
                         gv.bases_after = 'B' + gv.bases_after[0:1] + 'X' + gv.bases_after[2]
-                        this_line['1B_after'] = pid
+                        this_line['after_1B'] = pid
                         st.append('LOB', 'RLSP')
                     elif re.search(r'\(3\)', begin_play):
                         gv.bases_after = 'B' + gv.bases_after[:2] + 'X'
-                        this_line['1B_after'] = pid
+                        this_line['after_1B'] = pid
                         st.append('LOB', 'RLSP')
                     else:
                         # NO ONE IS OUT
@@ -302,7 +302,7 @@ def play_processor3(the_dict, games_roster):
                 elif bool(re.search(r'C/E[1-3]', begin_play)):
                     st = ['PA']
                     pt = ['BF', 'CI']
-                    this_line['1B_after'] = pid
+                    this_line['after_1B'] = pid
                     sc.stat_collector(pid, lineup, this_line, st)
                     po.pitch_collector(hid, lineup, this_line, pt)
 
@@ -315,9 +315,9 @@ def play_processor3(the_dict, games_roster):
 
         # this line item is substitution
         else:
-            this_line['1B_after'] = the_dict[i-1]['1B_before']
-            this_line['2B_after'] = the_dict[i-1]['2B_before']
-            this_line['3B_after'] = the_dict[i-1]['3B_before']
+            this_line['after_1B'] = the_dict[i-1]['before_1B']
+            this_line['after_2B'] = the_dict[i-1]['before_2B']
+            this_line['after_3B'] = the_dict[i-1]['before_3B']
             this_line['inning'] = the_dict[i-1]['inning']
             this_line['half'] = the_dict[i-1]['half']
             this_line['half_innings'] = the_dict[i-1]['half_innings']
@@ -336,12 +336,12 @@ def play_processor3(the_dict, games_roster):
                     sub_player_id = lineup.at[substitution[1][0], 'player_id']
 
                     # check the bases for the runner:
-                    if this_line['1B_after'] == sub_player_id:
-                        this_line['1B_after'] = pid
-                    elif this_line['2B_after'] == sub_player_id:
-                        this_line['2B_after'] = pid
-                    elif this_line['3B_after'] == sub_player_id:
-                        this_line['3B_after'] = pid
+                    if this_line['after_1B'] == sub_player_id:
+                        this_line['after_1B'] = pid
+                    elif this_line['after_2B'] == sub_player_id:
+                        this_line['after_2B'] = pid
+                    elif this_line['after_3B'] == sub_player_id:
+                        this_line['after_3B'] = pid
                     else:
                         # most likely is Pinch Hitting -- make a check for this later; but should be '11'
                         pass
@@ -394,8 +394,8 @@ def play_processor3(the_dict, games_roster):
         #
         # set the line back to the df to be stored properly.
         the_dict[i] = this_line
-        # print(the_play, bases_before, this_line['1B_before'], this_line['2B_before'], this_line['3B_before'],
-        #       this_line['outs'], this_line['1B_after'], this_line['2B_after'], this_line['3B_after'], gv.bases_after)
+        # print(the_play, bases_before, this_line['before_1B'], this_line['before_2B'], this_line['before_3B'],
+        #       this_line['outs'], this_line['after_1B'], this_line['after_2B'], this_line['after_3B'], gv.bases_after)
         #
         # # performance checkpoint
         # q4_time = t.time()

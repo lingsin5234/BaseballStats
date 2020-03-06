@@ -139,8 +139,6 @@ def extract_data_single_team(year, team):
 
     # update RAW PLAYER STATS database
     raw_player_stats = pd.DataFrame.from_dict(gv.player).transpose()
-    print(raw_player_stats.loc[[1]])
-    exit()
     update_time = t.time()
     conn.fast_executemany = True
     raw_player_stats.to_sql('raw_player_stats', conn, if_exists='append', index=False)
