@@ -12,6 +12,7 @@ def stat_collector(pid, lineup, the_line, stat_types):
     game_id = the_line['game_id']
     this_half = the_line['half_innings']
     actual_play = the_line['play']
+    pitch_count = the_line['pitch_count']
 
     # get vis_team and home_team
     vis_team = lineup.loc[0, 'team_name']
@@ -43,24 +44,24 @@ def stat_collector(pid, lineup, the_line, stat_types):
     for s_type in stat_types:
         if s_type == 'LOB':
             lobs = bases_before - the_line['play'].count(r'-H')
-            stat_appender(pid, team_name, game_id, this_half, s_type, lobs, actual_play, num_outs, bases_taken,
-                          stat_team, 'batting')
+            stat_appender(pid, team_name, game_id, this_half, s_type, lobs, actual_play, pitch_count,
+                          num_outs, bases_taken, stat_team, 'batting')
         elif s_type == 'RLSP':
             rlsp = scoring_pos - the_line['play'].count(r'-H')
             if rlsp < 0:
                 rlsp = 0
-            stat_appender(pid, team_name, game_id, this_half, s_type, rlsp, actual_play, num_outs, bases_taken,
-                          stat_team, 'batting')
+            stat_appender(pid, team_name, game_id, this_half, s_type, rlsp, actual_play, pitch_count,
+                          num_outs, bases_taken, stat_team, 'batting')
         else:
-            stat_appender(pid, team_name, game_id, this_half, s_type, 1, actual_play, num_outs, bases_taken,
-                          stat_team, 'batting')
+            stat_appender(pid, team_name, game_id, this_half, s_type, 1, actual_play, pitch_count,
+                          num_outs, bases_taken, stat_team, 'batting')
 
     return True
 
 
 # stat appender
 def stat_appender(player_id, team_name, game_id, this_half, stat_type, stat_value, actual_play,
-                  num_outs, bases_taken, stat_team, bat_pitch):
+                  pitch_count, num_outs, bases_taken, stat_team, bat_pitch):
 
     # store into player dict using the player_idx index
     gv.player[gv.player_idx] = {"player_id": player_id,
@@ -70,6 +71,7 @@ def stat_appender(player_id, team_name, game_id, this_half, stat_type, stat_valu
                                 "stat_type": stat_type,
                                 "stat_value": stat_value,
                                 "actual_play": actual_play,
+                                "pitch_count": pitch_count,
                                 "num_outs": num_outs,
                                 "bases_taken": bases_taken,
                                 "stat_team": stat_team,
@@ -151,14 +153,14 @@ def game_tracker(all_starts):
 
             # stat appender
             if int(ss[4]) > 0:  # batter excluding AL pitchers
-                stat_appender(ss[1], team_nm, game_id, 0, 'GS', 1, None, 0, '---', ss[3], 'batting')
-                stat_appender(ss[1], team_nm, game_id, 0, 'GP', 1, None, 0, '---', ss[3], 'batting')
+                stat_appender(ss[1], team_nm, game_id, 0, 'GS', 1, None, None, 0, '---', ss[3], 'batting')
+                stat_appender(ss[1], team_nm, game_id, 0, 'GP', 1, None, None, 0, '---', ss[3], 'batting')
             if int(ss[5]) == 1:  # pitcher
-                stat_appender(ss[1], team_nm, game_id, 0, 'GS', 1, None, 0, '---', ss[3], 'pitching')
-                stat_appender(ss[1], team_nm, game_id, 0, 'GP', 1, None, 0, '---', ss[3], 'pitching')
+                stat_appender(ss[1], team_nm, game_id, 0, 'GS', 1, None, None, 0, '---', ss[3], 'pitching')
+                stat_appender(ss[1], team_nm, game_id, 0, 'GP', 1, None, None, 0, '---', ss[3], 'pitching')
             if int(ss[5]) < 10:  # not DH PH PR, is a fielder
-                stat_appender(ss[1], team_nm, game_id, 0, 'GS', 1, None, 0, '---', ss[3], 'fielding')
-                stat_appender(ss[1], team_nm, game_id, 0, 'GP', 1, None, 0, '---', ss[3], 'fielding')
+                stat_appender(ss[1], team_nm, game_id, 0, 'GS', 1, None, None, 0, '---', ss[3], 'fielding')
+                stat_appender(ss[1], team_nm, game_id, 0, 'GP', 1, None, None, 0, '---', ss[3], 'fielding')
 
     return games_dict
 

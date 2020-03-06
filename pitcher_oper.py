@@ -39,11 +39,12 @@ def pitch_collector(hid, lineup, the_line, stat_types):
     game_info = pitch_get_game_info(lineup, the_line)
     team_name, game_id, this_half, actual_play, \
         num_outs, bases_taken, stat_team = game_info
+    pitch_count = the_line['pitch_count']
 
     # for each stat_type, call stat_appender
     for s_type in stat_types:
-        sc.stat_appender(hid, team_name, game_id, this_half, s_type, 1, actual_play, num_outs, bases_taken,
-                         stat_team, 'pitching')
+        sc.stat_appender(hid, team_name, game_id, this_half, s_type, 1, actual_play, pitch_count,
+                         num_outs, bases_taken, stat_team, 'pitching')
 
     return True
 
@@ -97,6 +98,7 @@ def pitch_count_collector(pitcherID, playerID, lineup, the_line):
     game_info = pitch_get_game_info(lineup, the_line)
     team_name, game_id, this_half, actual_play, \
         num_outs, bases_taken, stat_team = game_info
+    pitch_count = the_line['pitch_count']
 
     # the pitches
     pc = the_line['pitches']
@@ -116,13 +118,13 @@ def pitch_count_collector(pitcherID, playerID, lineup, the_line):
     # unknown or missed pitch - U
 
     # call stat_appender for PT, ST, FL, BT
-    sc.stat_appender(pitcherID, team_name, game_id, this_half, 'PT', thrown, actual_play, num_outs, bases_taken,
-                     stat_team, 'pitching')
-    sc.stat_appender(pitcherID, team_name, game_id, this_half, 'ST', strikes, actual_play, num_outs, bases_taken,
-                     stat_team, 'pitching')
-    sc.stat_appender(pitcherID, team_name, game_id, this_half, 'FL', fouls, actual_play, num_outs, bases_taken,
-                     stat_team, 'pitching')
-    sc.stat_appender(pitcherID, team_name, game_id, this_half, 'BT', balls, actual_play, num_outs, bases_taken,
-                     stat_team, 'pitching')
+    sc.stat_appender(pitcherID, team_name, game_id, this_half, 'PT', thrown, actual_play, pitch_count,
+                     num_outs, bases_taken, stat_team, 'pitching')
+    sc.stat_appender(pitcherID, team_name, game_id, this_half, 'ST', strikes, actual_play, pitch_count,
+                     num_outs, bases_taken, stat_team, 'pitching')
+    sc.stat_appender(pitcherID, team_name, game_id, this_half, 'FL', fouls, actual_play, pitch_count,
+                     num_outs, bases_taken, stat_team, 'pitching')
+    sc.stat_appender(pitcherID, team_name, game_id, this_half, 'BT', balls, actual_play, pitch_count,
+                     num_outs, bases_taken, stat_team, 'pitching')
 
     return True
