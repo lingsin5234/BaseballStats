@@ -131,11 +131,20 @@ def extract_data_single_team(year, team):
     print('Transposing takes: ', dt.seconds_convert(t.time() - transpose_time))
     # print(import_to_sql)
 
-    # update database
+    # update GAMEPLAY database
     update_time = t.time()
     conn.fast_executemany = True
     import_to_sql.to_sql('gameplay', conn, if_exists='append', index=False)
     print('Import GAMEPLAY to Database: ', dt.seconds_convert(t.time() - update_time))
+
+    # update RAW PLAYER STATS database
+    raw_player_stats = pd.DataFrame.from_dict(gv.player).transpose()
+    print(raw_player_stats.loc[[1]])
+    exit()
+    update_time = t.time()
+    conn.fast_executemany = True
+    raw_player_stats.to_sql('raw_player_stats', conn, if_exists='append', index=False)
+    print('Import RAW PLAYER STATS to Database: ', dt.seconds_convert(t.time() - update_time))
 
     o1_time = t.time()
 

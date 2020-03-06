@@ -21,13 +21,14 @@ if len(sys.argv) > 1:
         gv.player[idx] = dict(x)
         idx += 1
     print('Conversion Time:', dt.seconds_convert(t.time() - conv_time))
-    print(gv.player[0])
-    # print(dict(gv.player[0]))
-    exit()
 
-    gv.player_stats = sc.stat_organizer(gv.player.to_dict())
+    gv.player_stats = sc.stat_organizer(gv.player)
+    bat_stats = gv.player_stats['batting']
+    print(bat_stats[0])
+    exit()
     gv.player_stats['batting'].to_csv('BATTING.csv', sep=',', index=False)
     gv.player_stats['pitching'].to_csv('PITCHING.csv', sep=',', index=False)
+    exit()
 
     # WRITING STATS PERFORMANCE
     t2_time = t.time()
