@@ -44,7 +44,7 @@ gameplay = Table('gameplay', metadata,
 
 # raw player stats table
 raw_player_stats = Table('raw_player_stats', metadata,
-                         Column('Id', Integer),
+                         Column('Id', Integer, primary_key=True),
                          Column('player_id', String),
                          Column('team_name', String),
                          Column('game_id', String),
@@ -59,7 +59,7 @@ raw_player_stats = Table('raw_player_stats', metadata,
 
 # batting stats table
 batting_stats = Table('batting', metadata,
-                      Column('Id', Integer),
+                      Column('Id', Integer, primary_key=True),
                       Column('player_id', String),
                       Column('team_name', String),
                       Column('games_played', Integer),
@@ -81,4 +81,36 @@ batting_stats = Table('batting', metadata,
                       Column('rlsp', Integer),
                       Column('hit_by_pitch', Integer),
                       Column('sac_hit', Integer),
-                      Column('sac_fly', Integer))
+                      Column('sac_fly', Integer)
+                      # , Column('pinch_hit', Integer),
+                      # Column('pinch_run', Integer)
+                      )
+
+# pitching stats table
+pitching_stats = Table('pitching', metadata,
+                       Column('Id', Integer, primary_key=True),
+                       Column('player_id', String),
+                       Column('team_name', String),
+                       Column('games_played', Integer),
+                       Column('games_started', Integer),
+                       Column('innings_pitched', Integer),
+                       Column('batters_faced', Integer),
+                       # Column('wins', Integer),
+                       # Column('losses', Integer),
+                       # Column('holds', Integer),
+                       # Column('saves', Integer),
+                       Column('runs_allowed', Integer),
+                       Column('earned_runs', Integer),
+                       Column('hits_allowed', Integer),
+                       Column('home_runs', Integer),
+                       Column('strikeouts', Integer),
+                       Column('walks', Integer),
+                       Column('intentional_walks', Integer),
+                       Column('hit_batters', Integer),
+                       Column('pick_off_attempts', Integer),
+                       Column('pick_offs', Integer),
+                       Column('wild_pitches', Integer),
+                       Column('passed_balls', Integer),
+                       Column('balks', Integer),
+                       Column('defensive_indifference', Integer),
+                       Column('catcher_interference', Integer))

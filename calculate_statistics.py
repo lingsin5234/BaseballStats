@@ -13,7 +13,7 @@ if len(sys.argv) > 1:
     # retrieve the game player stats
     conn = dbs.engine.connect()
     team_id = sys.argv[1] + '%'
-    output = conn.execute("SELECT * FROM GAMEPLAY WHERE game_id LIKE ?", team_id).fetchall()
+    output = conn.execute("SELECT * FROM raw_player_stats WHERE game_id LIKE ?", team_id).fetchall()
     idx = 0
     # conversion time
     conv_time = t.time()
@@ -21,14 +21,26 @@ if len(sys.argv) > 1:
         gv.player[idx] = dict(x)
         idx += 1
     print('Conversion Time:', dt.seconds_convert(t.time() - conv_time))
-
     gv.player_stats = sc.stat_organizer(gv.player)
+
+    # separate batting and pitching stats, reassign column names
     bat_stats = gv.player_stats['batting']
-    print(bat_stats[0])
+    pitch_stats = gv.player_stats['pitching']
+    bat_stats = bat_stats.rename(columns=gv.bat_stat_types)
+    print(bat_stats.head())
     exit()
-    gv.player_stats['batting'].to_csv('BATTING.csv', sep=',', index=False)
-    gv.player_stats['pitching'].to_csv('PITCHING.csv', sep=',', index=False)
-    exit()
+
+    # write to BATTING stats database
+    update_time = t.time()
+    conn.fast_executemany = True
+    bat_stats.to_sql('batting', conn, if_exists='append', index=False)
+    print('Import BATTING STATS to Database: ', dt.seconds_convert(t.time() - update_time))
+
+    # write to PITCHING stats database
+    update_time = t.time()
+    conn.fast_executemany = True
+    bat_stats.to_sql('pitching', conn, if_exists='append', index=False)
+    print('Import PITCHING STATS to Database: ', dt.seconds_convert(t.time() - update_time))
 
     # WRITING STATS PERFORMANCE
     t2_time = t.time()
