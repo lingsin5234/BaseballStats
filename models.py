@@ -68,14 +68,21 @@ class Starter(models.Model):
 # Game Plays
 class GamePlay(models.Model):
     game_id = models.ForeignKey(GameInfo, null=True, on_delete=models.SET_NULL)
+    type_of_play = models.CharField(max_length=4, choices=PLAY_TYPE)
     inning = models.IntegerField()
     which_half = models.IntegerField(choices=WHICH_TEAM)
-    half_inning = models.CharField(max_length=4)
-    type_of_play = models.CharField(max_length=4, choices=PLAY_TYPE)
-    which_team = models.IntegerField(choices=WHICH_TEAM)
+    half_innings = models.CharField(max_length=4)
     player_id = models.ForeignKey(Player, null=True, on_delete=models.SET_NULL, related_name='_player')
-    pitcher_id = models.ForeignKey(Player, null=True, on_delete=models.SET_NULL, related_name='_pitcher')
+    pitch_count = models.CharField(max_length=2)
+    pitches = models.CharField(max_length=30)
     the_play = models.CharField(max_length=40)
+    # player_name -- does this need reference?
+    which_team = models.IntegerField(choices=WHICH_TEAM)
+    team_name = models.ForeignKey(Team, null=True, on_delete=models.SET_NULL)
+    batting_spot = models.IntegerField()
+    fielding_pos = models.IntegerField()
+    pitcher_id = models.ForeignKey(Player, null=True, on_delete=models.SET_NULL, related_name='_pitcher')
+    num_of_outs = models.IntegerField()
     before_1b = models.CharField(max_length=12)
     before_2b = models.CharField(max_length=12)
     before_3b = models.CharField(max_length=12)
@@ -83,9 +90,7 @@ class GamePlay(models.Model):
     after_2b = models.CharField(max_length=12)
     after_3b = models.CharField(max_length=12)
     runs_scored = models.IntegerField()
-    outs = models.IntegerField()
-    batting_spot = models.IntegerField()
-    fielding_pos = models.IntegerField()
+    total_scored = models.IntegerField()
 
     def __str__(self):
         return self.game_id + ': ' + self.half_inning + ' - ' + self.the_play
