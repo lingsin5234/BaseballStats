@@ -76,7 +76,9 @@ def extract_data_single_team(year, team):
 
     # write the lineups to database
     conn = dbs.engine.connect()
+    insert_time = t.time()
     conn.execute(cl.starters.insert(), games_roster.to_dict('records'))
+    print('Import STARTERS to Database:', dt.seconds_convert(t.time() - insert_time))
 
     # convert all games for 1 file
     a_full_df = g.convert_games(games, games_roster)
@@ -133,7 +135,7 @@ def extract_data_single_team(year, team):
     update_time = t.time()
     conn.fast_executemany = True
     import_to_sql.to_sql('gameplay', conn, if_exists='append', index=False)
-    print('Import to Database: ', dt.seconds_convert(t.time() - update_time))
+    print('Import GAMEPLAY to Database: ', dt.seconds_convert(t.time() - update_time))
 
     o1_time = t.time()
 
