@@ -1,0 +1,10 @@
+{% include 'partials/header.html' %}
+    <h1>Display Data</h1>
+
+    <ul>
+        {% for item in line_items %}
+        <li>{{item}}</li>
+        {% endfor %}
+    </ul>
+
+{% include 'partials/footer.html' %}
