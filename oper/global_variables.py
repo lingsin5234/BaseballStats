@@ -21,21 +21,21 @@ gr_idx = 0
 bases_after = '---'
 
 # global dictionary for stat types
-bat_stats = {
+bat_stat_types = {
     'GP': 'games_played',
     'GS': 'games_started',
-    'AB': 'at_bat',
-    'PA': 'plate_app',
+    'AB': 'at_bats',
+    'PA': 'plate_appearances',
     'H': 'hits',
     'D': 'doubles',
     'T': 'triples',
-    'HR': 'home_run',
-    'RBI': 'rbi',
+    'HR': 'home_runs',
+    'RBI': 'rbis',
     'R': 'runs_scored',
     'BB': 'walks',
-    'IW': 'int_walks',
+    'IW': 'intentional_walks',
     'K': 'strikeouts',
-    'SB': 'stolen_base',
+    'SB': 'stolen_bases',
     'CS': 'caught_stealing',
     'LOB': 'left_on_base',
     'RLSP': 'rlsp',
@@ -46,7 +46,7 @@ bat_stats = {
     # 'PR': 'pinch_run',
 }
 
-pitch_stats = {
+pitch_stat_types = {
     'GP': 'games_played',
     'GS': 'games_started',
     'IP': 'innings_pitched',
@@ -63,11 +63,15 @@ pitch_stats = {
     'BB': 'walks',
     'IBB': 'intentional_walks',
     'HBP': 'hit_batters',
-    'POA': 'pick-off_attempts',
-    'PO': 'pick-offs',
+    'POA': 'pick_off_attempts',
+    'PO': 'pick_offs',
     'WP': 'wild_pitches',
     'PB': 'passed_balls',
     'BK': 'balks',
     'DI': 'defensive_indifference',
-    'CI': 'catcher_interference'
+    'CI': 'catcher_interference',
+    'PT': 'pitches_thrown',
+    'ST': 'strikes_thrown',
+    'BT': 'balls_thrown',
+    'FL': 'foul_balls'
 }
