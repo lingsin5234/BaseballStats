@@ -1,6 +1,10 @@
 # libraries
 import stat_collector as sc
 import global_variables as gv
+import re
+
+# constant
+max_pitch = 30  # maximum pitches thrown in at-bat, in case it ever gets beaten!
 
 
 # assign the pitcher
@@ -31,6 +35,23 @@ def assign_pitcher(lineup, this_line):
 # pitching stats collector
 def pitch_collector(hid, lineup, the_line, stat_types):
 
+    # get game info
+    game_info = pitch_get_game_info(lineup, the_line)
+    team_name, game_id, this_half, actual_play, \
+        num_outs, bases_taken, stat_team = game_info
+    pitch_count = the_line['pitch_count']
+
+    # for each stat_type, call stat_appender
+    for s_type in stat_types:
+        sc.stat_appender(hid, team_name, game_id, this_half, s_type, 1, actual_play, pitch_count,
+                         num_outs, bases_taken, stat_team, 'pitching')
+
+    return True
+
+
+# game info for pitcher collectors
+def pitch_get_game_info(lineup, the_line):
+
     # game info values
     game_id = the_line['game_id']
     this_half = the_line['half_innings']
@@ -53,23 +74,57 @@ def pitch_collector(hid, lineup, the_line, stat_types):
 
     # base runners
     bases_taken = []
-    if the_line['1B_before']:
+    if the_line['before_1B']:
         bases_taken.append('1')
     else:
         bases_taken.append('-')
-    if the_line['2B_before']:
+    if the_line['before_2B']:
         bases_taken.append('2')
     else:
         bases_taken.append('-')
-    if the_line['3B_before']:
+    if the_line['before_3B']:
         bases_taken.append('3')
     else:
         bases_taken.append('-')
     bases_taken = ''.join(map(str, bases_taken))
 
-    # for each stat_type, call stat_appender
-    for s_type in stat_types:
-        sc.stat_appender(hid, team_name, game_id, this_half, s_type, 1, actual_play, num_outs, bases_taken,
-                         stat_team, 'pitching')
+    return [team_name, game_id, this_half, actual_play, num_outs, bases_taken, stat_team]
+
+
+# pitch count collector
+def pitch_count_collector(pitcherID, playerID, lineup, the_line):
+
+    # get game info
+    game_info = pitch_get_game_info(lineup, the_line)
+    team_name, game_id, this_half, actual_play, \
+        num_outs, bases_taken, stat_team = game_info
+    pitch_count = the_line['pitch_count']
+
+    # the pitches
+    pc = the_line['pitches']
+
+    # pitches thrown - ignore N for no pitch
+    thrown = re.subn('[A-MO-Z]', '', pc, max_pitch)[1]
+
+    # strikes thrown
+    strikes = re.subn('[CFKLMOQRSTXY]', '', pc, max_pitch)[1]
+
+    # foul balls
+    fouls = re.subn('[FLORT]', '', pc, max_pitch)[1]
+
+    # balls thrown
+    balls = re.subn('[BIPV]', '', pc, max_pitch)[1]
+
+    # unknown or missed pitch - U
+
+    # call stat_appender for PT, ST, FL, BT
+    sc.stat_appender(pitcherID, team_name, game_id, this_half, 'PT', thrown, actual_play, pitch_count,
+                     num_outs, bases_taken, stat_team, 'pitching')
+    sc.stat_appender(pitcherID, team_name, game_id, this_half, 'ST', strikes, actual_play, pitch_count,
+                     num_outs, bases_taken, stat_team, 'pitching')
+    sc.stat_appender(pitcherID, team_name, game_id, this_half, 'FL', fouls, actual_play, pitch_count,
+                     num_outs, bases_taken, stat_team, 'pitching')
+    sc.stat_appender(pitcherID, team_name, game_id, this_half, 'BT', balls, actual_play, pitch_count,
+                     num_outs, bases_taken, stat_team, 'pitching')
 
     return True

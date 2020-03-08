@@ -20,7 +20,7 @@ def lineup_substitution(this_line, lineup, pid, sub_type, field_pos):
 
     # replace the person in the lineup
     lineup.at[sub_index[0], 'player_id'] = pid
-    lineup.at[sub_index[0], 'player_nm'] = this_line['name']
+    lineup.at[sub_index[0], 'player_nm'] = this_line['player_name']
     lineup.at[sub_index[0], 'fielding'] = field_pos
 
     return [lineup, sub_index, new_substitution]

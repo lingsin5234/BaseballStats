@@ -1,6 +1,5 @@
-# extracting the data
-
-# libraries
+# this script processes the imported files
+# using the extract_data.py file as reference
 import pandas as pd
 import re
 import os
@@ -11,45 +10,29 @@ import play_processor as pp
 import stat_collector as sc
 import global_variables as gv
 import date_time as dt
-import csv
+import sqlite3 as sql
+import db_setup as dbs
+import class_structure as cl
 
-# get argument
-year_range = sys.argv[1]
 
-# check if range or single
-if re.search(r'^(19[0-9]{2}|20[0-9]{2})-(19{2}|20[0-9]{2})$', year_range):
-    # add range later
-    pass
-elif re.search(r'^[0-9]{4}$', year_range):
-    a_year = year_range
-else:
-    # error handling
-    pass
+# extract data for single team
+def extract_data_single_team(year, team):
 
-# open and read data files
-dir_str = 'retrodata/' + a_year
-# for event_file in os.listdir(dir_str):
-# print(x)
-# file_dir = dir_str + '/' + event_file
-all_files = os.listdir(dir_str)
+    # open and read data files
+    dir_str = 'import/' + str(year)
+    # for event_file in os.listdir(dir_str):
+    # print(x)
+    # file_dir = dir_str + '/' + event_file
+    all_files = os.listdir(dir_str)
 
-# overwrite STARTERS.csv
-fs = open('STARTERS.csv', "w")
-fs.close()
+    # search for team
+    file_nm = [f for f in all_files if str(year) + team in f]
 
-# overwrite GAMEPLAY.LOG
-fgp = open('GAMEPLAY.LOG', mode="w")
-fgp.close()
-
-# total time for 1 year of files
-y_time = t.time()
-
-for file_nm in all_files:
     # start timer
     s_time = t.time()
 
     # get current file
-    file_dir = dir_str + '/' + file_nm
+    file_dir = dir_str + '/' + file_nm[0]
     f = open(file_dir, "r")
     f1 = f.readlines()
 
@@ -89,14 +72,19 @@ for file_nm in all_files:
     # extract all starting lineups by game (replaced each iteration in the variable)
     gv.game_roster = sc.game_tracker(games)
     games_roster = pd.DataFrame(gv.game_roster).transpose()
-    games_roster.to_csv('STARTERS.csv', sep=',', mode='a', index=False)
+    # games_roster.to_csv('STARTERS.csv', sep=',', mode='a', index=False)
+
+    # write the lineups to database
+    conn = dbs.engine.connect()
+    insert_time = t.time()
+    conn.execute(cl.starters.insert(), games_roster.to_dict('records'))
+    print('Import STARTERS to Database:', dt.seconds_convert(t.time() - insert_time))
 
     # convert all games for 1 file
     a_full_df = g.convert_games(games, games_roster)
 
     # play_processor2 function
     for e, each_game in enumerate(a_full_df):
-
         # game performance
         a1_time = t.time()
 
@@ -107,7 +95,7 @@ for file_nm in all_files:
         a2_time = t.time()
 
         # reindex the DICTIONARY keys
-        this_game = dict((int(k)+gv.fo_idx, value) for (k, value) in this_game.items())
+        this_game = dict((int(k) + gv.fo_idx, value) for (k, value) in this_game.items())
         gv.fo_idx += len(this_game)
 
         # game performance
@@ -123,7 +111,7 @@ for file_nm in all_files:
         fgp.write('GAME #:' + str(e) + ' reindex: ' + str(dt.seconds_convert(a3_time - a2_time)) + '\n')
         fgp.write('GAME #:' + str(e) + ' store: ' + str(dt.seconds_convert(a4_time - a3_time)) + '\n')
         fgp.write('GAME #:' + str(e) + ' TOTAL: ' + str(dt.seconds_convert(a4_time - a1_time)) + '\n')
-        # print('GAME #:', e, ' TOTAL: ', a4_time - a1_time)
+        print('GAME #:', e, ' TOTAL: ', a4_time - a1_time)
         fgp.close()
 
     # testing play_processor3
@@ -132,50 +120,43 @@ for file_nm in all_files:
 
     # indicator of what is completed
     e_time = t.time()
-    print('COMPLETED: ', file_nm, ' - ', dt.seconds_convert(e_time - s_time))
+    print('COMPLETED: ', file_nm[0], ' - ', dt.seconds_convert(e_time - s_time))
     fgp = open('GAMEPLAY.LOG', mode='a')
-    fgp.write('COMPLETED: ' + file_nm + ' - ' + str(dt.seconds_convert(e_time - s_time)) + '\n')
+    fgp.write('COMPLETED: ' + file_nm[0] + ' - ' + str(dt.seconds_convert(e_time - s_time)) + '\n')
     fgp.close()
 
-# Write Output File after converting entire list of dict to data frame
-o1_time = t.time()
+    # Write Output File after converting entire list of dict to data frame
+    transpose_time = t.time()
+    import_to_sql = pd.DataFrame.from_dict(gv.full_output).transpose()
+    print('Transposing takes: ', dt.seconds_convert(t.time() - transpose_time))
+    # print(import_to_sql)
 
-print('Completed', a_year, ':', dt.seconds_convert(o1_time - y_time))
+    # update GAMEPLAY database
+    update_time = t.time()
+    conn.fast_executemany = True
+    import_to_sql.to_sql('gameplay', conn, if_exists='append', index=False)
+    print('Import GAMEPLAY to Database: ', dt.seconds_convert(t.time() - update_time))
 
-csv_columns = list(gv.full_output[0].keys())
-csv_file = 'OUTPUT.csv'
-try:
-    with open(csv_file, 'w', newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
-        writer.writeheader()
-        for l in gv.full_output:
-            writer.writerow(gv.full_output[l])
-except IOError:
-    print("I/O error")
+    # update RAW PLAYER STATS database
+    raw_player_stats = pd.DataFrame.from_dict(gv.player).transpose()
+    update_time = t.time()
+    conn.fast_executemany = True
+    raw_player_stats.to_sql('raw_player_stats', conn, if_exists='append', index=False)
+    print('Import RAW PLAYER STATS to Database: ', dt.seconds_convert(t.time() - update_time))
+
+    o1_time = t.time()
+
+
+# extract one full year
+# def extract_data_year(year):
+#     function
+
+
+# take arguments from command line, run extract
+if len(sys.argv) < 3:
+    print("Missing Year or Team Name!")
     exit()
-
-# WRITING OUTPUT PERFORMANCE
-o2_time = t.time()
-fgp = open('GAMEPLAY.LOG', mode='a')
-fgp.write('Processing Games Output File: ' + str(dt.seconds_convert(o2_time - o1_time)) + '\n')
-print('Processing Games Output File: ', dt.seconds_convert(o2_time - o1_time))
-fgp.close()
-
-# player stats
-t1_time = t.time()
-# gv.player = pd.read_csv('PRE_STATS.csv')
-gv.player_stats = sc.stat_organizer(gv.player)
-gv.player_stats['batting'].to_csv('BATTING.csv', sep=',', index=False)
-gv.player_stats['pitching'].to_csv('PITCHING.csv', sep=',', index=False)
-
-# WRITING STATS PERFORMANCE
-t2_time = t.time()
-fgp = open('GAMEPLAY.LOG', mode='a')
-fgp.write('Stats Processing: ' + str(dt.seconds_convert(t2_time - t1_time)) + '\n')
-print('Stats Processing: ', dt.seconds_convert(t2_time - t1_time))
-fgp.close()
-
-# release variables?
-gv.full_output = {}
-gv.player = {}
-gv.player_stats = pd.DataFrame()
+else:
+    year = sys.argv[1]
+    team_nm = sys.argv[2]
+    extract_data_single_team(year, team_nm)
