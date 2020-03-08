@@ -3,6 +3,14 @@ from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
 
 metadata = MetaData()
 
+# process log table
+process_log = Table('process_log', metadata,
+                    Column('Id', Integer, primary_key=True),
+                    Column('process_name', String),
+                    Column('data_year', Integer),
+                    Column('team_name', String),
+                    Column('timestamp', String))
+
 # starters table
 starters = Table('starters', metadata,
                  Column('Id', Integer, primary_key=True),

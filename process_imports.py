@@ -80,6 +80,17 @@ def extract_data_single_team(year, team):
     conn.execute(cl.starters.insert(), games_roster.to_dict('records'))
     print('Import STARTERS to Database:', dt.seconds_convert(t.time() - insert_time))
 
+    # send completion notice for STARTERS
+    conn.fast_executemany = True
+    finish_str = {
+        'process_name': 'game_lineups',
+        'data_year': year,
+        'team_name': team_nm,
+        'timestamp': t.strftime("%Y-%m-%d %H:%M:%S", t.localtime())
+    }
+    completion = pd.DataFrame([finish_str])
+    completion.to_sql('process_log', conn, if_exists='append', index=False)
+
     # convert all games for 1 file
     a_full_df = g.convert_games(games, games_roster)
 
@@ -145,6 +156,17 @@ def extract_data_single_team(year, team):
     print('Import RAW PLAYER STATS to Database: ', dt.seconds_convert(t.time() - update_time))
 
     o1_time = t.time()
+
+    # send completion notice
+    conn.fast_executemany = True
+    finish_str = {
+        'process_name': 'play_processor',
+        'data_year': year,
+        'team_name': team_nm,
+        'timestamp': t.strftime("%Y-%m-%d %H:%M:%S", t.localtime())
+    }
+    completion = pd.DataFrame([finish_str])
+    completion.to_sql('process_log', conn, if_exists='append', index=False)
 
 
 # extract one full year
