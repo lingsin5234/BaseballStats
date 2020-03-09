@@ -55,7 +55,7 @@ if len(sys.argv) > 2:
     finish_str = {
         'process_name': 'stat_processor',
         'data_year': year,
-        'team_name': team_id,
+        'team_name': team_id.replace('%', ''),
         'timestamp': t.strftime("%Y-%m-%d %H:%M:%S", t.localtime())
     }
     completion = pd.DataFrame([finish_str])
