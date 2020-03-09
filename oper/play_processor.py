@@ -7,10 +7,12 @@ import time as t
 import pitcher_oper as po
 import non_plate_appearance as npa
 import fielding_oper as fo
+import error_logger as el
 
 
 # re-write the processor based on re.search/re.findall grep searching
-def play_processor3(the_dict, games_roster):
+# version 4 includes the processing_errors
+def play_processor4(the_dict, games_roster, team_name, data_year):
 
     # the game id
     the_game_id = the_dict[0]['game_id']
@@ -118,6 +120,9 @@ def play_processor3(the_dict, games_roster):
 
                     else:
                         print('Hit + Error on batter:', begin_play, '==', run_play)
+                        el.processing_errors('Hit + Error on batter: ' + begin_play + ' == ' + run_play,
+                                             'play_processor', team_name, data_year,
+                                             the_game_id, this_line['half_innings'])
 
                 # Walk or Strikeout
                 elif bool(re.search(r'^(IW|HP|W|K)', begin_play)):
@@ -251,6 +256,9 @@ def play_processor3(the_dict, games_roster):
                     # fielding plays that are not included above
                     else:
                         print('Fielding Plays not included: ', begin_play)
+                        el.processing_errors('Fielding Plays not included: ' + begin_play,
+                                             'play_processor', team_name, data_year,
+                                             the_game_id, this_line['half_innings'])
 
                     # record any SH/SF otherwise, all are LOB/RLSP if not an error
                     if bool(re.search(r'SH', begin_play)):
@@ -312,6 +320,9 @@ def play_processor3(the_dict, games_roster):
                 # find other plays:
                 else:
                     print('Category Needed: ', begin_play)
+                    el.processing_errors('Category Needed: ' + begin_play,
+                                         'play_processor', team_name, data_year,
+                                         the_game_id, this_line['half_innings'])
 
                 # record pitcher stats
                 po.pitch_count_collector(hid, pid, lineup, this_line)
@@ -366,6 +377,11 @@ def play_processor3(the_dict, games_roster):
                 else:
                     print(this_line['half_innings'], this_line['team_id'],
                           this_line['playerID'], this_line['batting'], this_line['fielding'])
+                    el.processing_errors('Missing Substitution Scenario: ' + this_line['half_innings'] +
+                                         this_line['team_id'] + this_line['playerID'] + this_line['batting'] +
+                                         this_line['fielding'],
+                                         'play_processor', team_name, data_year,
+                                         the_game_id, this_line['half_innings'])
 
             # fielding team = the half inning
             else:
@@ -391,6 +407,9 @@ def play_processor3(the_dict, games_roster):
         # do a check for > 3 outs
         if this_line['outs'] > 3:
             print('BAD OUTS:', this_line['game_id'], '-', the_play, ' ', this_line['outs'])
+            el.processing_errors('BAD OUTS:' + str(the_play) + ' ' + str(this_line['outs']),
+                                 'play_processor', team_name, data_year,
+                                 the_game_id, this_line['half_innings'])
         #
         # # performance checkpoint
         # q3_time = t.time()
