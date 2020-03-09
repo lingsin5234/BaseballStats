@@ -13,6 +13,7 @@ if len(sys.argv) > 1:
     c = dbs.engine.connect()
     query = "SELECT team_name FROM process_log WHERE data_year=? AND process_name='stat_processor'"
     results = c.execute(query, year).fetchall()
+    results = [r for r, in results]
 
     # num of roster files
     all_files = os.listdir('import/' + year)
@@ -20,12 +21,24 @@ if len(sys.argv) > 1:
 
     # list the team names from the roster files
     teams = [x.replace(year+'.ROS', '') for x in rosters]
-    results = [r for r, in results]
 
     if len(results) == len(teams):
         print("All teams processed, stats generated.")
     else:
         # find missing teams
         missing_teams = [t for t in teams if t not in results]
-        print("Incomplete! Still missing teams.")
-        print(missing_teams)
+        print("Stats Processing Incomplete! Still missing teams:")
+        # print(missing_teams)
+
+        # next, check to see if the teams were processed at all
+        query = "SELECT team_name FROM process_log WHERE data_year=? AND process_name='play_processor'"
+        results = c.execute(query, year).fetchall()
+        results = [r for r, in results]
+
+        if len(results) != len(teams):
+            missing_teams_pp = [t for t in teams if t not in results]
+            print("Teams not passed by play_processor:")
+            print(missing_teams)
+
+else:
+    print("Missing Year Argument in CMD")
