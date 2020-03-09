@@ -13,7 +13,7 @@ c = dbs.engine.connect()
 # results = c.execute("SELECT * FROM raw_player_stats WHERE player_id = 'axfoj001' and stat_type = 'BT'").fetchall()
 # results = c.execute("SELECT * FROM pitching WHERE player_id = 'axfoj001'").fetchall()
 # results = c.execute("SELECT * FROM process_log").fetchall()
-results = c.execute("SELECT * FROM error_log").fetchall()
+results = c.execute("SELECT * FROM processing_errors").fetchall()
 print(results)
 # c.execute('DROP TABLE starters')
 

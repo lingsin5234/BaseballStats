@@ -21,6 +21,17 @@ error_log = Table('error_log', metadata,
                   Column('error', String),
                   Column('timestamp', String))
 
+# processing_errors table
+processing_errors = Table('processing_errors', metadata,
+                          Column('Id', Integer, primary_key=True),
+                          Column('process_name', String),
+                          Column('data_year', Integer),
+                          Column('team_name', String),
+                          Column('game_id', String),
+                          Column('half_inning', String),
+                          Column('error', String),
+                          Column('timestamp', String))
+
 # starters table
 starters = Table('starters', metadata,
                  Column('Id', Integer, primary_key=True),
