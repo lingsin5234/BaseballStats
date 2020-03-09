@@ -19,4 +19,4 @@ def error_logger(error, process_name, team_name, data_year):
 
 
 # test error logger
-error_logger('TEST ERROR', 'play_processor', 'BOS', '2018')
+# error_logger('TEST ERROR', 'play_processor', 'BOS', '2018')

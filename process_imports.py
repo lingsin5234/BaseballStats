@@ -13,28 +13,34 @@ import date_time as dt
 import sqlite3 as sql
 import db_setup as dbs
 import class_structure as cl
+import error_logger as el
 
 
 # extract data for single team
 def extract_data_single_team(year, team):
 
-    # open and read data files
-    dir_str = 'import/' + str(year)
-    # for event_file in os.listdir(dir_str):
-    # print(x)
-    # file_dir = dir_str + '/' + event_file
-    all_files = os.listdir(dir_str)
+    try:
+        # open and read data files
+        dir_str = 'import/' + str(year)
+        # for event_file in os.listdir(dir_str):
+        # print(x)
+        # file_dir = dir_str + '/' + event_file
+        all_files = os.listdir(dir_str)
 
-    # search for team
-    file_nm = [f for f in all_files if str(year) + team in f]
+        # search for team
+        file_nm = [f for f in all_files if str(year) + team in f]
 
-    # start timer
-    s_time = t.time()
+        # start timer
+        s_time = t.time()
 
-    # get current file
-    file_dir = dir_str + '/' + file_nm[0]
-    f = open(file_dir, "r")
-    f1 = f.readlines()
+        # get current file
+        file_dir = dir_str + '/' + file_nm[0]
+        f = open(file_dir, "r")
+        f1 = f.readlines()
+    except Exception as e:
+        # accept any types of errors
+        el.error_logger(e, 'I/O Open Retrosheet Event File', team, year)
+        exit()
 
     # collect id and group the games
     games = []
