@@ -5,14 +5,16 @@ import global_variables as gv
 import stat_collector as sc
 import date_time as dt
 import db_setup as dbs
+import pandas as pd
 
-if len(sys.argv) > 1:
+if len(sys.argv) > 2:
 
     t1_time = t.time()
 
     # retrieve the game player stats
     conn = dbs.engine.connect()
-    team_id = sys.argv[1] + '%'
+    year = sys.argv[1]
+    team_id = sys.argv[2] + '%'
     output = conn.execute("SELECT * FROM raw_player_stats WHERE game_id LIKE ?", team_id).fetchall()
     idx = 0
     # conversion time
@@ -47,3 +49,15 @@ if len(sys.argv) > 1:
     fgp.write('Stats Processing: ' + str(dt.seconds_convert(t2_time - t1_time)) + '\n')
     print('Stats Processing: ', dt.seconds_convert(t2_time - t1_time))
     fgp.close()
+
+    # send completion notice
+    conn.fast_executemany = True
+    finish_str = {
+        'process_name': 'stat_processor',
+        'data_year': year,
+        'team_name': team_id.replace('%', ''),
+        'time_elapsed': t2_time - t1_time,
+        'timestamp': t.strftime("%Y-%m-%d %H:%M:%S", t.localtime())
+    }
+    completion = pd.DataFrame([finish_str])
+    completion.to_sql('process_log', conn, if_exists='append', index=False)
