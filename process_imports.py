@@ -94,7 +94,7 @@ def extract_data_single_team(year, team):
         finish_str = {
             'process_name': 'game_lineups',
             'data_year': year,
-            'team_name': team_nm,
+            'team_name': team,
             'time_elapsed': t.time() - s_time,
             'timestamp': t.strftime("%Y-%m-%d %H:%M:%S", t.localtime())
         }
@@ -117,13 +117,13 @@ def extract_data_single_team(year, team):
 
     # PLAY_PROCESSOR FUNCTION
     try:
-        # play_processor3 function
+        # play_processor4 function
         for e, each_game in enumerate(a_full_df):
             # game performance
             a1_time = t.time()
 
             # then run the processor
-            this_game = pp.play_processor3(each_game, games_roster)
+            this_game = pp.play_processor4(each_game, games_roster, team, year)
 
             # game performance
             a2_time = t.time()
@@ -201,7 +201,7 @@ def extract_data_single_team(year, team):
         finish_str = {
             'process_name': 'play_processor',
             'data_year': year,
-            'team_name': team_nm,
+            'team_name': team,
             'time_elapsed': t.time() - s_time,
             'timestamp': t.strftime("%Y-%m-%d %H:%M:%S", t.localtime())
         }

@@ -24,7 +24,7 @@ def processing_errors(error, process_name, team_name, data_year, game_id, half_i
     c = dbs.engine.connect()
     error_dict = {
         'process_name': process_name,
-        'data_year': data_year,
+        'data_year': str(data_year),
         'team_name': team_name,
         'game_id': game_id,
         'half_inning': half_inning,
@@ -32,7 +32,7 @@ def processing_errors(error, process_name, team_name, data_year, game_id, half_i
         'timestamp': t.strftime("%Y-%m-%d %H:%M:%S", t.localtime())
     }
     query = "INSERT INTO processing_errors ('process_name', 'data_year', 'team_name', 'game_id', " \
-            "'error', 'timestamp') VALUES (?,?,?,?,?,?)"
+            "'half_inning', 'error', 'timestamp') VALUES (?,?,?,?,?,?,?)"
     c.execute(query, list(error_dict.values()))
 
 
