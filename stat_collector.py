@@ -111,9 +111,16 @@ def stat_organizer(player_dict):
 
     # if any of the stat types are missing, assign a random 0
     missing_bat_col = [b for b in bat_col if b not in stats_tb['batting'].columns]
-    print(missing_bat_col)
     missing_pitch_col = [p for p in pitch_col if p not in stats_tb['pitching'].columns]
-    print(missing_pitch_col)
+    if len(missing_bat_col) > 0:
+        print(type(stats_tb['batting']))
+    if len(missing_pitch_col) > 0:
+        print(type(stats_tb['pitching']))
+        for e in missing_pitch_col:
+            zeros = [0.0] * len(stats_tb['pitching'])
+            stats_tb['pitching'][e] = zeros
+        print(stats_tb['pitching'][pitch_col])
+    exit()
 
     # assign the appropriate columns
     stats_tb['batting'] = stats_tb['batting'][bat_col]
