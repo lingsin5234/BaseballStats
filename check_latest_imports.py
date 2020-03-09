@@ -26,8 +26,8 @@ if len(sys.argv) > 1:
         print("All teams processed, stats generated.")
     else:
         # find missing teams
-        missing_teams = [t for t in teams if t not in results]
-        print("Stats Processing Incomplete! Still missing teams:")
+        # missing_teams = [t for t in teams if t not in results]
+        # print("Stats Processing Incomplete! Still missing teams:")
         # print(missing_teams)
 
         # next, check to see if the teams were processed at all
@@ -38,7 +38,7 @@ if len(sys.argv) > 1:
         if len(results) != len(teams):
             missing_teams_pp = [t for t in teams if t not in results]
             print("Teams not passed by play_processor:")
-            print(missing_teams)
+            print(missing_teams_pp)
 
 else:
     print("Missing Year Argument in CMD")

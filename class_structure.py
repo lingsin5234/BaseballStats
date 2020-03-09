@@ -9,6 +9,7 @@ process_log = Table('process_log', metadata,
                     Column('process_name', String),
                     Column('data_year', Integer),
                     Column('team_name', String),
+                    Column('time_elapsed', String),
                     Column('timestamp', String))
 
 # starters table

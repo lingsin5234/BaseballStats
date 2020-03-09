@@ -56,6 +56,7 @@ if len(sys.argv) > 2:
         'process_name': 'stat_processor',
         'data_year': year,
         'team_name': team_id.replace('%', ''),
+        'time_elapsed': t2_time - t1_time,
         'timestamp': t.strftime("%Y-%m-%d %H:%M:%S", t.localtime())
     }
     completion = pd.DataFrame([finish_str])

@@ -86,6 +86,7 @@ def extract_data_single_team(year, team):
         'process_name': 'game_lineups',
         'data_year': year,
         'team_name': team_nm,
+        'time_elapsed': t.time() - s_time,
         'timestamp': t.strftime("%Y-%m-%d %H:%M:%S", t.localtime())
     }
     completion = pd.DataFrame([finish_str])
@@ -163,6 +164,7 @@ def extract_data_single_team(year, team):
         'process_name': 'play_processor',
         'data_year': year,
         'team_name': team_nm,
+        'time_elapsed': t.time() - s_time,
         'timestamp': t.strftime("%Y-%m-%d %H:%M:%S", t.localtime())
     }
     completion = pd.DataFrame([finish_str])
