@@ -9,5 +9,5 @@
 **/__pycache__/*
 *.csv
 *.LOG
-**/import
+# **/import - keep folder only
 **/import/*
