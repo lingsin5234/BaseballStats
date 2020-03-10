@@ -6,4 +6,13 @@
         <button type="submit" name="extract_2018">Extract 2018</button>
     </form>
 
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" name="process_data">Process Data</button>
+    </form>
+
+    <script>
+        var results = JSON.parse('{{results|safe}}');
+    </script>
+
 {% include 'partials/footer.html' %}

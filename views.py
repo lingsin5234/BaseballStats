@@ -37,12 +37,12 @@ def run_jobs_view(request):
 
     c = dbs.engine.connect()
 
-    if request.method == 'POST' and 'run_script' in request.POST:
+    if request.method == 'POST' and 'process_data' in request.POST:
         # import function to run
         from .oper import process_imports as pi
 
         # call function
-        pi.extract_data_single_team('2018', 'TOR')
+        pi.process_data_single_team('2018', 'TOR')
 
         # return user to required page
         # return HttpResponseRedirect(reverse(baseball:run_jobs_view())
@@ -54,7 +54,7 @@ def run_jobs_view(request):
     results = c.execute(query)
 
     context = {
-        'results': results
+        'results': json.dumps(results)
     }
 
     return render(request, 'pages/runJobs.html', context)
