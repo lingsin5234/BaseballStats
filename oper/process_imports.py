@@ -17,11 +17,11 @@ from . import error_logger as el
 
 
 # extract data for single team
-def extract_data_single_team(year, team):
+def process_data_single_team(year, team):
 
     # OPEN AND READ DATA FILES
     try:
-        dir_str = 'import/' + str(year)
+        dir_str = 'baseball/import/' + str(year)
         # for event_file in os.listdir(dir_str):
         # print(x)
         # file_dir = dir_str + '/' + event_file
