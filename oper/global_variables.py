@@ -2,7 +2,7 @@
 import pandas as pd
 
 # import directory
-is_prod = False
+is_prod = True
 if is_prod:
     data_dir = 'baseball/import'
 else:
