@@ -11,3 +11,5 @@
 *.LOG
 **/appsetup
 **/appsetup/*
+# **/import -- keep the directory
+**/import/*
