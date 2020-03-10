@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.forms.models import model_to_dict
 import json
+from flask import jsonify
 from django.core.serializers.json import DjangoJSONEncoder
 from .models import StatCollect
 from .oper import db_setup as dbs
@@ -51,7 +52,8 @@ def run_jobs_view(request):
         ir.import_data('2018')
 
     query = "SELECT * FROM process_log"
-    results = c.execute(query)
+    results = c.execute(query).fetchall()
+    results = [dict(row) for row in results]
 
     context = {
         'results': json.dumps(results)

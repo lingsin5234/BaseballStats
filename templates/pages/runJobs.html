@@ -13,6 +13,65 @@
 
     <script>
         var results = JSON.parse('{{results|safe}}');
+        var table = d3.select("#table").append("table");
+        var header = table.append("thead").append("tr");
+        header
+                .selectAll("th")
+                .data(["Region", "1990", "2015", "Difference"])
+                .enter()
+                .append("th")
+                .text(function(d) { return d; });
+        var tablebody = table.append("tbody");
+        rows = tablebody
+                .selectAll("tr")
+                .data(results)
+                .enter()
+                .append("tr");
+        // We built the rows using the nested array - now each row has its own array.
+        cells = rows.selectAll("td")
+            // each row has data associated; we get it and enter it for the cells.
+                .data(results)
+                .enter()
+                .append("td")
+                .text(function(d) {
+                    return d;
+                });
+        function tabulate(data, columns, id) {
+            var table = d3.select(id).append("table"),
+                thead = table.append("thead"),
+                tbody = table.append("tbody");
+
+            // append the header row
+            thead.append("tr")
+                .selectAll("th")
+                .data(columns)
+                .enter()
+                .append("th")
+                .text(function(column) { return column; });
+
+            // create a row for each object in the data
+            var rows = tbody.selectAll("tr")
+                .data(data)
+                .enter()
+                .append("tr");
+
+            // create a cell in each row for each column
+            // At this point, the rows have data associated.
+            // So the data function accesses it.
+            var cells = rows.selectAll("td")
+                .data(function(row) {
+                    // he does it this way to guarantee you only use the
+                    // values for the columns you provide.
+                    return columns.map(function(column) {
+                        // return a new object with a value set to the row's column value.
+                        return {value: row[column]};
+                    });
+                })
+                .enter()
+                .append("td")
+                .text(function(d) { return d.value; });
+            return table;
+        }
     </script>
 
 {% include 'partials/footer.html' %}
