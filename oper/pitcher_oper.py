@@ -1,6 +1,6 @@
 # libraries
-import stat_collector as sc
-import global_variables as gv
+from . import stat_collector as sc
+from . import global_variables as gv
 import re
 
 # constant

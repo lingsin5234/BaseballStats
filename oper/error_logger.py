@@ -1,6 +1,6 @@
 # this file is for error logging functionality
 import time as t
-import db_setup as dbs
+from . import db_setup as dbs
 
 
 # error logging function

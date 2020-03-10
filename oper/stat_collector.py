@@ -1,8 +1,8 @@
 # libraries
-import global_variables as gv
+from . import global_variables as gv
 import pandas as pd
 import time as t
-import base_running as br
+from . import base_running as br
 
 
 # stat collector

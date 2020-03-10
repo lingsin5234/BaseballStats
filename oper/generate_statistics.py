@@ -1,10 +1,10 @@
 # this script processes the statistics from the processed imports
 import time as t
 import sys
-import global_variables as gv
-import stat_collector as sc
-import date_time as dt
-import db_setup as dbs
+from . import global_variables as gv
+from . import stat_collector as sc
+from . import date_time as dt
+from . import db_setup as dbs
 import pandas as pd
 
 if len(sys.argv) > 2:

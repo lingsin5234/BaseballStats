@@ -6,11 +6,11 @@ import re
 import os
 import sys
 import time as t
-import game_converter as g
-import play_processor as pp
-import stat_collector as sc
-import global_variables as gv
-import date_time as dt
+from . import game_converter as g
+from . import play_processor as pp
+from . import stat_collector as sc
+from . import global_variables as gv
+from . import date_time as dt
 import csv
 
 # get argument

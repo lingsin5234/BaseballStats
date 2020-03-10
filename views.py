@@ -3,18 +3,58 @@ from django.forms.models import model_to_dict
 import json
 from django.core.serializers.json import DjangoJSONEncoder
 from .models import StatCollect
+from .oper import db_setup as dbs
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse
+# from .apps import baseball
 
 
 # main views
 def stats_view(request):
-    pull_stats = StatCollect.objects.all()
-    stats = []
-    for p in pull_stats:
-        add = model_to_dict(p)
-        stats.append(add)
+    # pull_stats = StatCollect.objects.all()
+    # stats = []
+    # for p in pull_stats:
+    #     add = model_to_dict(p)
+    #     stats.append(add)
+    #
+    # context = {
+    #     'stats': json.dumps(stats, cls=DjangoJSONEncoder)
+    # }
+
+    c = dbs.engine.connect()
+    query = "SELECT * FROM process_log"
+    results = c.execute(query)
 
     context = {
-        'stats': json.dumps(stats, cls=DjangoJSONEncoder)
+        'results': results
     }
 
     return render(request, 'viewStats.html', context)
+
+
+# run jobs View
+def run_jobs_view(request):
+
+    c = dbs.engine.connect()
+
+    if request.method == 'POST' and 'run_script' in request.POST:
+        # import function to run
+        from .oper import process_imports as pi
+
+        # call function
+        pi.extract_data_single_team('2018', 'TOR')
+
+        # return user to required page
+        # return HttpResponseRedirect(reverse(baseball:run_jobs_view())
+    elif request.method == 'POST' and 'extract_2018' in request.POST:
+        from .oper import import_retrosheet as ir
+        ir.import_data('2018')
+
+    query = "SELECT * FROM process_log"
+    results = c.execute(query)
+
+    context = {
+        'results': results
+    }
+
+    return render(request, 'pages/runJobs.html', context)
