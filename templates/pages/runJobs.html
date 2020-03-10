@@ -16,34 +16,36 @@
         var columns = ["process_name", "data_year", "team_name", "time_elapsed", "timestamp"];
         var table = d3.select("body").append("table");
         var header = table.append("thead").append("tr");
-        header
-                .selectAll("th")
-                .data(columns)
-                .enter()
-                .append("th")
-                .text(function(c) { return c; });
         var tablebody = table.append("tbody");
+
+        // edit the header of table
+        header
+            .selectAll("th")
+            .data(columns)
+            .enter()
+            .append("th")
+            .text(function(c) { return c; });
+        // edit the rows, split into rows then cells
         rows = tablebody
-                .selectAll("tr")
-                .data(results)
-                .enter()
-                .append("tr");
-        // We built the rows using the nested array - now each row has its own array.
+            .selectAll("tr")
+            .data(results)
+            .enter()
+            .append("tr");
+        // for each row, we split the values being sent to the cell
         cells = rows.selectAll("td")
-            // each row has data associated; we get it and enter it for the cells.
-                .data(function(d) {
-                    return columns.map(function(c) {
-                        return {
-                            column: c,
-                            value: d[c]
-                        };
-                    });
-                })
-                .enter()
-                .append("td")
-                    .text(function(r) {
-                        return r.value;
-                    });
+            .data(function(d) {
+                return columns.map(function(c) {
+                    return {
+                        column: c,
+                        value: d[c]
+                    };
+                });
+            })
+            .enter()
+            .append("td")
+            .text(function(r) {
+                return r.value;
+            });
     </script>
 
 {% include 'partials/footer.html' %}
