@@ -12,8 +12,7 @@
     </form>
 
     <script>
-        var results = [{"Id": 1, "process_name": "game_lineups", "data_year": 2018, "team_name": "TOR", "time_elapsed": "0.314333200454712", "timestamp": "2020-03-10 12:30:10"}, {"Id": 2, "process_name": "play_processor", "data_year": 2018, "team_name": "TOR", "time_elapsed": "17.8676114082336", "timestamp": "2020-03-10 12:30:28"}, {"Id": 3, "process_name": "game_lineups", "data_year": 2018, "team_name": "TOR", "time_elapsed": "0.422078609466553", "timestamp": "2020-03-10 12:47:31"}, {"Id": 4, "process_name": "play_processor", "data_year": 2018, "team_name": "TOR", "time_elapsed": "18.148782491684", "timestamp": "2020-03-10 12:47:48"}];
-        //JSON.parse('{{results|safe}}');
+        var results = JSON.parse('{{results|safe}}');
         var columns = ["process_name", "data_year", "team_name", "time_elapsed", "timestamp"];
         var table = d3.select("body").append("table");
         var header = table.append("thead").append("tr");
