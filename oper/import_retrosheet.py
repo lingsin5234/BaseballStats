@@ -2,7 +2,7 @@
 from os import path, mkdir, remove
 import urllib.request
 from zipfile import ZipFile as zf
-import global_variables as gv
+from . import global_variables as gv
 import sys
 
 # if len(sys.argv) > 1:

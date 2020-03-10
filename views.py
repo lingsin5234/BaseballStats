@@ -49,7 +49,7 @@ def run_jobs_view(request):
         # return HttpResponseRedirect(reverse(baseball:run_jobs_view())
     elif request.method == 'POST' and 'extract_2018' in request.POST:
         from .oper import import_retrosheet as ir
-        ir.import_data('2018')
+        ir.import_data('2017')
 
     query = "SELECT * FROM process_log"
     results = c.execute(query).fetchall()
