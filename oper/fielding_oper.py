@@ -1,5 +1,5 @@
 # libraries
-import global_variables as gv
+from . import global_variables as gv
 
 
 # fielding substitutions

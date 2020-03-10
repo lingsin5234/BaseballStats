@@ -1,13 +1,13 @@
 # libraries
 import re
-import stat_collector as sc
-import global_variables as gv
-import base_running as br
+from . import stat_collector as sc
+from . import global_variables as gv
+from . import base_running as br
 import time as t
-import pitcher_oper as po
-import non_plate_appearance as npa
-import fielding_oper as fo
-import error_logger as el
+from . import pitcher_oper as po
+from . import non_plate_appearance as npa
+from . import fielding_oper as fo
+from . import error_logger as el
 
 
 # re-write the processor based on re.search/re.findall grep searching

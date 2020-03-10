@@ -1,0 +1,9 @@
+{% include 'partials/header.html' %}
+    <h1>Run Jobs</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" name="extract_2018">Extract 2018</button>
+    </form>
+
+{% include 'partials/footer.html' %}

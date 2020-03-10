@@ -1,6 +1,6 @@
 # libraries
 import time as t
-import global_variables as gv
+from . import global_variables as gv
 
 
 # convert play by play to tables

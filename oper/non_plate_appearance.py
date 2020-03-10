@@ -1,8 +1,8 @@
 # libraries
 import re
-import pitcher_oper as po
-import base_running as br
-import global_variables as gv
+from . import pitcher_oper as po
+from . import base_running as br
+from . import global_variables as gv
 
 
 # function for processing non-plate appearances
