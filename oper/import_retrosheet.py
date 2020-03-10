@@ -2,39 +2,40 @@
 from os import path, mkdir, remove
 import urllib.request
 from zipfile import ZipFile as zf
+import global_variables as gv
 import sys
 
 # if len(sys.argv) > 1:
 def import_data(year):
 
     # create import folder if not available
-    if path.exists('baseball/import'):
+    if path.exists(gv.data_dir):
         pass
     else:
-        mkdir('baseball/import')
+        mkdir(gv.data_dir)
 
     # create landing folder if not available
-    if path.exists('baseball/import/landing'):
+    if path.exists(gv.data_dir + '/landing'):
         pass
     else:
-        mkdir('baseball/import/landing')
+        mkdir(gv.data_dir + '/landing')
 
     # download file into import/landing folder
     url = 'https://www.retrosheet.org/events/'
     # year = sys.argv[1]
     zip_file = year + 'eve.zip'
-    urllib.request.urlretrieve(url+zip_file, 'baseball/import/landing/'+zip_file)
+    urllib.request.urlretrieve(url+zip_file, gv.data_dir + '/landing/'+zip_file)
 
     # create new folder for the unzipped contents
-    if path.exists('baseball/import/'+year):
+    if path.exists(gv.data_dir + '/' + year):
         pass
     else:
-        mkdir('baseball/import/'+year)
+        mkdir(gv.data_dir + '/' + year)
 
     # unzip contents to the year folder
-    with zf('baseball/import/landing/'+zip_file) as unzip:
-        unzip.extractall('baseball/import/'+year)
+    with zf(gv.data_dir + '/landing/'+zip_file) as unzip:
+        unzip.extractall(gv.data_dir + '/' + year)
 
     # remove landing file
-    if path.exists('baseball/import/landing/'+zip_file):
-        remove('baseball/import/landing/'+zip_file)
+    if path.exists(gv.data_dir + '/landing/' + zip_file):
+        remove(gv.data_dir + '/landing/' + zip_file)
