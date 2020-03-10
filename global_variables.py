@@ -1,6 +1,13 @@
 # libraries
 import pandas as pd
 
+# import directory
+is_prod = False
+if is_prod:
+    data_dir = 'baseball/import'
+else:
+    data_dir = 'import'
+
 # create global tables.
 player_stats = pd.DataFrame()
 

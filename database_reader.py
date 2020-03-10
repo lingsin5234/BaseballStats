@@ -1,7 +1,7 @@
 # this is a testing script to read databases for specific entries
 import sqlite3 as sql
 import sqlalchemy as sa
-import db_setup as dbs
+from . import db_setup as dbs
 
 # query
 c = dbs.engine.connect()

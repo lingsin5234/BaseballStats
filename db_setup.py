@@ -1,7 +1,7 @@
 # setting up the sqlite database using sqlalchemy
 import sqlite3 as sql
 import sqlalchemy as sa
-import class_structure as cl
+from . import class_structure as cl
 
 # setup engine and database
 engine = sa.create_engine('sqlite:///baseball.db', echo=True)

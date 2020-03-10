@@ -1,9 +1,9 @@
 # tracking base running movement
 # libraries
 import re
-import stat_collector as sc
-import global_variables as gv
-import pitcher_oper as po
+from . import stat_collector as sc
+from . import global_variables as gv
+from . import pitcher_oper as po
 
 
 # stolen base tracking

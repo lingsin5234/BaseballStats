@@ -2,7 +2,7 @@
 # this script is called periodically to keep the database and performance in check
 import sys
 import os
-import db_setup as dbs
+from . import db_setup as dbs
 
 # check for cmd-line arguments
 if len(sys.argv) > 1:

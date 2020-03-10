@@ -5,23 +5,23 @@ import re
 import os
 import sys
 import time as t
-import game_converter as g
-import play_processor as pp
-import stat_collector as sc
-import global_variables as gv
-import date_time as dt
+from . import game_converter as g
+from . import play_processor as pp
+from . import stat_collector as sc
+from . import global_variables as gv
+from . import date_time as dt
 import sqlite3 as sql
-import db_setup as dbs
-import class_structure as cl
-import error_logger as el
+from . import db_setup as dbs
+from . import class_structure as cl
+from . import error_logger as el
 
 
 # extract data for single team
-def extract_data_single_team(year, team):
+def process_data_single_team(year, team):
 
     # OPEN AND READ DATA FILES
     try:
-        dir_str = 'import/' + str(year)
+        dir_str = gv.data_dir + '/' + str(year)
         # for event_file in os.listdir(dir_str):
         # print(x)
         # file_dir = dir_str + '/' + event_file
@@ -220,10 +220,10 @@ def extract_data_single_team(year, team):
 
 
 # take arguments from command line, run extract
-if len(sys.argv) < 3:
-    print("Missing Year or Team Name!")
-    exit()
-else:
-    year = sys.argv[1]
-    team_nm = sys.argv[2]
-    extract_data_single_team(year, team_nm)
+# if len(sys.argv) < 3:
+#     print("Missing Year or Team Name!")
+#     exit()
+# else:
+#     year = sys.argv[1]
+#     team_nm = sys.argv[2]
+#     extract_data_single_team(year, team_nm)
