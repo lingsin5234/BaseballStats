@@ -12,15 +12,17 @@
     </form>
 
     <script>
-        var results = JSON.parse('{{results|safe}}');
-        var table = d3.select("#table").append("table");
+        var results = [{"Id": 1, "process_name": "game_lineups", "data_year": 2018, "team_name": "TOR", "time_elapsed": "0.314333200454712", "timestamp": "2020-03-10 12:30:10"}, {"Id": 2, "process_name": "play_processor", "data_year": 2018, "team_name": "TOR", "time_elapsed": "17.8676114082336", "timestamp": "2020-03-10 12:30:28"}, {"Id": 3, "process_name": "game_lineups", "data_year": 2018, "team_name": "TOR", "time_elapsed": "0.422078609466553", "timestamp": "2020-03-10 12:47:31"}, {"Id": 4, "process_name": "play_processor", "data_year": 2018, "team_name": "TOR", "time_elapsed": "18.148782491684", "timestamp": "2020-03-10 12:47:48"}];
+        //JSON.parse('{{results|safe}}');
+        var columns = ["process_name", "data_year", "team_name", "time_elapsed", "timestamp"];
+        var table = d3.select("body").append("table");
         var header = table.append("thead").append("tr");
         header
                 .selectAll("th")
-                .data(["Region", "1990", "2015", "Difference"])
+                .data(columns)
                 .enter()
                 .append("th")
-                .text(function(d) { return d; });
+                .text(function(c) { return c; });
         var tablebody = table.append("tbody");
         rows = tablebody
                 .selectAll("tr")
@@ -30,48 +32,19 @@
         // We built the rows using the nested array - now each row has its own array.
         cells = rows.selectAll("td")
             // each row has data associated; we get it and enter it for the cells.
-                .data(results)
-                .enter()
-                .append("td")
-                .text(function(d) {
-                    return d;
-                });
-        function tabulate(data, columns, id) {
-            var table = d3.select(id).append("table"),
-                thead = table.append("thead"),
-                tbody = table.append("tbody");
-
-            // append the header row
-            thead.append("tr")
-                .selectAll("th")
-                .data(columns)
-                .enter()
-                .append("th")
-                .text(function(column) { return column; });
-
-            // create a row for each object in the data
-            var rows = tbody.selectAll("tr")
-                .data(data)
-                .enter()
-                .append("tr");
-
-            // create a cell in each row for each column
-            // At this point, the rows have data associated.
-            // So the data function accesses it.
-            var cells = rows.selectAll("td")
-                .data(function(row) {
-                    // he does it this way to guarantee you only use the
-                    // values for the columns you provide.
-                    return columns.map(function(column) {
-                        // return a new object with a value set to the row's column value.
-                        return {value: row[column]};
+                .data(function(d) {
+                    return columns.map(function(c) {
+                        return {
+                            column: c,
+                            value: d[c]
+                        };
                     });
                 })
                 .enter()
                 .append("td")
-                .text(function(d) { return d.value; });
-            return table;
-        }
+                    .text(function(r) {
+                        return r.value;
+                    });
     </script>
 
 {% include 'partials/footer.html' %}
