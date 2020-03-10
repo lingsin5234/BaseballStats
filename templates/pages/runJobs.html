@@ -1,6 +1,22 @@
 {% include 'partials/header.html' %}
     <h1>Run Jobs</h1>
 
+    <br><br>
+    <div>
+        <form id="radiobuttons" class="btn-group btn-group-toggle" data-toggle="buttons">
+            <label for="radiobuttons" class="btn btn-primary">
+                <input type="radio" value="WHY">Option 1<br>
+            </label>
+            <label for="radiobuttons" class="btn btn-primary">
+                <input type="radio" value="NOT">Option 2<br>
+            </label>
+            <label for="radiobuttons" class="btn btn-primary">
+                <input type="radio" value="THIS">Option 3<br>
+            </label>
+        </form>
+    </div>
+    <br><br>
+
     <form method="post">
         {% csrf_token %}
         <button type="submit" name="extract_2018">Extract 2018</button>
