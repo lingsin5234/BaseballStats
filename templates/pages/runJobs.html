@@ -1,24 +1,21 @@
 {% include 'partials/header.html' %}
     <h1>Run Jobs</h1>
-    <form method="post">
-    <!--form id="extract" class="btn-group btn-group-toggle" data-toggle="buttons" method="post">
-        <label for="extract" class="btn btn-primary">
-            <input type="radio" value="2018">2018<br>
-        </label>
-        <label for="extract" class="btn btn-primary">
-            <input type="radio" value="2017">2017<br>
-        </label>
-        <label for="extract" class="btn btn-primary">
-            <input type="radio" value="2016">2016<br>
-        </label-->
+    <!--form method="post" id="extract">
         {% csrf_token %}
         <button type="submit" name="extract_2018">Extract Year</button>
-    </form>
-
-    <form method="post">
-        {% csrf_token %}
         <button type="submit" name="process_data">Process Data</button>
+    </form-->
+    {% load static %}
+    <form id="extract-form" class="btn-group btn-group-toggle" data-toggle="buttons">
+        <label class="btn btn-secondary"><input type="radio" name="import" value="2019"/>2019</label>
+        <label class="btn btn-secondary"><input type="radio" name="import" value="2018"/>2018</label>
+        <label class="btn btn-secondary"><input type="radio" name="import" value="2017"/>2017</label>
+        <label class="btn btn-secondary"><input type="radio" name="import" value="2016"/>2016</label>
+        <label class="btn btn-secondary"><input type="radio" name="import" value="2015"/>2015</label>
+        <label class="btn btn-secondary"><input type="radio" name="import" value="2014"/>2014</label>
+        <input type="submit" value="Extract Year"/>
     </form>
+    <script src="{% static 'runJobs.js' %}"></script>
 
     <script>
         var results = JSON.parse('{{results|safe}}');
