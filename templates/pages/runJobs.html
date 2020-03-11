@@ -20,12 +20,13 @@
     {% load crispy_forms_tags %}
     <form id="import_year" action="#" method="post">
         {% csrf_token %}
-        {{ form_import|crispy }}
+        {{ form_import.as_table }}
         <input type="submit" value="Import Year">
     </form>
     <form id="process_team" action="#" method="post">
         {% csrf_token %}
         {{ form_process|crispy }}
+        {{ form_process.non_field_errors }}
         <input type="submit" value="Process Team">
     </form>
 
