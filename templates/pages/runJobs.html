@@ -17,9 +17,10 @@
     </form>
     <script src="{% static 'runJobs.js' %}"></script-->
 
+    {% load crispy_forms_tags %}
     <form action="#" method="post">
         {% csrf_token %}
-        {{ form }}
+        {{ form|crispy }}
         <input type="submit" value="Submit">
     </form>
 
