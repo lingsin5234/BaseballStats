@@ -20,20 +20,22 @@
     {% load crispy_forms_tags %}
     <form id="import_year" action="#" method="post">
         {% csrf_token %}
-        {{ form_import.year }}
-        {{ form_import.form_type.as_hidden }}
+        {{ form_import.as_table }}
         <input type="submit" value="Import Year">
     </form>
+    <br>
     <form id="process_team" action="#" method="post">
         {% csrf_token %}
         {{ form_process.as_table }}
         <input type="submit" value="Process Team">
     </form>
+    <br>
     <form id="generate_stats" action="#" method="post">
         {% csrf_token %}
         {{ form_gen_stats.as_table }}
         <input type="submit" value="Generate Stats">
     </form>
+    <br>
 
     <script>
         var results = JSON.parse('{{results|safe}}');
