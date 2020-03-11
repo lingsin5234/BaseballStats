@@ -10,7 +10,7 @@ from .oper import process_imports as pi
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 # from .apps import baseball
-from .forms import GetYear
+from .forms import GetYear, ProcessTeam
 
 
 # main views
@@ -41,13 +41,16 @@ def run_jobs_view(request):
 
     c = dbs.engine.connect()
     form_import = GetYear()
+    form_process = ProcessTeam()
 
-    if request.method == 'POST' and 'process_data' in request.POST:
-        pi.process_data_single_team('2018', 'TOR')
-
-        # return user to required page
-        # return HttpResponseRedirect(reverse(baseball:run_jobs_view())
-    elif request.method == 'POST':
+    if request.method == 'POST' and 'get_team' in request.POST:
+        form = ProcessTeam(request.POST)
+        if form.is_valid():
+            team = request.POST['get_team']
+            year = request.POST['process_year']
+            pi.process_data_single_team(year, team)
+            print("Processed", team, "for", year)
+    else:
         form = GetYear(request.POST)
         if form.is_valid():
             ir.import_data(request.POST['get_year'])
@@ -59,7 +62,8 @@ def run_jobs_view(request):
 
     context = {
         'results': json.dumps(results),
-        'form': form_import
+        'form_import': form_import,
+        'form_process': form_process
     }
 
     return render(request, 'pages/runJobs.html', context)
