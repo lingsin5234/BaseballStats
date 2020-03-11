@@ -78,9 +78,8 @@ def run_jobs_view(request):
         # do nothing as initial forms are already declared
         pass
 
-    query = "SELECT * FROM process_log"
-    results = c.execute(query).fetchall()
-    results = [dict(row) for row in results]
+    query = "SELECT * FROM process_log ORDER BY timestamp DESC LIMIT 10"
+    results = [dict(row) for row in c.execute(query).fetchall()]
 
     context = {
         'results': json.dumps(results),
