@@ -21,3 +21,27 @@
 </head>
 
 <body>
+    {% load menu %}
+    {% block content %}
+    {% generate_menu %}
+    {% with menu=menus.main %}
+    <nav class="navbar navbar-dark"><div class="container-fluid d-flex flex-grow-1">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">Baseball Project</a>
+        </div>
+        <div class="text-right">
+            <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#myNavbar"
+            aria-controls="navbarSupportedContent1" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav">
+                {% for item in menu %}
+                <li><a href="{{ item.url }}">{{ item.title }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div></nav>
+    {% endwith %}
+    {% endblock %}
