@@ -8,10 +8,19 @@ from .models import JobRequirements
 class GetYear(forms.ModelForm):
     class Meta:
         model = JobRequirements
-        fields = ['year']
+        fields = ['year', 'form_type']
+        widgets = {'form_type': forms.HiddenInput()}
 
 
 class ProcessTeam(forms.ModelForm):
     class Meta:
         model = JobRequirements
-        fields = ['year', 'team']
+        fields = ['year', 'team', 'form_type']
+        widgets = {'form_type': forms.HiddenInput()}
+
+
+class GenerateStats(forms.ModelForm):
+    class Meta:
+        model = JobRequirements
+        fields = ['year', 'team', 'form_type']
+        widgets = {'form_type': forms.HiddenInput()}
