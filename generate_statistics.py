@@ -7,14 +7,16 @@ from . import date_time as dt
 from . import db_setup as dbs
 import pandas as pd
 
-if len(sys.argv) > 2:
+# if len(sys.argv) > 2:
+def generate_stats(year, team):
 
     t1_time = t.time()
 
     # retrieve the game player stats
     conn = dbs.engine.connect()
-    year = sys.argv[1]
-    team_id = sys.argv[2] + '%'
+    # year = sys.argv[1]
+    # team_id = sys.argv[2] + '%'
+    team_id = team + '%'
     output = conn.execute("SELECT * FROM raw_player_stats WHERE game_id LIKE ?", team_id).fetchall()
     idx = 0
     # conversion time
@@ -61,3 +63,5 @@ if len(sys.argv) > 2:
     }
     completion = pd.DataFrame([finish_str])
     completion.to_sql('process_log', conn, if_exists='append', index=False)
+
+    return True
