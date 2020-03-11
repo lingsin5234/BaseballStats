@@ -19,6 +19,13 @@ from . import error_logger as el
 # extract data for single team
 def process_data_single_team(year, team):
 
+    # check for import YEAR:
+    if os.path.exists(gv.data_dir + '/' + str(year)):
+        pass
+    else:
+        el.error_logger('NO IMPORT YEAR', str(year) + ' needs to be imported first!', team, year)
+        return False
+
     # OPEN AND READ DATA FILES
     try:
         dir_str = gv.data_dir + '/' + str(year)
@@ -41,7 +48,7 @@ def process_data_single_team(year, team):
     except Exception as e:
         # accept any types of errors
         el.error_logger(e, 'I/O Open Retrosheet Event File', team, year)
-        exit()
+        return False
 
     # COLLECT GAME IDS AND RUN GAME_TRACKER
     try:
@@ -104,7 +111,7 @@ def process_data_single_team(year, team):
     except Exception as e:
         # accept any types of errors
         el.error_logger(e, 'game_tracker', team, year)
-        exit()
+        return False
 
     # CONVERT_GAMES
     try:
@@ -113,7 +120,7 @@ def process_data_single_team(year, team):
     except Exception as e:
         # accept any types of errors
         el.error_logger(e, 'convert_games', team, year)
-        exit()
+        return False
 
     # PLAY_PROCESSOR FUNCTION
     try:
@@ -150,7 +157,7 @@ def process_data_single_team(year, team):
 
         # testing play_processor3
         # pd.DataFrame(gv.full_output).transpose().to_csv('OUTPUT.csv', sep=',', mode='a', index=False)
-        # exit()
+        # return False
 
         # indicator of what is completed
         e_time = t.time()
@@ -162,7 +169,7 @@ def process_data_single_team(year, team):
     except Exception as e:
         # accept any types of errors
         el.error_logger(e, 'play_processor: ' + str(e), team, year)
-        exit()
+        return False
 
     try:
         # Write Output File after converting entire list of dict to data frame
@@ -180,7 +187,7 @@ def process_data_single_team(year, team):
     except Exception as e:
         # accept any types of errors
         el.error_logger(e, 'Write to GAMEPLAY table', team, year)
-        exit()
+        return False
 
     try:
         # update RAW PLAYER STATS database
@@ -193,7 +200,7 @@ def process_data_single_team(year, team):
     except Exception as e:
         # accept any types of errors
         el.error_logger(e, 'Write to RAW_PLAYER_STATS table', team, year)
-        exit()
+        return False
 
     try:
         # send completion notice
@@ -211,19 +218,6 @@ def process_data_single_team(year, team):
     except Exception as e:
         # accept any types of errors
         el.error_logger(e, 'Write process_import COMPLETION to PROCESS_LOG table', team, year)
-        exit()
+        return False
 
-
-# extract one full year
-# def extract_data_year(year):
-#     function
-
-
-# take arguments from command line, run extract
-# if len(sys.argv) < 3:
-#     print("Missing Year or Team Name!")
-#     exit()
-# else:
-#     year = sys.argv[1]
-#     team_nm = sys.argv[2]
-#     extract_data_single_team(year, team_nm)
+    return True

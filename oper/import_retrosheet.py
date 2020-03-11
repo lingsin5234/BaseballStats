@@ -4,6 +4,8 @@ import urllib.request
 from zipfile import ZipFile as zf
 from . import global_variables as gv
 import sys
+from . import error_logger as el
+
 
 # if len(sys.argv) > 1:
 def import_data(year):
@@ -33,9 +35,21 @@ def import_data(year):
         mkdir(gv.data_dir + '/' + year)
 
     # unzip contents to the year folder
-    with zf(gv.data_dir + '/landing/'+zip_file) as unzip:
-        unzip.extractall(gv.data_dir + '/' + year)
+    try:
+        with zf(gv.data_dir + '/landing/'+zip_file) as unzip:
+            unzip.extractall(gv.data_dir + '/' + year)
+    except Exception as e:
+        # accept any types of errors
+        el.error_logger(e, 'unzipping import year: ' + str(e), None, year)
+        return False
 
     # remove landing file
-    if path.exists(gv.data_dir + '/landing/' + zip_file):
-        remove(gv.data_dir + '/landing/' + zip_file)
+    try:
+        if path.exists(gv.data_dir + '/landing/' + zip_file):
+            remove(gv.data_dir + '/landing/' + zip_file)
+    except Exception as e:
+        # accept any types of errors
+        el.error_logger(e, 'removing landing file: ' + str(e), None, year)
+        return False
+
+    return True
