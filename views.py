@@ -8,6 +8,7 @@ from .oper import db_setup as dbs
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 # from .apps import baseball
+from .forms import GetYear
 
 
 # main views
@@ -37,6 +38,7 @@ def stats_view(request):
 def run_jobs_view(request):
 
     c = dbs.engine.connect()
+    form = GetYear
 
     if request.method == 'POST' and 'process_data' in request.POST:
         # import function to run
@@ -50,13 +52,17 @@ def run_jobs_view(request):
     elif request.method == 'POST' and 'extract_2018' in request.POST:
         from .oper import import_retrosheet as ir
         ir.import_data('2017')
+    elif request.method == 'POST':
+        if form.is_valid():
+            print("ValidForm")
 
     query = "SELECT * FROM process_log"
     results = c.execute(query).fetchall()
     results = [dict(row) for row in results]
 
     context = {
-        'results': json.dumps(results)
+        'results': json.dumps(results),
+        'form': form
     }
 
     return render(request, 'pages/runJobs.html', context)

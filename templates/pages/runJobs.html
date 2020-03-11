@@ -4,7 +4,7 @@
         {% csrf_token %}
         <button type="submit" name="extract_2018">Extract Year</button>
         <button type="submit" name="process_data">Process Data</button>
-    </form-->
+    </form>
     {% load static %}
     <form id="extract-form" class="btn-group btn-group-toggle" data-toggle="buttons">
         <label class="btn btn-secondary"><input type="radio" name="import" value="2019"/>2019</label>
@@ -15,7 +15,13 @@
         <label class="btn btn-secondary"><input type="radio" name="import" value="2014"/>2014</label>
         <input type="submit" value="Extract Year"/>
     </form>
-    <script src="{% static 'runJobs.js' %}"></script>
+    <script src="{% static 'runJobs.js' %}"></script-->
+
+    <form action="#" method="post">
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit" value="Submit">
+    </form>
 
     <script>
         var results = JSON.parse('{{results|safe}}');
