@@ -5,6 +5,8 @@ from flask import jsonify
 from django.core.serializers.json import DjangoJSONEncoder
 from .models import StatCollect
 from .oper import db_setup as dbs
+from .oper import import_retrosheet as ir
+from .oper import process_imports as pi
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 # from .apps import baseball
@@ -38,23 +40,18 @@ def stats_view(request):
 def run_jobs_view(request):
 
     c = dbs.engine.connect()
-    form = GetYear
+    form_import = GetYear()
 
     if request.method == 'POST' and 'process_data' in request.POST:
-        # import function to run
-        from .oper import process_imports as pi
-
-        # call function
         pi.process_data_single_team('2018', 'TOR')
 
         # return user to required page
         # return HttpResponseRedirect(reverse(baseball:run_jobs_view())
-    elif request.method == 'POST' and 'extract_2018' in request.POST:
-        from .oper import import_retrosheet as ir
-        ir.import_data('2017')
     elif request.method == 'POST':
+        form = GetYear(request.POST)
         if form.is_valid():
-            print("ValidForm")
+            ir.import_data(request.POST['get_year'])
+            print("Imported", request.POST['get_year'])
 
     query = "SELECT * FROM process_log"
     results = c.execute(query).fetchall()
@@ -62,7 +59,7 @@ def run_jobs_view(request):
 
     context = {
         'results': json.dumps(results),
-        'form': form
+        'form': form_import
     }
 
     return render(request, 'pages/runJobs.html', context)
