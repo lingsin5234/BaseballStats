@@ -17,6 +17,14 @@
     </form>
     <script src="{% static 'runJobs.js' %}"></script-->
 
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
     {% load crispy_forms_tags %}
     <form id="import_year" action="#" method="post">
         {% csrf_token %}

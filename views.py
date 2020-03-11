@@ -12,6 +12,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 # from .apps import baseball
 from .forms import GetYear, ProcessTeam, GenerateStats
+from django.contrib import messages
 
 
 # home page
@@ -58,25 +59,31 @@ def run_jobs_view(request):
         if request.POST['form_type'] == 'import_year':
             form = GetYear(request.POST)
             if form.is_valid():
-                ir.import_data(request.POST['year'])
-                print("Imported", request.POST['year'])
-                print(request.POST)
+                status = ir.import_data(request.POST['year'])
+                if status:
+                    messages.info(request, "Import Completed for " + year)
+                else:
+                    messages.info(request, year + ' could not be imported')
             else:
                 print(form.errors)
         elif request.POST['form_type'] == 'process_team':
             form = ProcessTeam(request.POST)
             if form.is_valid():
-                pi.process_data_single_team(year, team)
-                print("Processed", team, "for", year)
-                print(request.POST)
+                status = pi.process_data_single_team(year, team)
+                if status:
+                    messages.info(request, "Processed " + team + " for " + year)
+                else:
+                    messages.info(request, 'Year has not been Imported.')
             else:
                 print(form.errors)
         elif request.POST['form_type'] == 'gen_stats':
             form = GenerateStats(request.POST)
             if form.is_valid():
-                gs.generate_stats(year, team)
-                print("Imported", request.POST['year'])
-                print(request.POST)
+                status = gs.generate_stats(year, team)
+                if status:
+                    messages.info(request, "Generated Statistics for " + team + " in " + year)
+                else:
+                    messages.info(request, 'Year has not been Imported OR Team File has not been processed.')
             else:
                 print(form.errors)
     else:
