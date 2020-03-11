@@ -14,7 +14,12 @@ from django.urls import reverse
 from .forms import GetYear, ProcessTeam, GenerateStats
 
 
-# main views
+# home page
+def home_page(request):
+    return render(request, 'pages/homepage.html')
+
+
+# view stats
 def stats_view(request):
     # pull_stats = StatCollect.objects.all()
     # stats = []
@@ -34,7 +39,7 @@ def stats_view(request):
         'results': results
     }
 
-    return render(request, 'viewStats.html', context)
+    return render(request, 'pages/viewStats.html', context)
 
 
 # run jobs View
