@@ -5,6 +5,20 @@ WHICH_TEAM = [('away', 0), ('home', 1)]
 PLAY_TYPE = [('play', 'play'), ('sub', 'sub')]
 STAT_CATEGORY = [('batting', 0), ('pitching', 1), ('defense', 2)]
 
+# constants
+YEARS = ((2019, 2019), (2018, 2018), (2017, 2017), (2016, 2016), (2015, 2015),
+         (2014, 2014), (2013, 2013), (2012, 2012), (2011, 2011), (2010, 2010))
+TEAMS = (('TOR', 'TOR'), ('BOS', 'BOS'), ('ANA', 'ANA'), ('TEX', 'TEX'))
+
+
+# Extract/Process Requests
+class JobRequirements(models.Model):
+    year = models.IntegerField(choices=YEARS)
+    team = models.CharField(max_length=4, choices=TEAMS)
+
+    def __str__(self):
+        return self.year + self.team
+
 
 # Teams
 class Team(models.Model):

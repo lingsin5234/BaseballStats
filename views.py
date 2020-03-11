@@ -43,18 +43,23 @@ def run_jobs_view(request):
     form_import = GetYear()
     form_process = ProcessTeam()
 
-    if request.method == 'POST' and 'get_team' in request.POST:
+    if request.method == 'POST' and 'team' in request.POST:
         form = ProcessTeam(request.POST)
         if form.is_valid():
-            team = request.POST['get_team']
-            year = request.POST['process_year']
-            pi.process_data_single_team(year, team)
-            print("Processed", team, "for", year)
+            # team = request.POST['team']
+            # year = request.POST['year']
+            # pi.process_data_single_team(year, team)
+            # print("Processed", team, "for", year)
+            print(request.POST)
+        else:
+            print(form.errors)
+            print("Not Valid?", request.POST)
     else:
         form = GetYear(request.POST)
         if form.is_valid():
-            ir.import_data(request.POST['get_year'])
-            print("Imported", request.POST['get_year'])
+            # ir.import_data(request.POST['year'])
+            # print("Imported", request.POST['year'])
+            print(request.POST)
 
     query = "SELECT * FROM process_log"
     results = c.execute(query).fetchall()
