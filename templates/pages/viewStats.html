@@ -1,10 +1,11 @@
 {% include 'partials/header_baseball.html' %}
     <h1>Display Data</h1>
-
+    <div id="startContent" class="container-fluid">
     <ul>
         {% for item in stats %}
         <li>{{item}}</li>
         {% endfor %}
     </ul>
+    </div>
 
 {% include 'partials/footer_baseball.html' %}

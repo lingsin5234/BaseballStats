@@ -1,5 +1,6 @@
 {% include 'partials/header_baseball.html' %}
     <h1>Run Jobs</h1>
+    <div id="startContent" class="container-fluid">
     <!--form method="post" id="extract">
         {% csrf_token %}
         <button type="submit" name="extract_2018">Extract Year</button>
@@ -48,7 +49,7 @@
     <script>
         var results = JSON.parse('{{results|safe}}');
         var columns = ["process_name", "data_year", "team_name", "time_elapsed", "timestamp"];
-        var table = d3.select("body").append("table");
+        var table = d3.select("#startContent").append("table");
         var header = table.append("thead").append("tr");
         var tablebody = table.append("tbody");
 
@@ -81,5 +82,6 @@
                 return r.value;
             });
     </script>
+    </div>
 
 {% include 'partials/footer_baseball.html' %}
