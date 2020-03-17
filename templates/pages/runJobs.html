@@ -1,87 +1,46 @@
 {% include 'partials/header_baseball.html' %}
-    <h1>Run Jobs</h1>
+    <div id="my_title" class="d-flex justify-content-center">
+        <h1>Run Jobs</h1>
+    </div><br>
+
     <div id="startContent" class="container-fluid">
-    <!--form method="post" id="extract">
-        {% csrf_token %}
-        <button type="submit" name="extract_2018">Extract Year</button>
-        <button type="submit" name="process_data">Process Data</button>
-    </form>
-    {% load static %}
-    <form id="extract-form" class="btn-group btn-group-toggle" data-toggle="buttons">
-        <label class="btn btn-secondary"><input type="radio" name="import" value="2019"/>2019</label>
-        <label class="btn btn-secondary"><input type="radio" name="import" value="2018"/>2018</label>
-        <label class="btn btn-secondary"><input type="radio" name="import" value="2017"/>2017</label>
-        <label class="btn btn-secondary"><input type="radio" name="import" value="2016"/>2016</label>
-        <label class="btn btn-secondary"><input type="radio" name="import" value="2015"/>2015</label>
-        <label class="btn btn-secondary"><input type="radio" name="import" value="2014"/>2014</label>
-        <input type="submit" value="Extract Year"/>
-    </form>
-    <script src="{% static 'runJobs.js' %}"></script-->
 
-    {% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
 
-    {% load crispy_forms_tags %}
-    <form id="import_year" action="#" method="post">
-        {% csrf_token %}
-        {{ form_import.as_table }}
-        <input type="submit" value="Import Year">
-    </form>
-    <br>
-    <form id="process_team" action="#" method="post">
-        {% csrf_token %}
-        {{ form_process.as_table }}
-        <input type="submit" value="Process Team">
-    </form>
-    <br>
-    <form id="generate_stats" action="#" method="post">
-        {% csrf_token %}
-        {{ form_gen_stats.as_table }}
-        <input type="submit" value="Generate Stats">
-    </form>
-    <br>
+        {% load crispy_forms_tags %}
+        <form id="import_year" action="#" method="post">
+            {% csrf_token %}
+            {{ form_import.as_table }}
+            <input type="submit" value="Import Year">
+        </form>
+        <br>
+        <form id="process_team" action="#" method="post">
+            {% csrf_token %}
+            {{ form_process.as_table }}
+            <input type="submit" value="Process Team">
+        </form>
+        <br>
+        <form id="generate_stats" action="#" method="post">
+            {% csrf_token %}
+            {{ form_gen_stats.as_table }}
+            <input type="submit" value="Generate Stats">
+        </form>
+        <br>
+    </div>
 
     <script>
-        var results = JSON.parse('{{results|safe}}');
-        var columns = ["process_name", "data_year", "team_name", "time_elapsed", "timestamp"];
-        var table = d3.select("#startContent").append("table");
-        var header = table.append("thead").append("tr");
-        var tablebody = table.append("tbody");
-
-        // edit the header of table
-        header
-            .selectAll("th")
-            .data(columns)
-            .enter()
-            .append("th")
-            .text(function(c) { return c; });
-        // edit the rows, split into rows then cells
-        rows = tablebody
-            .selectAll("tr")
-            .data(results)
-            .enter()
-            .append("tr");
-        // for each row, we split the values being sent to the cell
-        cells = rows.selectAll("td")
-            .data(function(d) {
-                return columns.map(function(c) {
-                    return {
-                        column: c,
-                        value: d[c]
-                    };
-                });
-            })
-            .enter()
-            .append("td")
-            .text(function(r) {
-                return r.value;
-            });
+        (function () {
+                window.results = JSON.parse('{{results|safe}}');
+                window.columns = JSON.parse('{{columns|safe}}');
+            }());
     </script>
-    </div>
+    {% load static %}
+    <script src="{% static 'scripts/baseball_load_processes.js' %}"></script>
 
 {% include 'partials/footer_baseball.html' %}
