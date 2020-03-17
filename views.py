@@ -3,7 +3,7 @@ from django.forms.models import model_to_dict
 import json
 from flask import jsonify
 from django.core.serializers.json import DjangoJSONEncoder
-from .models import StatCollect
+from .models import StatCollect, JobRequirements
 from .oper import db_setup as dbs
 from .oper import import_retrosheet as ir
 from .oper import process_imports as pi
@@ -13,6 +13,7 @@ from django.urls import reverse
 # from .apps import baseball
 from .forms import GetYear, ProcessTeam, GenerateStats
 from django.contrib import messages
+from .functions import show_year_choices
 
 
 # home page
@@ -32,12 +33,15 @@ def stats_view(request):
     #     'stats': json.dumps(stats, cls=DjangoJSONEncoder)
     # }
 
+    years = show_year_choices()
+
     c = dbs.engine.connect()
     query = "SELECT * FROM process_log"
     results = c.execute(query)
 
     context = {
-        'results': results
+        'results': results,
+        'other': years
     }
 
     return render(request, 'pages/viewStats.html', context)
@@ -49,6 +53,7 @@ def run_jobs_view(request):
     # DB connect and form initializations
     c = dbs.engine.connect()
     form_import = GetYear(initial={'form_type': 'import_year'})
+    # print(form_import)
     form_process = ProcessTeam(initial={'form_type': 'process_team'})
     form_gen_stats = GenerateStats(initial={'form_type': 'gen_stats'})
 

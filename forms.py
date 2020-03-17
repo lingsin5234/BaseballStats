@@ -6,6 +6,11 @@ from .models import JobRequirements
 
 
 class GetYear(forms.ModelForm):
+
+    year_choices = [(c.year, c.year) for c in JobRequirements.objects.filter(form_type='import_year')]
+
+    year = forms.ChoiceField(required=True, label='Year', choices=year_choices)
+
     class Meta:
         model = JobRequirements
         fields = ['year', 'form_type']
