@@ -93,11 +93,16 @@ def run_jobs_view(request):
     query = "SELECT * FROM process_log ORDER BY timestamp DESC LIMIT 10"
     results = [dict(row) for row in c.execute(query).fetchall()]
 
+    # columns wanted
+    columns = [{'col': 'process_name'}, {'col': 'data_year'}, {'col': 'team_name'},
+               {'col': 'time_elapsed'}, {'col': 'timestamp'}]
+
     context = {
         'results': json.dumps(results),
         'form_import': form_import,
         'form_process': form_process,
-        'form_gen_stats': form_gen_stats
+        'form_gen_stats': form_gen_stats,
+        'columns': json.dumps(columns)
     }
 
     return render(request, 'pages/runJobs.html', context)
