@@ -14,7 +14,7 @@
         {% endif %}
 
         {% load crispy_forms_tags %}
-        <form id="import_year" action="#" method="post">
+        <form id="import_year" action="" method="post">
             {% csrf_token %}
             {{ form_import.as_table }}
             <input type="submit" value="Import Year">
