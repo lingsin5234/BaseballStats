@@ -24,29 +24,13 @@ class GetYear(forms.ModelForm):
 
 class ProcessTeam(forms.ModelForm):
 
-    # get years that have already been imported
-    all_dir = os.listdir('baseball/import')
-    imported_years = [y for y in all_dir if y.isnumeric()]
+    year = chk.get_team_choices('process_team')[0]
+    team = chk.get_team_choices('process_team')[2]
 
-    # check if anything there
-    if imported_years is None:
-        year = forms.ChoiceField(required=True, label='Year', choices=('', '----'))
-    else:
-        imported_years.reverse()
-        year_choices = [(i, i) for i in imported_years]
-        year = forms.ChoiceField(required=True, label='Year', choices=year_choices)
-
-        # check for teams for all years selected
-        processed_teams = []
-        for y in imported_years:
-            p_teams = chk.check_teams(y, 'process_team')
-            processed_teams.extend(p_teams)
-            # print(processed_teams)
-
-        processed_teams = sorted(np.unique(processed_teams))
-        team_choices = [(t, t) for t in processed_teams]
-        team = forms.ChoiceField(required=True, label='Team', choices=team_choices)
-        # print(team_choices)
+    def __init__(self, year_choices, team_choices, *args, **kwargs):
+        super(ProcessTeam, self).__init__(*args, **kwargs)
+        self.fields['year'].choices = year_choices
+        self.fields['team'].choices = team_choices
 
     class Meta:
         model = JobRequirements
@@ -56,31 +40,12 @@ class ProcessTeam(forms.ModelForm):
 
 class GenerateStats(forms.ModelForm):
 
-    # get years that have already been imported
-    all_dir = os.listdir('baseball/import')
-    imported_years = [y for y in all_dir if y.isnumeric()]
+    year = chk.get_team_choices('process_team')[0]
+    team = chk.get_team_choices('process_team')[2]
 
-    # check if anything there
-    if imported_years is None:
-        year = forms.ChoiceField(required=True, label='Year', choices=('', '----'))
-    else:
-        imported_years.reverse()
-        year_choices = [(i, i) for i in imported_years]
-        year = forms.ChoiceField(required=True, label='Year', choices=year_choices)
-
-        # check for teams for all years selected
-        processed_teams = []
-        for y in imported_years:
-            p_teams = chk.check_teams(y, 'gen_stats')
-            processed_teams.extend(p_teams)
-            # print(processed_teams)
-
-        processed_teams = sorted(np.unique(processed_teams))
-        team_choices = [(t, t) for t in processed_teams]
-        team = forms.ChoiceField(required=True, label='Team', choices=team_choices)
-
-    def __init__(self, team_choices, *args, **kwargs):
+    def __init__(self, year_choices, team_choices, *args, **kwargs):
         super(GenerateStats, self).__init__(*args, **kwargs)
+        self.fields['year'].choices = year_choices
         self.fields['team'].choices = team_choices
 
     class Meta:

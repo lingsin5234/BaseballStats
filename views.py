@@ -14,7 +14,7 @@ from django.urls import reverse
 # from .apps import baseball
 from .forms import GetYear, ProcessTeam, GenerateStats
 from django.contrib import messages
-from .functions import show_year_choices
+from .functions import instantiate_forms
 
 
 # home page
@@ -53,45 +53,61 @@ def run_jobs_view(request):
 
     # DB connect and form initializations
     c = dbs.engine.connect()
-    year_choices = chk.get_year_choices()[1]
-    form_import = GetYear(year_choices, initial={'form_type': 'import_year'})
-    form_process = ProcessTeam(initial={'form_type': 'process_team'})
-    form_gen_stats = GenerateStats([('AJX', 'AJX')], initial={'form_type': 'gen_stats'})
+
+    # instantiate all forms
+    form_import, form_process, form_gen_stats = instantiate_forms()
 
     if request.method == 'POST':
         if 'team' in request.POST:
             team = request.POST['team']
         year = request.POST['year']
         if request.POST['form_type'] == 'import_year':
+
+            year_choices = chk.get_year_choices()[1]
             form = GetYear(year_choices, request.POST)
+
             if form.is_valid():
                 status = ir.import_data(request.POST['year'])
                 if status:
                     messages.info(request, "Import Completed for " + year)
 
-                    # re-run the form so to update the year!
-                    year_choices = chk.get_year_choices()[1]
-                    form_import = GetYear(year_choices, initial={'form_type': 'import_year'})
+                    # re-run all the forms!
+                    form_import, form_process, form_gen_stats = instantiate_forms()
                 else:
                     messages.info(request, year + ' could not be imported')
             else:
+                print(request.POST)
                 print(form.errors)
         elif request.POST['form_type'] == 'process_team':
-            form = ProcessTeam(request.POST)
+
+            year_choices = chk.get_team_choices('process_team')[1]
+            team_choices = chk.get_team_choices('process_team')[3]
+            form = ProcessTeam(year_choices, team_choices, request.POST)
+
             if form.is_valid():
                 status = pi.process_data_single_team(year, team)
                 if status:
                     messages.info(request, "Processed " + team + " for " + year)
+
+                    # re-run all the forms!
+                    form_import, form_process, form_gen_stats = instantiate_forms()
                 else:
                     messages.info(request, 'Year has not been Imported.')
             else:
                 print(form.errors)
-        elif request.POST['form_type'] == 'gen_stats':
-            form = GenerateStats(request.POST)
+        elif request.POST['form_type'] == 'generate_stats':
+
+            year_choices = chk.get_team_choices('generate_stats')[1]
+            team_choices = chk.get_team_choices('generate_stats')[3]
+            form = GenerateStats(year_choices, team_choices, request.POST)
+
             if form.is_valid():
                 status = gs.generate_stats(year, team)
                 if status:
                     messages.info(request, "Generated Statistics for " + team + " in " + year)
+
+                    # re-run all the forms!
+                    form_import, form_process, form_gen_stats = instantiate_forms()
                 else:
                     messages.info(request, 'Year has not been Imported OR Team File has not been processed.')
             else:

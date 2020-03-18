@@ -1,27 +1,23 @@
 # custom functions listed in this file
 import datetime
+from .oper import check_latest_imports as chk
+from .forms import GetYear, ProcessTeam, GenerateStats
 from django.db import models
 # from .models import JobRequirements
 
 
-# generate the years
-def gen_year():
-    mlb_start_year = 1918
-    now = datetime.datetime.now()
-    tuple_years = []
-    for y in range(now.year - mlb_start_year):
-        yr = (mlb_start_year + y, mlb_start_year + y)
-        tuple_years.insert(0, yr)  # want to add to beginning of list
+# instantiate forms
+def instantiate_forms():
 
-    # print(tuple_years)
-    return tuple_years
+    year_choices = chk.get_year_choices()[1]
+    form_import = GetYear(year_choices, initial={'form_type': 'import_year'})
+    year_choices = chk.get_team_choices('process_team')[1]
+    team_choices = chk.get_team_choices('process_team')[3]
+    form_process = ProcessTeam(year_choices, team_choices, initial={'form_type': 'process_team'})
+    year_choices = chk.get_team_choices('generate_stats')[1]
+    team_choices = chk.get_team_choices('generate_stats')[3]
+    form_gen_stats = GenerateStats(year_choices, team_choices, initial={'form_type': 'generate_stats'})
 
+    the_forms = [form_import, form_process, form_gen_stats]
 
-# show year choices
-def show_year_choices():
-    # year_choices = [(c.year, c.year) for c in JobRequirements.objects.filter(form_type='import_year')]
-    all_years = gen_year()
-    # if year_choices in all_years:
-    #     return all_years
-    # else:
-    return "Did not work."
+    return the_forms
