@@ -55,7 +55,8 @@ def run_jobs_view(request):
     form_import = GetYear(initial={'form_type': 'import_year'})
     # print(form_import)
     form_process = ProcessTeam(initial={'form_type': 'process_team'})
-    form_gen_stats = GenerateStats(initial={'form_type': 'gen_stats'})
+    form_gen_stats = GenerateStats([('AJX', 'AJX')], initial={'form_type': 'gen_stats'})
+    print(form_gen_stats)
 
     if request.method == 'POST':
         if 'team' in request.POST:
