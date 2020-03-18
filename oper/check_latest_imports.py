@@ -46,7 +46,7 @@ def check_teams(year, which_process):
     else:
 
         # next, check to see if the teams were processed at all
-        query = "SELECT team_name FROM process_log WHERE data_year=? AND process_name='generate_stats'"
+        query = "SELECT team_name FROM process_log WHERE data_year=? AND process_name='stat_processor'"
         results = c.execute(query, year).fetchall()
         results = [r for r, in results]
 
@@ -114,7 +114,7 @@ def get_team_choices(which_process):
         for y in imported_years:
             p_teams = check_teams(y, which_process)
             processed_teams.extend(p_teams)
-            # print(processed_teams)
+            # print(which_process, ': ', processed_teams)
 
         processed_teams = sorted(np.unique(processed_teams))
         team_choices = [(t, t) for t in processed_teams]
