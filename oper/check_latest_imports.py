@@ -3,6 +3,7 @@
 import sys
 import os
 import numpy as np
+from django import forms
 from . import db_setup as dbs
 from . import date_time as dt
 from . import global_variables as gv
@@ -10,11 +11,6 @@ from . import global_variables as gv
 
 # check teams remaining in year
 def check_teams(year, which_process):
-
-    # check for cmd-line arguments
-    # if len(sys.argv) > 1:
-
-    # year = sys.argv[1]
 
     # query
     c = dbs.engine.connect()
@@ -80,4 +76,15 @@ def check_years():
     return missing_years
 
 
-# check_years()
+# return year choices
+def get_year_choices():
+
+    missing_years = check_years()
+    if missing_years is None:
+        year = forms.ChoiceField(required=True, label='Year', choices=('', '----'))
+    else:
+        missing_years.reverse()
+        year_choices = [(m, m) for m in missing_years]
+        year = forms.ChoiceField(required=True, label='Year', choices=year_choices)
+
+    return [year, year_choices]
