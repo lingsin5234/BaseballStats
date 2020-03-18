@@ -111,10 +111,9 @@ batting_stats = Table('batting', metadata,
                       Column('rlsp', Integer),
                       Column('hit_by_pitch', Integer),
                       Column('sac_hit', Integer),
-                      Column('sac_fly', Integer)
-                      # , Column('pinch_hit', Integer),
-                      # Column('pinch_run', Integer)
-                      )
+                      Column('sac_fly', Integer),
+                      Column('pinch_hit', Integer),
+                      Column('pinch_run', Integer))
 
 # pitching stats table
 pitching_stats = Table('pitching', metadata,
@@ -125,10 +124,10 @@ pitching_stats = Table('pitching', metadata,
                        Column('games_started', Integer),
                        Column('innings_pitched', Integer),
                        Column('batters_faced', Integer),
-                       # Column('wins', Integer),
-                       # Column('losses', Integer),
-                       # Column('holds', Integer),
-                       # Column('saves', Integer),
+                       Column('wins', Integer),
+                       Column('losses', Integer),
+                       Column('holds', Integer),
+                       Column('saves', Integer),
                        Column('runs_allowed', Integer),
                        Column('earned_runs', Integer),
                        Column('hits_allowed', Integer),
