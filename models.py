@@ -9,7 +9,7 @@ STAT_CATEGORY = [('batting', 0), ('pitching', 1), ('defense', 2)]
 # constants
 YEARS = dt.gen_year()
 TEAMS = (('TOR', 'TOR'), ('BOS', 'BOS'), ('ANA', 'ANA'), ('TEX', 'TEX'))
-FORM_TYPE = (('import_year', 'import_year'), ('process_team', 'process_team'), ('gen_stats', 'gen_stats'))
+FORM_TYPE = (('import_year', 'import_year'), ('process_team', 'process_team'), ('generate_stats', 'generate_stats'))
 
 
 # Extract/Process Requests

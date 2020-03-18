@@ -34,7 +34,7 @@ def stats_view(request):
     #     'stats': json.dumps(stats, cls=DjangoJSONEncoder)
     # }
 
-    years = show_year_choices()
+    years = ('2019')
 
     c = dbs.engine.connect()
     query = "SELECT * FROM process_log"
@@ -76,7 +76,6 @@ def run_jobs_view(request):
                 else:
                     messages.info(request, year + ' could not be imported')
             else:
-                print(request.POST)
                 print(form.errors)
         elif request.POST['form_type'] == 'process_team':
 
