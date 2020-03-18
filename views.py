@@ -68,6 +68,10 @@ def run_jobs_view(request):
                 status = ir.import_data(request.POST['year'])
                 if status:
                     messages.info(request, "Import Completed for " + year)
+
+                    # re-run the form so to update the year!
+                    year_choices = chk.get_year_choices()[1]
+                    form_import = GetYear(year_choices, initial={'form_type': 'import_year'})
                 else:
                     messages.info(request, year + ' could not be imported')
             else:
