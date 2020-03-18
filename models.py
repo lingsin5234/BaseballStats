@@ -1,5 +1,5 @@
 from django.db import models
-from .functions import gen_year
+from .oper import date_time as dt
 
 # CHOICES
 WHICH_TEAM = [('away', 0), ('home', 1)]
@@ -7,7 +7,7 @@ PLAY_TYPE = [('play', 'play'), ('sub', 'sub')]
 STAT_CATEGORY = [('batting', 0), ('pitching', 1), ('defense', 2)]
 
 # constants
-YEARS = gen_year()
+YEARS = dt.gen_year()
 TEAMS = (('TOR', 'TOR'), ('BOS', 'BOS'), ('ANA', 'ANA'), ('TEX', 'TEX'))
 FORM_TYPE = (('import_year', 'import_year'), ('process_team', 'process_team'), ('gen_stats', 'gen_stats'))
 

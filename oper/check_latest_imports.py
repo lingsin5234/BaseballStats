@@ -71,7 +71,6 @@ def check_years():
 
     # get the list of years still not imported
     missing_years = list(np.setdiff1d(years, [int(i) for i in year_dir]))
-    # print(missing_years)
 
     return missing_years
 
@@ -79,12 +78,46 @@ def check_years():
 # return year choices
 def get_year_choices():
 
+    year_choices = [(0, 0)]
     missing_years = check_years()
     if missing_years is None:
-        year = forms.ChoiceField(required=True, label='Year', choices=('', '----'))
+        year = forms.ChoiceField(required=True, label='Year', choices=year_choices)
     else:
         missing_years.reverse()
         year_choices = [(m, m) for m in missing_years]
         year = forms.ChoiceField(required=True, label='Year', choices=year_choices)
 
     return [year, year_choices]
+
+
+# return team choices
+def get_team_choices(which_process):
+
+    year_choices = [(0, 0)]
+    team_choices = [('---', '---')]
+
+    # get years that have already been imported
+    all_dir = os.listdir('baseball/import')
+    imported_years = [y for y in all_dir if y.isnumeric()]
+
+    # check if anything there
+    if imported_years is None:
+        year = forms.ChoiceField(required=True, label='Year', choices=year_choices)
+        team = forms.ChoiceField(required=True, label='Team', choices=team_choices)
+    else:
+        imported_years.reverse()
+        year_choices = [(i, i) for i in imported_years]
+        year = forms.ChoiceField(required=True, label='Year', choices=year_choices)
+
+        # check for teams for all years selected
+        processed_teams = []
+        for y in imported_years:
+            p_teams = check_teams(y, which_process)
+            processed_teams.extend(p_teams)
+            # print(processed_teams)
+
+        processed_teams = sorted(np.unique(processed_teams))
+        team_choices = [(t, t) for t in processed_teams]
+        team = forms.ChoiceField(required=True, label='Team', choices=team_choices)
+
+    return [year, year_choices, team, team_choices]
