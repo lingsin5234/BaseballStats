@@ -8,6 +8,7 @@ from .oper import db_setup as dbs
 from .oper import import_retrosheet as ir
 from .oper import process_imports as pi
 from .oper import generate_statistics as gs
+from .oper import check_latest_imports as chk
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 # from .apps import baseball
@@ -52,18 +53,17 @@ def run_jobs_view(request):
 
     # DB connect and form initializations
     c = dbs.engine.connect()
-    form_import = GetYear(initial={'form_type': 'import_year'})
-    # print(form_import)
+    year_choices = chk.get_year_choices()[1]
+    form_import = GetYear(year_choices, initial={'form_type': 'import_year'})
     form_process = ProcessTeam(initial={'form_type': 'process_team'})
     form_gen_stats = GenerateStats([('AJX', 'AJX')], initial={'form_type': 'gen_stats'})
-    print(form_gen_stats)
 
     if request.method == 'POST':
         if 'team' in request.POST:
             team = request.POST['team']
         year = request.POST['year']
         if request.POST['form_type'] == 'import_year':
-            form = GetYear(request.POST)
+            form = GetYear(year_choices, request.POST)
             if form.is_valid():
                 status = ir.import_data(request.POST['year'])
                 if status:

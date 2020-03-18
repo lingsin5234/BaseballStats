@@ -10,13 +10,11 @@ from .oper import check_latest_imports as chk
 
 class GetYear(forms.ModelForm):
 
-    missing_years = chk.check_years()
-    if missing_years is None:
-        year = forms.ChoiceField(required=True, label='Year', choices=('', '----'))
-    else:
-        missing_years.reverse()
-        year_choices = [(m, m) for m in missing_years]
-        year = forms.ChoiceField(required=True, label='Year', choices=year_choices)
+    year = chk.get_year_choices()[0]
+
+    def __init__(self, year_choices, *args, **kwargs):
+        super(GetYear, self).__init__(*args, **kwargs)
+        self.fields['year'].choices = year_choices
 
     class Meta:
         model = JobRequirements
