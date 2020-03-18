@@ -3,8 +3,8 @@
 import sys
 import os
 import numpy as np
-import db_setup as dbs
-import date_time as dt
+from . import db_setup as dbs
+from . import date_time as dt
 
 
 # check teams remaining in year
@@ -57,16 +57,16 @@ def check_teams():
 def check_years():
 
     years = dt.gen_year()
-    all_dir = os.listdir('import')
+    all_dir = os.listdir('baseball/import')
 
     # list the year dir
     year_dir = [y for y in all_dir if y.isnumeric()]
 
     # get the list of years still not imported
     missing_years = list(np.setdiff1d(years, [int(i) for i in year_dir]))
-    print(missing_years)
+    # print(missing_years)
 
     return missing_years
 
 
-check_years()
+# check_years()
