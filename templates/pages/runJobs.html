@@ -20,13 +20,13 @@
             <input type="submit" value="Import Year">
         </form>
         <br>
-        <form id="process_team" action="#" method="post">
+        <form id="process_team" action="" method="post">
             {% csrf_token %}
             {{ form_process.as_table }}
             <input type="submit" value="Process Team">
         </form>
         <br>
-        <form id="generate_stats" action="#" method="post">
+        <form id="generate_stats" action="" method="post">
             {% csrf_token %}
             {{ form_gen_stats.as_table }}
             <input type="submit" value="Generate Stats">

@@ -1,14 +1,20 @@
 # this python script is to import the retrosheet files
 from os import path, mkdir, remove
+import sys
+import time as t
+import pandas as pd
 import urllib.request
 from zipfile import ZipFile as zf
 from . import global_variables as gv
-import sys
 from . import error_logger as el
+from . import db_setup as dbs
+from . import date_time as dt
 
 
 # if len(sys.argv) > 1:
 def import_data(year):
+
+    t1_time = t.time()
 
     # create import folder if not available
     if path.exists(gv.data_dir):
@@ -51,5 +57,20 @@ def import_data(year):
         # accept any types of errors
         el.error_logger(e, 'removing landing file: ' + str(e), None, year)
         return False
+
+    t2_time = t.time()
+
+    # send completion notice
+    conn = dbs.engine.connect()
+    conn.fast_executemany = True
+    finish_str = {
+        'process_name': 'import_year',
+        'data_year': year,
+        'team_name': '---',
+        'time_elapsed': t2_time - t1_time,
+        'timestamp': t.strftime("%Y-%m-%d %H:%M:%S", t.localtime())
+    }
+    completion = pd.DataFrame([finish_str])
+    completion.to_sql('process_log', conn, if_exists='append', index=False)
 
     return True
