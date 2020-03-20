@@ -43,7 +43,9 @@ c = dbs.engine.connect()
 
 def baseball_db_reader(query):
 
-    c = dbs.engine.connect()
-    results = c.execute(query)
+    engine = sa.create_engine('sqlite:///baseball.db', echo=True)
+    # c = dbs.engine.connect()
+    c = engine.connect()
+    results = c.execute(query).fetchall()
 
     return results
