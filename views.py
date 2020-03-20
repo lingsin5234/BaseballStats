@@ -9,10 +9,12 @@ from .oper import import_retrosheet as ir
 from .oper import process_imports as pi
 from .oper import generate_statistics as gs
 from .oper import check_latest_imports as chk
+from .oper import database_reader as dr
+from .oper import class_structure as cs
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 # from .apps import baseball
-from .forms import GetYear, ProcessTeam, GenerateStats
+from .forms import GetYear, ProcessTeam, GenerateStats, ViewStats
 from django.contrib import messages
 from .functions import instantiate_forms
 
@@ -24,25 +26,49 @@ def home_page(request):
 
 # view stats
 def stats_view(request):
-    # pull_stats = StatCollect.objects.all()
-    # stats = []
-    # for p in pull_stats:
-    #     add = model_to_dict(p)
-    #     stats.append(add)
-    #
-    # context = {
-    #     'stats': json.dumps(stats, cls=DjangoJSONEncoder)
-    # }
 
-    years = ('2019')
+    # results
+    results = []
 
-    c = dbs.engine.connect()
-    query = "SELECT * FROM process_log"
-    results = c.execute(query)
+    # similar to the generate stats form, but gets those that are AVAILABLE.
+    year_choices = chk.get_team_choices('view_stats')[1]
+    team_choices = chk.get_team_choices('view_stats')[3]
+    form_view_stats = ViewStats(year_choices, team_choices, initial={'form_type': 'view_stats'})
+
+    if request.method == 'POST':
+
+        year_choices = chk.get_team_choices('view_stats')[1]
+        team_choices = chk.get_team_choices('view_stats')[3]
+        form = ViewStats(year_choices, team_choices, request.POST)
+
+        if form.is_valid():
+            # read from database
+            query = 'SELECT * FROM batting WHERE team_name=' + request.POST['team'] + \
+                    ' AND year=' + request.POST['year'] + ';'
+            results = dr.baseball_db_reader(query)
+
+        else:
+            print(form.errors)
+
+    # if results not None, then convert to JSON
+    if results is None:
+        pass
+    else:
+        temp = results
+        results = []
+        for r in temp:
+            add = model_to_dict(r)
+            results.append(add)
+
+    # get batting stats table column names
+    batting_col = cs.batting_stats.columns
+    batting_col = str(batting_col).replace('batting.', '')
+    print(type(batting_col))
 
     context = {
-        'results': results,
-        'other': years
+        'form_view_stats': form_view_stats,
+        'results': json.dumps(results),
+        'batting_col': batting_col
     }
 
     return render(request, 'pages/viewStats.html', context)

@@ -40,11 +40,27 @@ class ProcessTeam(forms.ModelForm):
 
 class GenerateStats(forms.ModelForm):
 
-    year = chk.get_team_choices('process_team')[0]
-    team = chk.get_team_choices('process_team')[2]
+    year = chk.get_team_choices('generate_stats')[0]
+    team = chk.get_team_choices('generate_stats')[2]
 
     def __init__(self, year_choices, team_choices, *args, **kwargs):
         super(GenerateStats, self).__init__(*args, **kwargs)
+        self.fields['year'].choices = year_choices
+        self.fields['team'].choices = team_choices
+
+    class Meta:
+        model = JobRequirements
+        fields = ['year', 'team', 'form_type']
+        widgets = {'form_type': forms.HiddenInput()}
+
+
+class ViewStats(forms.ModelForm):
+
+    year = chk.get_team_choices('view_stats')[0]
+    team = chk.get_team_choices('view_stats')[2]
+
+    def __init__(self, year_choices, team_choices, *args, **kwargs):
+        super(ViewStats, self).__init__(*args, **kwargs)
         self.fields['year'].choices = year_choices
         self.fields['team'].choices = team_choices
 

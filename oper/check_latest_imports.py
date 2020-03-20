@@ -43,7 +43,7 @@ def check_teams(year, which_process):
             return missing_teams_pp
 
     # check gen_stats
-    else:
+    elif which_process == 'generate_stats':
 
         # next, check to see if the teams were processed at all
         query = "SELECT team_name FROM process_log WHERE data_year=? AND process_name='stat_processor'"
@@ -58,6 +58,15 @@ def check_teams(year, which_process):
         else:
             # all teams stats generated
             return None
+
+    # check for view_stats
+    else:
+        # next, check to see if the teams were processed at all
+        query = "SELECT team_name FROM process_log WHERE data_year=? AND process_name='stat_processor'"
+        results = c.execute(query, year).fetchall()
+        results = [r for r, in results]
+
+        return results
 
 
 # check which years have yet to be imported
