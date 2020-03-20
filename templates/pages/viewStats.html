@@ -3,16 +3,31 @@
         <h1>Testing Page</h1>
     </div><br>
 
-    <div>
-        <p>{{other}}</p>
-    </div>
+    {% load crispy_forms_tags %}
+    <form id="view_stats" action="" method="post">
+        {% csrf_token %}
+        {{ form_view_stats.as_table }}
+        <input type="submit" value="View Stats">
+    </form>
+    <br>
 
-    <div id="startContent" class="container-fluid">
-    <ul>
-        {% for item in stats %}
-        <li>{{item}}</li>
-        {% endfor %}
-    </ul>
-    </div>
+    <div id="table_output" class="d-flex justify-content-center"></div>
+
+    <p>{{batting_col}}</p>
+
+    <script>
+        var results = JSON.parse('{{results|safe}}');
+
+        var table = d3.select('#table_output').append('table')
+            .attr('style', 'margin-left: 250px');
+        var thead = table.append('thead');
+        var tbody = table.append('tbody');
+
+        // header
+        var header = thead.append('tr');
+
+        //console.log(columns);
+
+    </script>
 
 {% include 'partials/footer_baseball.html' %}
