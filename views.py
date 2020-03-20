@@ -30,6 +30,9 @@ def stats_view(request):
     # results
     results = []
 
+    # get batting stats table column names
+    batting_col = str(cs.batting_stats.columns).replace('batting.', '')
+
     # similar to the generate stats form, but gets those that are AVAILABLE.
     year_choices = chk.get_team_choices('view_stats')[1]
     team_choices = chk.get_team_choices('view_stats')[3]
@@ -43,27 +46,19 @@ def stats_view(request):
 
         if form.is_valid():
             # read from database
-            query = 'SELECT * FROM batting WHERE team_name=' + request.POST['team'] + \
-                    ' AND year=' + request.POST['year'] + ';'
-            results = dr.baseball_db_reader(query)
+            query = "SELECT * FROM batting WHERE team_name='" + str(request.POST['team']) + "';"  # + \
+                    # ' AND year=' + request.POST['year'] + ';'
+            temp = dr.baseball_db_reader(query)
 
-        else:
-            print(form.errors)
+            # because `temp` is NOT a dictionary we need to convert it!
 
-    # if results not None, then convert to JSON
-    if results is None:
-        pass
+
+            # change to JSON
+            it = iter(temp)
+            res_dct = dict(zip(it, it))
+
     else:
-        temp = results
-        results = []
-        for r in temp:
-            add = model_to_dict(r)
-            results.append(add)
-
-    # get batting stats table column names
-    batting_col = cs.batting_stats.columns
-    batting_col = str(batting_col).replace('batting.', '')
-    print(type(batting_col))
+            print(form.errors)
 
     context = {
         'form_view_stats': form_view_stats,
