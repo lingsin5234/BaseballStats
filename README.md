@@ -11,6 +11,8 @@ an ETL process for handling this data. This process includes:
 *  generating readable player statistics
 *  displaying the statistics onto the website
 
+My GitLab repo is: [Baseball Stats](https://gitlab.com/lingsin5234/MLB-Stats-Website)
+
 ## Layout
 There are two main pages for this website: **Run Jobs** and **View Stats**.
 
