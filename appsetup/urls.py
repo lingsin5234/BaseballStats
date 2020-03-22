@@ -21,7 +21,8 @@ from baseball import views as baseball_vw
 
 urlpatterns = [
     re_path(r'^admin/', admin.site.urls),
-    re_path(r'^$', baseball_vw.home_page),
+    re_path(r'^$', baseball_vw.project_markdown),
     re_path(r'^runJobs/', baseball_vw.run_jobs_view),
-    re_path(r'^viewStats/', baseball_vw.stats_view)
+    re_path(r'^viewStats/', baseball_vw.stats_view),
+    re_path(r'^project/', baseball_vw.project_markdown),
 ]
