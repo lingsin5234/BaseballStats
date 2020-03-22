@@ -9,7 +9,8 @@
 **/__pycache__/*
 *.csv
 *.LOG
-**/appsetup
-**/appsetup/*
 # **/import -- keep the directory
 **/import/*
+**/baseball/.git
+**/baseball/.git/*
+**/baseball/.gitignore
