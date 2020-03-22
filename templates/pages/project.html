@@ -1,0 +1,18 @@
+{% include 'partials/header_baseball.html' %}
+    <div id="my_title" class="d-flex justify-content-center">
+        <h1>PROJECT: Baseball Stats</h1>
+    </div><br>
+    {% load markdown_extras %}
+    <style>
+        #my_descriptions {
+            height: {{page_height}}px;
+        }
+    </style>
+    <div id="my_descriptions" class="d-flex justify-content-center">
+        <div>
+            {{ readme | markdown | safe }}
+        </div>
+    </div>
+    <br>
+
+{% include 'partials/footer_baseball.html' %}

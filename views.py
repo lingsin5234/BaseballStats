@@ -24,6 +24,23 @@ def home_page(request):
     return render(request, 'pages/homepage.html')
 
 
+# project page
+def project_markdown(request):
+
+    page_height = 1050
+    f = open('baseball/README.md', 'r')
+    if f.mode == 'r':
+        readme = f.read()
+        page_height = len(readme) - 350
+
+    content = {
+        'readme': readme,
+        'page_height': page_height
+    }
+
+    return render(request, 'pages/project.html', content)
+
+
 # view stats
 def stats_view(request):
 
