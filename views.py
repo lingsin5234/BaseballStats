@@ -31,7 +31,7 @@ def project_markdown(request):
     f = open('baseball/README.md', 'r')
     if f.mode == 'r':
         readme = f.read()
-        page_height = len(readme) - 350
+        page_height = len(readme)/2 + 200
 
     content = {
         'readme': readme,
