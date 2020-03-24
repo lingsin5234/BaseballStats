@@ -4,7 +4,7 @@ import sqlalchemy as sa
 from . import db_setup as dbs
 
 # query
-c = dbs.engine.connect()
+# c = dbs.engine.connect()
 # results1 = c.execute("SELECT * FROM starters WHERE game_id LIKE 'BOS%' LIMIT 5").fetchall()
 # results2 = c.execute("SELECT * FROM gameplay WHERE game_id LIKE 'BOS%' LIMIT 5").fetchall()
 # print('STARTERS', results1)
