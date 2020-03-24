@@ -17,6 +17,7 @@ from django.urls import reverse
 from .forms import GetYear, ProcessTeam, GenerateStats, ViewStats
 from django.contrib import messages
 from .functions import instantiate_forms
+from djangoapps.utils import get_this_template
 
 
 # home page
@@ -38,7 +39,9 @@ def project_markdown(request):
         'page_height': page_height
     }
 
-    return render(request, 'pages/project.html', content)
+    template_page = get_this_template('baseball', 'project.html')
+
+    return render(request, template_page, content)
 
 
 # view stats
