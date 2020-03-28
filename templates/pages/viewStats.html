@@ -1,6 +1,6 @@
 {% include 'partials/header_baseball.html' %}
     <div id="my_title" class="d-flex justify-content-center">
-        <h1>Testing Page</h1>
+        <h1>View Team Stats</h1>
     </div><br>
 
     {% load crispy_forms_tags %}
@@ -13,33 +13,9 @@
 
     <div id="table_output" class="d-flex justify-content-center"></div>
 
-    <p>{{batting_col}}</p>
-
     <script>
         var results = JSON.parse('{{results|safe}}');
         var columns = {{batting_col|safe}};
-        var table = d3.select('#table_output').append('table')
-            .attr('style', 'margin-left: 250px');
-        var thead = table.append('thead');
-        var tbody = table.append('tbody');
-
-        // header
-        var header = thead.append('tr');
-        var col_names = header.selectAll('th')
-            .data(columns).enter().append('th')
-            .text(function(d) { return d; });
-
-        // body
-        var rows = tbody.selectAll('tr')
-            .data(results).enter().append('tr');
-
-        var cells = rows.selectAll('td')
-        .data(function(row) {
-            return columns.map(function(col) {
-                return {column: col, value: row[col]};
-            });
-        }).enter().append('td')
-        .text(function(d) { return d.value; });
     </script>
 
 {% include 'partials/footer_baseball.html' %}
