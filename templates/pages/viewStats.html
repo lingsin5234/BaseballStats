@@ -14,8 +14,12 @@
     <div id="table_output" class="d-flex justify-content-center"></div>
 
     <script>
-        var results = JSON.parse('{{results|safe}}');
-        var columns = {{batting_col|safe}};
+        (function () {
+            window.results = JSON.parse('{{results|safe}}');
+            window.columns = {{batting_col|safe}};
+        }());
     </script>
+    {% load static %}
+    <script src="{% static 'scripts/baseball_view_stats.js' %}"></script>
 
 {% include 'partials/footer_baseball.html' %}
