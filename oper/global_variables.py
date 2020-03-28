@@ -29,6 +29,9 @@ bases_after = '---'
 
 # global dictionary for stat types
 bat_stat_types = {
+    'ID': 'Id',
+    'PID': 'player_id',
+    'TEAM': 'team_name',
     'GP': 'games_played',
     'GS': 'games_started',
     'AB': 'at_bats',
@@ -48,9 +51,9 @@ bat_stat_types = {
     'RLSP': 'rlsp',
     'HBP': 'hit_by_pitch',
     'SH': 'sac_hit',
-    'SF': 'sac_fly'
-    # 'PH': 'pinch_hit',
-    # 'PR': 'pinch_run',
+    'SF': 'sac_fly',
+    'PH': 'pinch_hit',
+    'PR': 'pinch_run',
 }
 
 pitch_stat_types = {

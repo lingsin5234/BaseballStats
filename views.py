@@ -11,6 +11,7 @@ from .oper import generate_statistics as gs
 from .oper import check_latest_imports as chk
 from .oper import database_reader as dr
 from .oper import class_structure as cs
+from .oper import global_variables as gv
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 # from .apps import baseball
@@ -87,7 +88,8 @@ def stats_view(request):
     context = {
         'form_view_stats': form_view_stats,
         'results': json.dumps(results),
-        'batting_col': batting_col
+        'batting_col': batting_col,
+        'col_convert': json.dumps(gv.bat_stat_types)
     }
 
     return render(request, 'pages/viewStats.html', context)
