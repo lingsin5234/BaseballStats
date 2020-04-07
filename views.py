@@ -212,7 +212,8 @@ def jobs_dashboard(request):
         num_teams_array.append({'data_year': y, 'num_teams': num_teams})
 
     # teams that have been processed -- by year
-    query = "SELECT data_year, COUNT(team_name) FROM process_log WHERE process_name='play_processor' GROUP BY data_year ORDER BY data_year desc"
+    query = "SELECT data_year, COUNT(team_name) FROM process_log WHERE process_name='play_processor' "
+    query += "GROUP BY data_year ORDER BY data_year desc"
     results = dr.baseball_db_reader(query)
 
     # for each row (tuple), sort and add columns
@@ -227,7 +228,7 @@ def jobs_dashboard(request):
         for t in teams_processed:
             if t['data_year'] == year:
                 t['num_teams'] = t['num_teams'] / num_teams
-                print(t)
+                # print(t)
                 break
 
     if len(num_teams_array) > len(teams_processed):
@@ -237,12 +238,33 @@ def jobs_dashboard(request):
             num_teams_array[len_index]['num_teams'] = 0
             teams_processed.append(num_teams_array[len_index])
             len_index -= 1
-    print(teams_processed)
+    # print(teams_processed)
+
+    # teams that have stats generated -- by year
+    query = "SELECT data_year, COUNT(team_name) FROM process_log WHERE process_name='stat_processor' "
+    query += "GROUP BY data_year ORDER BY data_year desc"
+    results = dr.baseball_db_reader(query)
+
+    # for each row (tuple), sort and add columns
+    stats_generated = []
+    for r in results:
+        stats_generated.append(dict(zip(['data_year', 'num_teams'], r)))
+
+    # go thru and divide teams/processed by total num of teams
+    for s in stats_generated:
+        year = s['data_year']
+        for n in num_teams_array:
+            if int(n['data_year']) == year:
+                s['num_teams'] = s['num_teams'] / int(n['num_teams'])
+                # print(t)
+                break
+    print(stats_generated)
 
     context = {
         'processes': json.dumps(processes),
         'years_imported': json.dumps(years_imported),
-        'teams_processed': json.dumps(teams_processed)
+        'teams_processed': json.dumps(teams_processed),
+        'stats_generated': json.dumps(stats_generated)
     }
 
     return render(request, 'pages/jobsDashboard.html', context)

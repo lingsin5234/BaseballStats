@@ -13,6 +13,7 @@
                 window.processes = JSON.parse('{{processes|safe}}');
                 window.years_imported = JSON.parse('{{years_imported|safe}}');
                 window.teams_processed = JSON.parse('{{teams_processed|safe}}');
+                window.stats_generated = JSON.parse('{{stats_generated|safe}}');
 
                 // parameters
                 window.svg_height = 1200;
@@ -20,6 +21,7 @@
                 window.view_height = 400;
                 window.view_width = 600;
                 window.grid_width = 120;
+                window.grid_height = years_imported.length * 50 + 30
                 window.bar_height = 40;
                 window.bar_spacing = 10 + bar_height;
                 window.op_trans = 1000; // overall progress bar transition time (ms)
@@ -70,10 +72,16 @@
                     // console.log(str);
                     return str;
                 })
-                .attr('d', 'M0,10v384').attr('stroke', '#EEEEEE')
-                .attr('stroke-opacity', 1).attr('stroke-width', '1px');
+                //.attr('d', 'M0,10v384')
+                .attr('d', function() {
+                    var str = 'M0,10v';
+                    str = str + grid_height;
+                    return str;
+                })
+                .attr('stroke', '#EEEEEE').attr('stroke-opacity', 1).attr('stroke-width', '1px');
 
         // progress bars: # of progress bars = number of years imported
+        // now updated to teams_processed -- but do not do the stats_generated here
         var prog_bar_groups = overall_progress.selectAll('.prog-bar-group')
             .data(teams_processed).enter().append('g')
                 .attr('class', 'prog-bar-group')
@@ -89,7 +97,7 @@
             .transition().duration(op_trans)
             .attr('height', bar_height)
             .attr('width', function(d,i) {
-                console.log(d.data_year, d.num_teams, i);
+                //console.log(d.data_year, d.num_teams, i);
                 return grid_width * (1 + d.num_teams);
             })
             .attr('fill', '#4B59DB');
@@ -102,16 +110,19 @@
                 return d.data_year;
             });
 
-        // progress bar length increases if process_team and generate_stats are completed
-        /*d3.select('.overall-progress').selectAll('.prog-bar-group')
-            .data(teams_processed).enter()
-            .select('.prog-bar-group').select('prog-bar')
-                .transition().duration(op_trans)
-                .attr('width', function(d,i) {
-                    console.log(d.data_year, d.num_teams, i);
-                    return grid_width * (1 + d.num_teams);
-                });*/
-
+        // progress bar length increases if generate_stats are completed
+        d3.select('.overall-progress')
+            .data(stats_generated).enter()
+            .each(function () {
+                d3.select(this).select('.prog-bar')
+                    .transition().duration(op_trans)
+                    .attr('height', bar_height)
+                    .attr('width', function(d) {
+                        console.log(d.data_year, d.num_teams);
+                        return grid_width * (2 + d.num_teams);
+                    })
+                    .attr('fill', '#4B59DB');
+            });
     </script>
     {% load static %}
     <!--script src="{% static 'scripts/baseball_job_dashboard.js' %}"></script-->
