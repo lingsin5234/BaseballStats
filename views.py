@@ -54,9 +54,9 @@ def stats_view(request):
 
     # get batting stats table column names
     cols = cs.batting_stats.columns
-    # batting_col = str(cs.batting_stats.columns).replace('batting.', '')
     for i in cols:
         batting_col.append(str(i).replace('batting.', ''))
+    batting_col = batting_col[1:len(batting_col)]  # ignore ID
 
     # similar to the generate stats form, but gets those that are AVAILABLE.
     year_choices = chk.get_team_choices('view_stats')[1]
@@ -77,7 +77,9 @@ def stats_view(request):
             # because `temp` is NOT a dictionary we need to convert it!
             results = []
             for t in temp:
+                t = t[1:len(t)]  # ignore the ID in first column!
                 add = dict(zip(batting_col, t))
+                # add.pop('Id', None)
                 # print(add)
                 results.append(add)
             # print(results)

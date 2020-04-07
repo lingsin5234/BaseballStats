@@ -29,7 +29,6 @@ bases_after = '---'
 
 # global dictionary for stat types
 bat_stat_types = {
-    'ID': 'Id',
     'PID': 'player_id',
     'TEAM': 'team_name',
     'GP': 'games_played',
