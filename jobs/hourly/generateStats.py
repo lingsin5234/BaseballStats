@@ -16,6 +16,7 @@ class Job(HourlyJob):
         print(year_choices)
 
         # loop through years for FIRST instance of a team choice option
+        year_choices.reverse()
 
         team = ''
         year = 0

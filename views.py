@@ -204,14 +204,15 @@ def jobs_dashboard(request):
         years_imported.append(dict(zip(process_col, r)))
 
     # for each year imported, check number of teams in total
+    all_years = chk.get_years()
+    all_years.reverse()
     num_teams_array = []
-    for y in years_imported:
-        year = str(y['data_year'])
-        num_teams = chk.check_teams(year, 'total_num_teams')
-        num_teams_array.append({'data_year': year, 'num_teams': num_teams})
+    for y in all_years:
+        num_teams = chk.check_teams(y, 'total_num_teams')
+        num_teams_array.append({'data_year': y, 'num_teams': num_teams})
 
     # teams that have been processed -- by year
-    query = "SELECT data_year, COUNT(team_name) FROM process_log WHERE process_name='play_processor' GROUP BY data_year"
+    query = "SELECT data_year, COUNT(team_name) FROM process_log WHERE process_name='play_processor' GROUP BY data_year ORDER BY data_year desc"
     results = dr.baseball_db_reader(query)
 
     # for each row (tuple), sort and add columns
@@ -228,6 +229,15 @@ def jobs_dashboard(request):
                 t['num_teams'] = t['num_teams'] / num_teams
                 print(t)
                 break
+
+    if len(num_teams_array) > len(teams_processed):
+        missing_years = len(num_teams_array) - len(teams_processed)
+        len_index = len(num_teams_array) - 1
+        for m in range(missing_years):
+            num_teams_array[len_index]['num_teams'] = 0
+            teams_processed.append(num_teams_array[len_index])
+            len_index -= 1
+    print(teams_processed)
 
     context = {
         'processes': json.dumps(processes),
