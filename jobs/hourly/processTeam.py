@@ -24,7 +24,9 @@ class Job(HourlyJob):
             # get list of teams not processed
             team_choices = chk.check_teams(y, 'process_team')
 
-            if len(team_choices) > 0:
+            if
+
+            else:
                 print(y, team_choices)
                 team = team_choices[0]  # just take the first one
                 year = y

@@ -18,6 +18,9 @@
                 window.svg_width = 800;
                 window.view_height = 400;
                 window.view_width = 400;
+                window.grid_width = 80;
+                window.bar_height = 40;
+                window.bar_spacing = 10 + bar_height;
             }());
     </script>
     <script>
@@ -26,14 +29,32 @@
             .attr('height', svg_height).attr('width', svg_width);
 
         // set up overall progress view
-        var overall_progress = svg.append('g').append('svg')
-            .attr('class', 'overall-progress')
-            .attr('height', view_height).attr('width', view_width);
+        var overall_progress = svg.append('g')
+            .attr('transform', 'translate(10,10)')
+            .append('svg')
+                .attr('class', 'overall-progress')
+                .attr('height', view_height).attr('width', view_width);
+
+        // set up titles
+        var op_titles = overall_progress.selectAll('.grid-title')
+            .data(processes).enter().append('text')
+                .attr('class', 'grid-title')
+                .attr('transform', function(d,i) {
+                    var str = 'translate('
+                    str = str + ( i * grid_width ) + ' 0)';
+                    return str;
+                }).style('text-anchor', 'middle')
+                .attr('fill', '#DDDDDD')
+                .text(function(d) {
+                    var str = d.p;
+                    str = str.replace('_', ' ')
+                    return str;
+                });
 
         // set up grid
         var op_grid = overall_progress.append('g')
             .attr('class', 'gridlayer');
-        console.log(processes);
+
         // x grid
         var op_grid_x = op_grid.append('g')
             .attr('class', 'x')
@@ -42,12 +63,34 @@
                 .attr('class', 'xgrid crisp')
                 .attr('transform', function(d,i) {
                     var str = 'translate(';
-                    str = str + (( i + 1 ) * 80) + ')';
+                    str = str + (( i + 1 ) * grid_width) + ')';
                     console.log(str);
                     return str;
                 })
-                .attr('d', 'M0,25v384').attr('stroke', '#EEEEEE')
+                .attr('d', 'M0,10v384').attr('stroke', '#EEEEEE')
                 .attr('stroke-opacity', 1).attr('stroke-width', '1px');
+
+        // progress bars = number of years imported
+        var prog_bar_groups = overall_progress.selectAll('.prog-bar')
+            .data(years_imported).enter().append('g')
+                .attr('class', 'prog-bar')
+                .attr('transform', function(d,i) {
+                    var str = 'translate(0 ';
+                    str = str + ( i * bar_spacing + 35 ) + ')';
+                    return str;
+                });
+
+        var prog_bar = prog_bar_groups.append('rect')
+            .attr('height', bar_height).attr('width', grid_width)
+            .attr('fill', '#4B59DB');
+
+        var prog_text = prog_bar_groups.append('text')
+            .style('text-anchor', 'middle')
+            .attr('transform', 'translate(25,25)')
+            .attr('fill', '#FFFFFF')
+            .text(function(d) {
+                return d.data_year;
+            });
 
     </script>
     {% load static %}
