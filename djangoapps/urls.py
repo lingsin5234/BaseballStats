@@ -25,4 +25,5 @@ urlpatterns = [
     re_path(r'^runJobs/', baseball_vw.run_jobs_view),
     re_path(r'^viewStats/', baseball_vw.stats_view),
     re_path(r'^project/', baseball_vw.project_markdown),
+    re_path(r'^jobs-dashboard/', baseball_vw.jobs_dashboard),
 ]
