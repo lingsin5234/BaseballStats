@@ -152,8 +152,11 @@ def get_team_choices(which_process):
         processed_teams = []
         for y in imported_years:
             p_teams = check_teams(y, which_process)
-            processed_teams.extend(p_teams)
-            # print(which_process, ': ', processed_teams)
+            if p_teams is None:
+                pass
+            else:
+                processed_teams.extend(p_teams)
+                # print(which_process, ': ', processed_teams)
 
         processed_teams = sorted(np.unique(processed_teams))
         team_choices = [(t, t) for t in processed_teams]

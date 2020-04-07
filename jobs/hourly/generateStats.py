@@ -23,7 +23,9 @@ class Job(HourlyJob):
             # get list of teams already processed
             team_choices = chk.check_teams(y, 'go_generate_stats')
 
-            if len(team_choices) > 0:
+            if team_choices is None:
+                pass
+            else:
                 print(y, team_choices)
                 team = team_choices[0]  # just take the first one
                 year = y

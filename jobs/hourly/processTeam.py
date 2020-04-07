@@ -24,8 +24,8 @@ class Job(HourlyJob):
             # get list of teams not processed
             team_choices = chk.check_teams(y, 'process_team')
 
-            if
-
+            if team_choices is None:
+                pass
             else:
                 print(y, team_choices)
                 team = team_choices[0]  # just take the first one
