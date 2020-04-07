@@ -84,6 +84,17 @@ def check_years():
     return missing_years
 
 
+# get the years that have been imported already
+def get_years():
+
+    all_dir = os.listdir(gv.data_dir)
+
+    # list the year dir
+    year_dir = [y for y in all_dir if y.isnumeric()]
+
+    return year_dir
+
+
 # return year choices
 def get_year_choices():
 
