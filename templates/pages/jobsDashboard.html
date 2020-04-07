@@ -12,15 +12,17 @@
         (function () {
                 window.processes = JSON.parse('{{processes|safe}}');
                 window.years_imported = JSON.parse('{{years_imported|safe}}');
+                window.teams_processed = JSON.parse('{{teams_processed|safe}}');
 
-                // svg parameters
+                // parameters
                 window.svg_height = 1200;
-                window.svg_width = 800;
+                window.svg_width = 1200;
                 window.view_height = 400;
-                window.view_width = 400;
-                window.grid_width = 80;
+                window.view_width = 600;
+                window.grid_width = 120;
                 window.bar_height = 40;
                 window.bar_spacing = 10 + bar_height;
+                window.op_trans = 1000; // overall progress bar transition time (ms)
             }());
     </script>
     <script>
@@ -41,9 +43,10 @@
                 .attr('class', 'grid-title')
                 .attr('transform', function(d,i) {
                     var str = 'translate('
-                    str = str + ( i * grid_width ) + ' 0)';
+                    str = str + ( i * grid_width + grid_width/2 ) + ' 20)';
                     return str;
-                }).style('text-anchor', 'middle')
+                })
+                .style('text-anchor', 'middle')
                 .attr('fill', '#DDDDDD')
                 .text(function(d) {
                     var str = d.p;
@@ -64,16 +67,16 @@
                 .attr('transform', function(d,i) {
                     var str = 'translate(';
                     str = str + (( i + 1 ) * grid_width) + ')';
-                    console.log(str);
+                    // console.log(str);
                     return str;
                 })
                 .attr('d', 'M0,10v384').attr('stroke', '#EEEEEE')
                 .attr('stroke-opacity', 1).attr('stroke-width', '1px');
 
-        // progress bars = number of years imported
-        var prog_bar_groups = overall_progress.selectAll('.prog-bar')
+        // progress bars: # of progress bars = number of years imported
+        var prog_bar_groups = overall_progress.selectAll('.prog-bar-group')
             .data(years_imported).enter().append('g')
-                .attr('class', 'prog-bar')
+                .attr('class', 'prog-bar-group')
                 .attr('transform', function(d,i) {
                     var str = 'translate(0 ';
                     str = str + ( i * bar_spacing + 35 ) + ')';
@@ -81,6 +84,7 @@
                 });
 
         var prog_bar = prog_bar_groups.append('rect')
+            .attr('class', 'prog-bar')
             .attr('height', bar_height).attr('width', grid_width)
             .attr('fill', '#4B59DB');
 
@@ -91,6 +95,15 @@
             .text(function(d) {
                 return d.data_year;
             });
+
+        // progress bar length increases if process_team and generate_stats are completed
+        prog_bar_groups.selectAll('.prog-bar')
+            .data(teams_processed).enter()
+            .select('.prog-bar')
+                .transition().duration(op_trans)
+                .attr('width', function(d) {
+                    return grid_width * (1 + d.num_teams);
+                });
 
     </script>
     {% load static %}

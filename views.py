@@ -186,7 +186,7 @@ def run_jobs_view(request):
 def jobs_dashboard(request):
 
     # the main 3 processes
-    processes = [{'p': 'import_year'}, {'p': 'process_team'}, {'p': 'generate_stats'}]
+    processes = [{'p': 'import_year'}, {'p': 'play_processor'}, {'p': 'stat_processor'}]
 
     # get column names of process_log table
     process_col = []
@@ -203,9 +203,36 @@ def jobs_dashboard(request):
     for r in results:
         years_imported.append(dict(zip(process_col, r)))
 
+    # for each year imported, check number of teams in total
+    num_teams_array = []
+    for y in years_imported:
+        year = str(y['data_year'])
+        num_teams = chk.check_teams(year, 'total_num_teams')
+        num_teams_array.append({'data_year': year, 'num_teams': num_teams})
+
+    # teams that have been processed -- by year
+    query = "SELECT data_year, COUNT(team_name) FROM process_log WHERE process_name='play_processor' GROUP BY data_year"
+    results = dr.baseball_db_reader(query)
+
+    # for each row (tuple), sort and add columns
+    teams_processed = []
+    for r in results:
+        teams_processed.append(dict(zip(['data_year', 'num_teams'], r)))
+
+    # go thru and divide teams/processed by total num of teams
+    for n in num_teams_array:
+        year = int(n['data_year'])
+        num_teams = n['num_teams']
+        for t in teams_processed:
+            if t['data_year'] == year:
+                t['num_teams'] = t['num_teams'] / num_teams
+                print(t)
+                break
+
     context = {
         'processes': json.dumps(processes),
-        'years_imported': json.dumps(years_imported)
+        'years_imported': json.dumps(years_imported),
+        'teams_processed': json.dumps(teams_processed)
     }
 
     return render(request, 'pages/jobsDashboard.html', context)

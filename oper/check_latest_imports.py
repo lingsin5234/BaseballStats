@@ -59,7 +59,7 @@ def check_teams(year, which_process):
             # all teams stats generated
             return None
 
-    # check gen_stats
+    # check which teams to generate stats for
     elif which_process == 'go_generate_stats':
 
         # need list of those processed already but NOT generated stats for
@@ -77,6 +77,11 @@ def check_teams(year, which_process):
         print("HERE ARE RESULTS: ", results)
 
         return results
+
+    # check the total list of teams
+    elif which_process == 'total_num_teams':
+
+        return len(teams)
 
     # check for view_stats
     else:
