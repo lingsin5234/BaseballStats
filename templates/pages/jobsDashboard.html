@@ -5,22 +5,52 @@
 
     <div id="startContent" class="container-fluid">
 
-        {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
+
     </div>
 
     <script>
         (function () {
-                window.results = JSON.parse('{{results|safe}}');
-                window.columns = JSON.parse('{{columns|safe}}');
+                window.processes = JSON.parse('{{processes|safe}}');
+                window.years_imported = JSON.parse('{{years_imported|safe}}');
+
+                // svg parameters
+                window.svg_height = 1200;
+                window.svg_width = 800;
+                window.view_height = 400;
+                window.view_width = 400;
             }());
     </script>
+    <script>
+        // set up svg
+        var svg = d3.select('#startContent').append('svg')
+            .attr('height', svg_height).attr('width', svg_width);
+
+        // set up overall progress view
+        var overall_progress = svg.append('g').append('svg')
+            .attr('class', 'overall-progress')
+            .attr('height', view_height).attr('width', view_width);
+
+        // set up grid
+        var op_grid = overall_progress.append('g')
+            .attr('class', 'gridlayer');
+        console.log(processes);
+        // x grid
+        var op_grid_x = op_grid.append('g')
+            .attr('class', 'x')
+            .selectAll('path').data(processes).enter()
+            .append('path')
+                .attr('class', 'xgrid crisp')
+                .attr('transform', function(d,i) {
+                    var str = 'translate(';
+                    str = str + (( i + 1 ) * 80) + ')';
+                    console.log(str);
+                    return str;
+                })
+                .attr('d', 'M0,25v384').attr('stroke', '#EEEEEE')
+                .attr('stroke-opacity', 1).attr('stroke-width', '1px');
+
+    </script>
     {% load static %}
-    <script src="{% static 'scripts/baseball_load_processes.js' %}"></script>
+    <!--script src="{% static 'scripts/baseball_job_dashboard.js' %}"></script-->
 
 {% include 'partials/footer_baseball.html' %}

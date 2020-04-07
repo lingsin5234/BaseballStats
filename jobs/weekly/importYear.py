@@ -1,12 +1,12 @@
-from django_extensions.management.jobs import HourlyJob, MonthlyJob
+from django_extensions.management.jobs import WeeklyJob
 from ...oper import import_retrosheet as ir
 from ...oper import error_logger as el
 from ...oper import check_latest_imports as chk
 
 
 # this job imports a certain Year from the retrosheet.org
-# Once tested, this should run MONTHLY
-class Job(MonthlyJob):
+# Once tested, this should run WEEKLY
+class Job(WeeklyJob):
     help = "Imports a year of files from Retrosheet.org"
 
     def execute(self):

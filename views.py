@@ -185,8 +185,27 @@ def run_jobs_view(request):
 # this will replace the runJobs with a dashboard of the automated jobs
 def jobs_dashboard(request):
 
-    context = {
+    # the main 3 processes
+    processes = [{'p': 'import_year'}, {'p': 'process_team'}, {'p': 'generate_stats'}]
 
+    # get column names of process_log table
+    process_col = []
+    cols = cs.process_log.columns
+    for i in cols:
+        process_col.append(str(i).replace('process_log.', ''))
+
+    # years that have been imported
+    query = "SELECT * FROM process_log WHERE process_name='import_year'"
+    results = dr.baseball_db_reader(query)
+
+    # for each row (tuple), sort and add columns
+    years_imported = []
+    for r in results:
+        years_imported.append(dict(zip(process_col, r)))
+
+    context = {
+        'processes': json.dumps(processes),
+        'years_imported': json.dumps(years_imported)
     }
 
     return render(request, 'pages/jobsDashboard.html', context)

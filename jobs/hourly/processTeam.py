@@ -1,13 +1,13 @@
-from django_extensions.management.jobs import DailyJob
-from ...oper import generate_statistics as gs
+from django_extensions.management.jobs import HourlyJob
+from ...oper import process_imports as pi
 from ...oper import error_logger as el
 from ...oper import check_latest_imports as chk
 
 
-# this job generate stats for a specific team + year
-# Once tested, this should run DAILY
-class Job(DailyJob):
-    help = "Generate Stats for given Team + Year"
+# this job processes a team for specific YEAR
+# Once tested, this should run HOURLY
+class Job(HourlyJob):
+    help = "Processes event file for a team in X year"
 
     def execute(self):
 
@@ -16,12 +16,13 @@ class Job(DailyJob):
         print(year_choices)
 
         # loop through years for FIRST instance of a team choice option
+        # year_choices.reverse()  # don't need to reverse order in prod, should be smallest year
 
         team = ''
         year = 0
         for y in year_choices:
-            # get list of teams already processed
-            team_choices = chk.check_teams(y, 'go_generate_stats')
+            # get list of teams not processed
+            team_choices = chk.check_teams(y, 'process_team')
 
             if len(team_choices) > 0:
                 print(y, team_choices)
@@ -31,16 +32,16 @@ class Job(DailyJob):
 
         # check if year is 0 still
         if int(year) > 0:
-            status = gs.generate_stats(year, team)
+            status = pi.process_data_single_team(year, team)
 
             # these messages should be stored in /var/log/syslog
             # use cat syslog | grep CRON to view
             if status:
-                print("Generate Stats... Success")
+                print("Process Team... Success")
                 return True
             else:
-                print("Generate Stats... Failed")
+                print("Process Team... Failed")
                 return False
         else:
-            print("No teams to generate stats for... Wait for next Year import.")
+            print("No teams to process... Wait for next Year import.")
             return False
