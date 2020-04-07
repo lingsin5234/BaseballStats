@@ -178,3 +178,13 @@ def run_jobs_view(request):
     }
 
     return render(request, 'pages/runJobs.html', context)
+
+
+# this will replace the runJobs with a dashboard of the automated jobs
+def jobs_dashboard(request):
+
+    context = {
+
+    }
+
+    return render(request, 'pages/jobsDashboard.html', context)

@@ -1,0 +1,26 @@
+{% include 'partials/header_baseball.html' %}
+    <div id="my_title" class="d-flex justify-content-center">
+        <h1>Jobs Dashboard</h1>
+    </div><br>
+
+    <div id="startContent" class="container-fluid">
+
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+
+    <script>
+        (function () {
+                window.results = JSON.parse('{{results|safe}}');
+                window.columns = JSON.parse('{{columns|safe}}');
+            }());
+    </script>
+    {% load static %}
+    <script src="{% static 'scripts/baseball_load_processes.js' %}"></script>
+
+{% include 'partials/footer_baseball.html' %}
