@@ -59,6 +59,25 @@ def check_teams(year, which_process):
             # all teams stats generated
             return None
 
+    # check gen_stats
+    elif which_process == 'go_generate_stats':
+
+        # need list of those processed already but NOT generated stats for
+        query = "SELECT team_name FROM process_log WHERE data_year=? AND process_name='play_processor'"
+        results = c.execute(query, year).fetchall()
+        results = [r for r, in results]
+        print("HERE ARE PROCESSED:", results)
+
+        query = "SELECT team_name FROM process_log WHERE data_year=? AND process_name='stat_processor'"
+        completed = c.execute(query, year).fetchall()
+        completed = [r for r, in completed]
+        print("HERE ARE COMPLETED: ", completed)
+
+        results = list(np.setdiff1d(results, completed))
+        print("HERE ARE RESULTS: ", results)
+
+        return results
+
     # check for view_stats
     else:
         # next, check to see if the teams were processed at all

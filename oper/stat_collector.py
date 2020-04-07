@@ -98,11 +98,12 @@ def stat_organizer(player_dict):
     # reset index and rename to fix the structure of the columns
     player_tb = player_tb.reset_index().rename_axis(None, axis=1)
     player_tb = player_tb.fillna(0)
+    print(player_tb)
 
     # separate pitching, batting and fielding stats here
     stats_tb = {"pitching": player_tb[player_tb.bat_pitch == 'pitching'],
                 "batting": player_tb[player_tb.bat_pitch == 'batting']}
-
+    print(stats_tb)
     # only include relevant columns for each type of stat
     bat_col = ['player_id', 'team_name']
     bat_col.extend(list(gv.bat_stat_types.keys()))
@@ -112,6 +113,7 @@ def stat_organizer(player_dict):
     # if any of the stat types are missing, assign a random 0
     missing_bat_col = [b for b in bat_col if b not in stats_tb['batting'].columns]
     missing_pitch_col = [p for p in pitch_col if p not in stats_tb['pitching'].columns]
+    print(missing_pitch_col, missing_bat_col)
     if len(missing_bat_col) > 0:
         for e in missing_bat_col:
             zeros = [0.0] * len(stats_tb['batting'])
