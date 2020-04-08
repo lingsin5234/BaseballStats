@@ -19,6 +19,7 @@ from .forms import GetYear, ProcessTeam, GenerateStats, ViewStats
 from django.contrib import messages
 from .functions import instantiate_forms
 from djangoapps.utils import get_this_template
+from datetime import time
 
 
 # home page
@@ -258,13 +259,36 @@ def jobs_dashboard(request):
                 s['num_teams'] = s['num_teams'] / int(n['num_teams'])
                 # print(t)
                 break
-    print(stats_generated)
+
+    # 10 most recent processes run
+    recent_10 = []
+    query = 'SELECT process_name, team_name, time_elapsed, timestamp FROM process_log ORDER BY timestamp desc LIMIT 10'
+    results = dr.baseball_db_reader(query)
+    # results = dr.baseball_db_reader("SELECT * FROM process_log WHERE process_name='x'")
+    for r in results:
+        recent_10.append(dict(zip(['Process', 'Team', 'Elapsed', 'Timestamp'], r)))
+    min_time = time(0, 0)
+    max_time = time(0, 0)
+    if len(recent_10) == 0:
+        recent_10 = [{'results': 'NO RESULTS!'}]
+    elif len(recent_10) < 10:
+        min_time = recent_10[len(recent_10)-1]['Timestamp']
+        max_time = recent_10[0]['Timestamp']
+    else:
+        min_time = recent_10[9]['Timestamp']
+        max_time = recent_10[0]['Timestamp']
+    max_time_elapsed = max([val for val in [item['Elapsed'] for item in recent_10]])
+    # print(max_time_elapsed)
 
     context = {
         'processes': json.dumps(processes),
         'years_imported': json.dumps(years_imported),
         'teams_processed': json.dumps(teams_processed),
-        'stats_generated': json.dumps(stats_generated)
+        'stats_generated': json.dumps(stats_generated),
+        'recent_10': json.dumps(recent_10),
+        'recent_10_min_time': json.dumps(min_time),
+        'recent_10_max_time': json.dumps(max_time),
+        'recent_10_max_elapsed': max_time_elapsed
     }
 
     return render(request, 'pages/jobsDashboard.html', context)

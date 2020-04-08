@@ -14,140 +14,31 @@
                 window.years_imported = JSON.parse('{{years_imported|safe}}');
                 window.teams_processed = JSON.parse('{{teams_processed|safe}}');
                 window.stats_generated = JSON.parse('{{stats_generated|safe}}');
+                window.recent_10 = JSON.parse('{{recent_10|safe}}');
+                window.recent_10_min_time = new Date({{recent_10_min_time|safe}});
+                window.recent_10_max_time = new Date({{recent_10_max_time|safe}});
+                window.max_time_elapsed = {{recent_10_max_elapsed|safe}};
 
                 // parameters
-                window.svg_height = 1200;
-                window.svg_width = 1200;
-                window.view_height = 400;
-                window.view_width = 600;
+
+                // overall progress - reuse window sizes as well
                 window.grid_width = 120;
                 window.grid_height = years_imported.length * 50 + 30
                 window.bar_height = 40;
                 window.bar_spacing = 10 + bar_height;
                 window.op_trans = 1000; // overall progress bar transition time (ms)
+                window.view_height = grid_height + 20;
+                window.view_width = grid_width * processes.length + 10;
+
+                // recent 10 completions
+                window.recent_start_x = view_width + 50;
+
+                window.svg_height = 1200;
+                window.svg_width = 1200;
             }());
     </script>
-    <script>
-        // set up svg
-        var svg = d3.select('#startContent').append('svg')
-            .attr('height', svg_height).attr('width', svg_width);
-
-        // set up overall progress view
-        var overall_progress = svg.append('g')
-            .attr('transform', 'translate(10,10)')
-            .append('svg')
-                .attr('class', 'overall-progress')
-                .attr('height', view_height).attr('width', view_width);
-
-        // set up titles
-        var op_titles = overall_progress.selectAll('.grid-title')
-            .data(processes).enter().append('text')
-                .attr('class', 'grid-title')
-                .attr('transform', function(d,i) {
-                    var str = 'translate('
-                    str = str + ( i * grid_width + grid_width/2 ) + ' 20)';
-                    return str;
-                })
-                .style('text-anchor', 'middle')
-                .attr('fill', '#DDDDDD')
-                .text(function(d) {
-                    var str = d.p;
-                    str = str.replace('_', ' ')
-                    return str;
-                });
-
-        // set up grid
-        var op_grid = overall_progress.append('g')
-            .attr('class', 'gridlayer');
-
-        // x grid
-        var op_grid_x = op_grid.append('g')
-            .attr('class', 'x')
-            .selectAll('path').data(processes).enter()
-            .append('path')
-                .attr('class', 'xgrid crisp')
-                .attr('transform', function(d,i) {
-                    var str = 'translate(';
-                    str = str + (( i + 1 ) * grid_width) + ')';
-                    // console.log(str);
-                    return str;
-                })
-                //.attr('d', 'M0,10v384')
-                .attr('d', function() {
-                    var str = 'M0,10v';
-                    str = str + grid_height;
-                    return str;
-                })
-                .attr('stroke', '#EEEEEE').attr('stroke-opacity', 1).attr('stroke-width', '1px');
-
-        // progress bars: # of progress bars = number of years imported
-        // now updated to teams_processed -- but do not do the stats_generated here
-        var prog_bar_groups = overall_progress.selectAll('.prog-bar-group')
-            .data(teams_processed).enter().append('g')
-                .attr('class', 'prog-bar-group')
-                .attr('transform', function(d,i) {
-                    //console.log(years_imported);
-                    var str = 'translate(0 ';
-                    str = str + ( i * bar_spacing + 35 ) + ')';
-                    return str;
-                });
-
-        var prog_bar = prog_bar_groups.append('rect')
-            .attr('class', 'prog-bar')
-            .transition().duration(op_trans)
-            .attr('height', bar_height)
-            .attr('width', function(d,i) {
-                //console.log(d.data_year, d.num_teams, i);
-                return grid_width * (1 + d.num_teams);
-            })
-            .attr('fill', '#4B59DB');
-
-        var prog_text = prog_bar_groups.append('text')
-            .style('text-anchor', 'middle')
-            .attr('transform', 'translate(25,25)')
-            .attr('fill', '#FFFFFF')
-            .text(function(d) {
-                return d.data_year;
-            });
-
-        // progress bar length increases if generate_stats are completed
-        var update_bar_groups = d3.select('.overall-progress').selectAll('.prog-bar-group').exit()
-            .data(stats_generated).enter()
-            // this part removes the old bars
-            .each(function(d,i) {
-                //console.log(i);
-                d3.select('.prog-bar-group').remove()
-            })
-            // now re-add them back
-            .append('g')
-                .attr('class', 'prog-bar-group')
-                .attr('transform', function(d,i) {
-                    //console.log(years_imported);
-                    var str = 'translate(0 ';
-                    str = str + ( i * bar_spacing + 35 ) + ')';
-                    return str;
-                });
-
-        var update_bars = update_bar_groups.append('rect')
-                .attr('class', 'prog-bar')
-                .transition().duration(op_trans)
-                .attr('height', bar_height)
-                .attr('width', function(d, i) {
-                    //console.log(d.data_year, d.num_teams, i);
-                    return grid_width * (2 + d.num_teams);
-                })
-                .attr('fill', '#4B59DB');
-
-        var update_bar_text = update_bar_groups.append('text')
-            .style('text-anchor', 'middle')
-            .attr('transform', 'translate(25,25)')
-            .attr('fill', '#FFFFFF')
-            .text(function(d) {
-                return d.data_year;
-            });
-
-    </script>
     {% load static %}
-    <!--script src="{% static 'scripts/baseball_job_dashboard.js' %}"></script-->
+    <script src="{% static 'scripts/baseball_dashboard_overall.js' %}"></script>
+    <script src="{% static 'scripts/baseball_dashboard_recent.js' %}"></script>
 
 {% include 'partials/footer_baseball.html' %}
