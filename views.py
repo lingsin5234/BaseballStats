@@ -280,6 +280,20 @@ def jobs_dashboard(request):
     max_time_elapsed = max([val for val in [item['Elapsed'] for item in recent_10]])
     # print(max_time_elapsed)
 
+    # find the error rate based on gameplay
+    query = 'SELECT COUNT(*) FROM processing_errors'
+    results = dr.baseball_db_reader(query)
+    errors = int(results[0][0])
+
+    query = 'SELECT COUNT(*) FROM gameplay'
+    results = dr.baseball_db_reader(query)
+    total = int(results[0][0])
+    success = total - errors
+
+    error_rate = {'success': round(100 * success / total, 5)}
+    error_rate.update({'error': round(100 * errors / total, 5)})
+    print(error_rate)
+
     context = {
         'processes': json.dumps(processes),
         'years_imported': json.dumps(years_imported),
@@ -288,7 +302,8 @@ def jobs_dashboard(request):
         'recent_10': json.dumps(recent_10),
         'recent_10_min_time': json.dumps(min_time),
         'recent_10_max_time': json.dumps(max_time),
-        'recent_10_max_elapsed': max_time_elapsed
+        'recent_10_max_elapsed': max_time_elapsed,
+        'error_rate': error_rate
     }
 
     return render(request, 'pages/jobsDashboard.html', context)
