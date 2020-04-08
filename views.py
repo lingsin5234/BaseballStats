@@ -292,7 +292,10 @@ def jobs_dashboard(request):
 
     error_rate = {'success': round(100 * success / total, 5)}
     error_rate.update({'error': round(100 * errors / total, 5)})
-    print(error_rate)
+    # print(error_rate)
+
+    # group team data by year: hits, rbis, home_runs
+    query = 'SELECT hits, home_runs, rbis, team_name, '
 
     context = {
         'processes': json.dumps(processes),

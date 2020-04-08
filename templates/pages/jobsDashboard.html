@@ -6,7 +6,7 @@
     <div id="startContent" class="d-flex justify-content-center">
 
 
-    </div>
+    </div><br>
 
     <script>
         (function () {
@@ -27,7 +27,7 @@
                 window.bar_height = 30;
                 window.bar_spacing = 10 + bar_height;
                 window.op_trans = 1000; // overall progress bar transition time (ms)
-                window.view_height = grid_height + 20;
+                window.view_height = grid_height + 100;
                 window.view_width = grid_width * processes.length + 150;
 
                 // recent 10 completions
@@ -41,5 +41,6 @@
     <script src="{% static 'scripts/baseball_dashboard_overall.js' %}"></script>
     <script src="{% static 'scripts/baseball_dashboard_recent.js' %}"></script>
     <script src="{% static 'scripts/baseball_dashboard_error_pie.js' %}"></script>
+    <script src="{% static 'scripts/baseball_dashboard_leaders.js' %}"></script>
 
 {% include 'partials/footer_baseball.html' %}
