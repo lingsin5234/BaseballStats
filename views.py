@@ -277,7 +277,7 @@ def jobs_dashboard(request):
     else:
         min_time = recent_10[9]['Timestamp']
         max_time = recent_10[0]['Timestamp']
-    max_time_elapsed = max([val for val in [item['Elapsed'] for item in recent_10]])
+    max_time_elapsed = max([val for val in [float(item['Elapsed']) for item in recent_10]])
     # print(max_time_elapsed)
 
     # find the error rate based on gameplay
