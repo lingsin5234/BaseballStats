@@ -114,7 +114,7 @@ def get_years():
     all_dir = os.listdir(gv.data_dir)
 
     # list the year dir
-    year_dir = [y for y in all_dir if y.isnumeric()]
+    year_dir = [int(y) for y in all_dir if y.isnumeric()]
 
     return year_dir
 

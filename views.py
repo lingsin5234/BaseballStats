@@ -209,7 +209,7 @@ def jobs_dashboard(request):
     all_years.reverse()
     num_teams_array = []
     for y in all_years:
-        num_teams = chk.check_teams(y, 'total_num_teams')
+        num_teams = chk.check_teams(str(y), 'total_num_teams')
         num_teams_array.append({'data_year': y, 'num_teams': num_teams})
 
     # teams that have been processed -- by year
