@@ -316,7 +316,7 @@ def jobs_dashboard(request):
         'team_data': team_data,
         'max_hits': max_hits,
         'max_hrs': max_hrs,
-        'num_teams_array': num_teams_array
+        'num_teams_array': all_years
     }
 
     return render(request, 'pages/jobsDashboard.html', context)
