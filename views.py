@@ -299,7 +299,7 @@ def jobs_dashboard(request):
     query = 'SELECT SUM(hits), SUM(home_runs), SUM(rbis), team_name FROM batting GROUP BY team_name'
     results = dr.baseball_db_reader(query)
     for r in results:
-        team_data.append(dict(zip(['hits', 'hrs', 'rbis'], r)))
+        team_data.append(dict(zip(['hits', 'hrs', 'rbis', 'team_name'], r)))
     max_hits = max([val for val in [r['hits'] for r in team_data]])
     max_hrs = max([val for val in [r['hrs'] for r in team_data]])
 
