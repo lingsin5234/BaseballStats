@@ -295,9 +295,13 @@ def jobs_dashboard(request):
     # print(error_rate)
 
     # group team: data hits, rbis, home_runs; MUST GROUP BY YEAR LATER!!
+    team_data = []
     query = 'SELECT SUM(hits), SUM(home_runs), SUM(rbis), team_name FROM batting GROUP BY team_name'
     results = dr.baseball_db_reader(query)
-    print(results)
+    for r in results:
+        team_data.append(dict(zip(['hits', 'hrs', 'rbis'], r)))
+    max_hits = max([val for val in [r['hits'] for r in team_data]])
+    max_hrs = max([val for val in [r['hrs'] for r in team_data]])
 
     context = {
         'processes': json.dumps(processes),
@@ -308,7 +312,10 @@ def jobs_dashboard(request):
         'recent_10_min_time': json.dumps(min_time),
         'recent_10_max_time': json.dumps(max_time),
         'recent_10_max_elapsed': max_time_elapsed,
-        'error_rate': error_rate
+        'error_rate': error_rate,
+        'team_data': team_data,
+        'max_hits': max_hits,
+        'max_hrs': max_hrs
     }
 
     return render(request, 'pages/jobsDashboard.html', context)
