@@ -129,6 +129,7 @@ def get_year_choices():
     if missing_years is None:
         year = forms.ChoiceField(required=True, label='Year', choices=year_choices)
     else:
+        missing_years.sort()
         missing_years.reverse()
         year_choices = [(m, m) for m in missing_years]
         year = forms.ChoiceField(required=True, label='Year', choices=year_choices)
@@ -144,7 +145,8 @@ def get_team_choices(which_process):
 
     # get years that have already been imported
     all_dir = os.listdir('baseball/import')
-    imported_years = [y for y in all_dir if y.isnumeric()]
+    imported_years = [int(y) for y in all_dir if y.isnumeric()]
+    imported_years.sort()
 
     # check if anything there
     if imported_years is None:
@@ -158,7 +160,7 @@ def get_team_choices(which_process):
         # check for teams for all years selected
         processed_teams = []
         for y in imported_years:
-            p_teams = check_teams(y, which_process)
+            p_teams = check_teams(str(y), which_process)
             if p_teams is None:
                 pass
             else:
