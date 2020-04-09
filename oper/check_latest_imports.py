@@ -100,7 +100,8 @@ def check_years():
     all_dir = os.listdir(gv.data_dir)
 
     # list the year dir
-    year_dir = [y for y in all_dir if y.isnumeric()]
+    year_dir = [int(y) for y in all_dir if y.isnumeric()]
+    year_dir.sort()
 
     # get the list of years still not imported
     missing_years = list(np.setdiff1d(years, [int(i) for i in year_dir]))
