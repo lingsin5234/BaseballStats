@@ -16,9 +16,9 @@ My GitLab repo is: [Baseball Stats](https://gitlab.com/lingsin5234/MLB-Stats-Web
 ## Layout
 There are two main pages for this website: **Run Jobs** and **View Stats**.
 
-**Run Jobs** page allows users to perform part of the ETL functions of this project. It allows
-users to *Import* a particular year of baseball event files, *Process* the data for a particular
-team in a specific year, and *Generate* the readable player statistics.
+**Jobs Dashboard** page allows users to view the latest ETL processes performed in the backend.
+Users can see jobs that *Import* a particular year of baseball event files, *Process* of data for
+a particular team in a specific year, and *Generate* the readable player statistics.
 
 **View Stats** page allows users to view player statistics by selecting a specific year and team.
 Using this as a base, more enhancements will be done to allow further analysis in the future.
