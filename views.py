@@ -299,18 +299,19 @@ def jobs_dashboard(request):
 
     # group team: data hits, rbis, home_runs; MUST GROUP BY YEAR LATER!!
     team_data = []
-    query = 'SELECT SUM(hits), SUM(home_runs), SUM(rbis), team_name FROM batting GROUP BY team_name'
+    query = 'SELECT SUM(hits), SUM(home_runs), SUM(rbis), team_name, data_year FROM batting '
+    query += 'GROUP BY team_name, data_year'
     results = dr.baseball_db_reader(query)
     for r in results:
-        team_data.append(dict(zip(['hits', 'hrs', 'rbis', 'team_name'], r)))
-    print(results)
+        team_data.append(dict(zip(['hits', 'hrs', 'rbis', 'team_name', 'data_year'], r)))
+
     if len(results) > 0:
         max_hits = max([val for val in [r['hits'] for r in team_data]])
         max_hrs = max([val for val in [r['hrs'] for r in team_data]])
     else:
-        team_data = [{'hits': 0, 'hrs': 0, 'rbis': 0, 'team_name': 'N/A'}]
-        max_hits = 0;
-        max_hrs = 0;
+        team_data = [{'hits': 0, 'hrs': 0, 'rbis': 0, 'team_name': 'N/A', 'data_year': 'N/A'}]
+        max_hits = 0
+        max_hrs = 0
 
     context = {
         'processes': json.dumps(processes),
@@ -324,8 +325,7 @@ def jobs_dashboard(request):
         'error_rate': error_rate,
         'team_data': team_data,
         'max_hits': max_hits,
-        'max_hrs': max_hrs,
-        'num_teams_array': all_years
+        'max_hrs': max_hrs
     }
 
     return render(request, 'pages/jobsDashboard.html', context)
