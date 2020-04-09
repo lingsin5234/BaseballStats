@@ -8,6 +8,7 @@ def convert_games(all_games, games_roster):
 
     # get game id from game_rosters
     game_id = games_roster.game_id.unique()
+    year = games_roster.data_year.unique()[0]
 
     games_dfs = []
     for g, each_game in enumerate(all_games):
@@ -24,6 +25,7 @@ def convert_games(all_games, games_roster):
         for i in this_list:
             if i[0] == 'play':
                 dct = {'game_id': game_id[g],
+                       'data_year': year,
                        'gm_type': i[0],
                        'inning': i[1],
                        'half': i[2],
@@ -49,6 +51,7 @@ def convert_games(all_games, games_roster):
                        'total_scored': 0}
             else:
                 dct = {'game_id': game_id[g],
+                       'data_year': year,
                        'gm_type': i[0],
                        'inning': None,
                        'half': None,

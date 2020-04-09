@@ -86,7 +86,7 @@ def process_data_single_team(year, team):
         f1 = None
 
         # extract all starting lineups by game (replaced each iteration in the variable)
-        gv.game_roster = sc.game_tracker(games)
+        gv.game_roster = sc.game_tracker(games, year)
         games_roster = pd.DataFrame(gv.game_roster).transpose()
         # games_roster.to_csv('STARTERS.csv', sep=',', mode='a', index=False)
 

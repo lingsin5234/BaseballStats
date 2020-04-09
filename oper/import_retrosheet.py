@@ -15,6 +15,7 @@ from . import date_time as dt
 def import_data(year):
 
     t1_time = t.time()
+    year = str(year)  # force into a string
 
     # create import folder if not available
     if path.exists(gv.data_dir):

@@ -142,7 +142,7 @@ def stat_organizer(player_dict):
 
 
 # game start tracker
-def game_tracker(all_starts):
+def game_tracker(all_starts, year):
 
     # convert to dictionary
     games_dict = {}
@@ -162,6 +162,7 @@ def game_tracker(all_starts):
             else:
                 team_nm = home_team
             lineup_dict = {'game_id': game_id,
+                           'data_year': year,
                            'player_id': ss[1],
                            'player_nm': ss[2],
                            'team_id': ss[3],
