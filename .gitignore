@@ -15,3 +15,4 @@
 **/baseball/.git/*
 **/baseball/.gitignore
 baseball.db
+db.sqlite3
