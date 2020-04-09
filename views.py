@@ -294,8 +294,10 @@ def jobs_dashboard(request):
     error_rate.update({'error': round(100 * errors / total, 5)})
     # print(error_rate)
 
-    # group team data by year: hits, rbis, home_runs
-    query = 'SELECT hits, home_runs, rbis, team_name, '
+    # group team: data hits, rbis, home_runs; MUST GROUP BY YEAR LATER!!
+    query = 'SELECT SUM(hits), SUM(home_runs), SUM(rbis), team_name FROM batting GROUP BY team_name'
+    results = dr.baseball_db_reader(query)
+    print(results)
 
     context = {
         'processes': json.dumps(processes),

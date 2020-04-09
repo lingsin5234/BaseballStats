@@ -55,6 +55,7 @@ def generate_stats(year, team):
         # write to BATTING stats database
         update_time = t.time()
         conn.fast_executemany = True
+        print(bat_stats.head)
         bat_stats.to_sql('batting', conn, if_exists='append', index=False)
         print('Import BATTING STATS to Database: ', dt.seconds_convert(t.time() - update_time))
     except Exception as e:

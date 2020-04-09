@@ -56,6 +56,8 @@ bat_stat_types = {
 }
 
 pitch_stat_types = {
+    'PID': 'player_id',
+    'TEAM': 'team_name',
     'GP': 'games_played',
     'GS': 'games_started',
     'IP': 'innings_pitched',
