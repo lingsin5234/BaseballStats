@@ -315,7 +315,8 @@ def jobs_dashboard(request):
         'error_rate': error_rate,
         'team_data': team_data,
         'max_hits': max_hits,
-        'max_hrs': max_hrs
+        'max_hrs': max_hrs,
+        'num_teams_array': num_teams_array
     }
 
     return render(request, 'pages/jobsDashboard.html', context)
