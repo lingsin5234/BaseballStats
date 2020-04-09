@@ -23,7 +23,7 @@ def check_teams(year, which_process):
     rosters = [r for r in rosters if 'ALS' not in r and 'NLS' not in r]
 
     # list the team names from the roster files
-    teams = [x.replace(year+'.ROS', '') for x in rosters]
+    teams = [x.replace(str(year)+'.ROS', '') for x in rosters]
 
     if which_process == 'process_team':
 

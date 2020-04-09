@@ -206,6 +206,7 @@ def jobs_dashboard(request):
 
     # for each year imported, check number of teams in total
     all_years = chk.get_years()
+    all_years.sort()
     all_years.reverse()
     num_teams_array = []
     for y in all_years:
@@ -235,10 +236,9 @@ def jobs_dashboard(request):
     if len(num_teams_array) > len(teams_processed):
         missing_years = len(num_teams_array) - len(teams_processed)
         len_index = len(num_teams_array) - 1
-        for m in range(missing_years):
-            num_teams_array[len_index]['num_teams'] = 0
-            teams_processed.append(num_teams_array[len_index])
-            len_index -= 1
+        for m in reversed(range(missing_years)):
+            num_teams_array[len_index-m]['num_teams'] = 0
+            teams_processed.append(num_teams_array[len_index-m])
     # print(teams_processed)
 
     # teams that have stats generated -- by year
@@ -290,8 +290,11 @@ def jobs_dashboard(request):
     total = int(results[0][0])
     success = total - errors
 
-    error_rate = {'success': round(100 * success / total, 5)}
-    error_rate.update({'error': round(100 * errors / total, 5)})
+    if total > 0:
+        error_rate = {'success': round(100 * success / total, 5)}
+        error_rate.update({'error': round(100 * errors / total, 5)})
+    else:
+        error_rate = {'success': 100}
     # print(error_rate)
 
     # group team: data hits, rbis, home_runs; MUST GROUP BY YEAR LATER!!
@@ -300,8 +303,14 @@ def jobs_dashboard(request):
     results = dr.baseball_db_reader(query)
     for r in results:
         team_data.append(dict(zip(['hits', 'hrs', 'rbis', 'team_name'], r)))
-    max_hits = max([val for val in [r['hits'] for r in team_data]])
-    max_hrs = max([val for val in [r['hrs'] for r in team_data]])
+    print(results)
+    if len(results) > 0:
+        max_hits = max([val for val in [r['hits'] for r in team_data]])
+        max_hrs = max([val for val in [r['hrs'] for r in team_data]])
+    else:
+        team_data = [{'hits': 0, 'hrs': 0, 'rbis': 0, 'team_name': 'N/A'}]
+        max_hits = 0;
+        max_hrs = 0;
 
     context = {
         'processes': json.dumps(processes),
