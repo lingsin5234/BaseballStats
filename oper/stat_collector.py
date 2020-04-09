@@ -91,54 +91,63 @@ def stat_organizer(player_dict):
     # player_tb = player_dict
 
     # reshape the data
-    player_tb = player_tb.groupby(['player_id', 'team_name', 'bat_pitch', 'stat_type'])\
+    player_tb = player_tb.groupby(['player_id', 'team_name', 'data_year', 'bat_pitch', 'stat_type'])\
         .agg({'stat_value': 'sum'}).reset_index()
 
     # set index to BOTH player_id and team_name and pivot based on stat_type column and values
-    player_tb = player_tb.set_index(['player_id', 'team_name', 'bat_pitch']).pivot(columns='stat_type')['stat_value']
+    player_tb = player_tb.set_index(
+        ['player_id', 'team_name', 'data_year', 'bat_pitch']).pivot(columns='stat_type')['stat_value']
 
     # reset index and rename to fix the structure of the columns
     player_tb = player_tb.reset_index().rename_axis(None, axis=1)
     player_tb = player_tb.fillna(0)
-    print(player_tb)
+    # print(player_tb.head)
 
     # separate pitching, batting and fielding stats here
     stats_tb = {"pitching": player_tb[player_tb.bat_pitch == 'pitching'],
                 "batting": player_tb[player_tb.bat_pitch == 'batting']}
-    print(stats_tb)
+    # print(stats_tb)
     # only include relevant columns for each type of stat
-    bat_col = ['player_id', 'team_name']
+    bat_col = ['player_id', 'team_name', 'data_year']
     bat_col.extend(list(gv.bat_stat_types.keys()))
-    pitch_col = ['player_id', 'team_name']
+    bat_col = [c for c in bat_col if c not in ['PID', 'YEAR', 'TEAM']]
+    pitch_col = ['player_id', 'team_name', 'data_year']
     pitch_col.extend(list(gv.pitch_stat_types.keys()))
+    pitch_col = [c for c in pitch_col if c not in ['PID', 'YEAR', 'TEAM']]
 
     # if any of the stat types are missing, assign a random 0
     missing_bat_col = [b for b in bat_col if b not in stats_tb['batting'].columns]
     missing_pitch_col = [p for p in pitch_col if p not in stats_tb['pitching'].columns]
-    print("Missing Columns", bat_col, missing_bat_col, pitch_col, missing_pitch_col)
+    # print("Missing Columns", bat_col, missing_bat_col, pitch_col, missing_pitch_col)
     if len(missing_bat_col) > 0:
         for e in missing_bat_col:
             zeros = [0.0] * len(stats_tb['batting'])
-            stats_tb['batting'][e] = zeros
+            num_cols = int(stats_tb['batting'].count(axis=1).reset_index(drop=True)[0])  # defaults int64; index is off
+            stats_tb['batting'].insert(num_cols, e, zeros, True)
     if len(missing_pitch_col) > 0:
+        print(missing_pitch_col)
         for e in missing_pitch_col:
             zeros = [0.0] * len(stats_tb['pitching'])
-            stats_tb['pitching'][e] = zeros
-
-    # re-assign the PID and TEAM correctly
-    stats_tb['batting']['PID'] = stats_tb['batting']['player_id']
-    stats_tb['batting']['TEAM'] = stats_tb['batting']['team_name']
-    stats_tb['pitching']['PID'] = stats_tb['pitching']['player_id']
-    stats_tb['pitching']['TEAM'] = stats_tb['pitching']['team_name']
+            num_cols = int(stats_tb['pitching'].count(axis=1).reset_index(drop=True)[0])
+            stats_tb['pitching'].insert(num_cols, e, zeros, True)
 
     # assign the appropriate columns
     stats_tb['batting'] = stats_tb['batting'][bat_col]
     stats_tb['pitching'] = stats_tb['pitching'][pitch_col]
 
+    # no need to rename columns! :)
+    print("RENAMING IN PROGRESS . . . ")
+    stats_tb['batting'] = stats_tb['batting'].rename(columns={"player_id": 'PID', 'team_name': 'TEAM', 'data_year': 'YEAR'})
+    stats_tb['pitching'] = stats_tb['pitching'].rename(columns={'player_id': 'PID', 'team_name': 'TEAM', 'data_year': 'YEAR'})
+
     # innings - divided into 3 outs
     floor_innings = stats_tb['pitching']['IP'] // 3
     modulus_innings = stats_tb['pitching']['IP'] % 3 / 10
     stats_tb['pitching']['IP'] = floor_innings + modulus_innings
+
+    # quick checks
+    # print(stats_tb['batting'].head)
+    # print(stats_tb['pitching'].head)
 
     return stats_tb
 
