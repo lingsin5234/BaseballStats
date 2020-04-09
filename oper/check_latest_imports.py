@@ -115,6 +115,7 @@ def get_years():
 
     # list the year dir
     year_dir = [int(y) for y in all_dir if y.isnumeric()]
+    year_dir.sort()
 
     return year_dir
 
