@@ -72,7 +72,8 @@ def stats_view(request):
 
         if form.is_valid():
             # read from database
-            query = "SELECT * FROM batting WHERE team_name='" + str(request.POST['team']) + "';"
+            query = "SELECT * FROM batting WHERE team_name='" + str(request.POST['team']) + \
+                    "' AND data_year=" + str(request.POST['year'])
             temp = dr.baseball_db_reader(query)
 
             # because `temp` is NOT a dictionary we need to convert it!
