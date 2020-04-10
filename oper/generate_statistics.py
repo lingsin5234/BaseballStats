@@ -19,8 +19,9 @@ def generate_stats(year, team):
         conn = dbs.engine.connect()
         # year = sys.argv[1]
         # team_id = sys.argv[2] + '%'
-        team_id = team + '%'
-        output = conn.execute("SELECT * FROM raw_player_stats WHERE game_id LIKE ?", team_id).fetchall()
+        # team_id = team + '%'
+        output = conn.execute("SELECT * FROM raw_player_stats WHERE team_name=? AND data_year=?",
+                              team, year).fetchall()
         idx = 0
         # conversion time
         conv_time = t.time()
@@ -55,7 +56,7 @@ def generate_stats(year, team):
         # write to BATTING stats database
         update_time = t.time()
         conn.fast_executemany = True
-        print(bat_stats.head)
+        # print(bat_stats.head)
         bat_stats.to_sql('batting', conn, if_exists='append', index=False)
         print('Import BATTING STATS to Database: ', dt.seconds_convert(t.time() - update_time))
     except Exception as e:
@@ -91,7 +92,7 @@ def generate_stats(year, team):
     finish_str = {
         'process_name': 'stat_processor',
         'data_year': year,
-        'team_name': team_id.replace('%', ''),
+        'team_name': team,
         'time_elapsed': t2_time - t1_time,
         'timestamp': t.strftime("%Y-%m-%d %H:%M:%S", t.localtime())
     }

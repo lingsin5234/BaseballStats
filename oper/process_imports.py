@@ -220,4 +220,8 @@ def process_data_single_team(year, team):
         el.error_logger(e, 'Write process_import COMPLETION to PROCESS_LOG table', team, year)
         return False
 
+    # clear full_output and player -- required when running in loop
+    gv.full_output = {}
+    gv.player = {}
+
     return True
