@@ -25,5 +25,5 @@ results = dr.baseball_db_reader(query)
 print(results)
 '''
 # print True if aggregate_statistics is completed
-print("Statistics Aggregated: ", ag.stats_aggregate())
+print("Statistics Aggregated: ", ag.stats_aggregate(2018))
 

@@ -11,3 +11,4 @@
 *.LOG
 # **/import - keep folder only
 **/import/*
+baseball.db
