@@ -49,14 +49,15 @@ def project_markdown(request):
 # load drop-down teams based on year
 def load_teams(request):
 
-    year = request.GET.get('year')
+    # request.GET['year'] and request.GET.get('year') work the same?
+    print("Load GET YEAR: ", request.GET['year'])
+    year = request.GET['year']
     teams = chk.get_team_choices2(year)
-
-    # untuple this as this goes directly to options
-    team_choices = [r for r, in teams]
+    print("Load Teams: ", teams)
+    team_choices = [r for (r, r) in teams]  # break the tuple
     print("Load Teams View: ", team_choices)
 
-    return render(request, 'partials/teams_dropdown_options.html', {'teams': teams})
+    return render(request, 'partials/teams_dropdown_options.html', {'teams': team_choices})
 
 
 # view stats
@@ -77,13 +78,16 @@ def stats_view(request):
     # year_choices = chk.get_team_choices('view_stats')[1]
     # team_choices = chk.get_team_choices('view_stats')[3]
     year_choices = chk.get_year_choices2()
-    team_choices = chk.get_team_choices2("2019")
+    team_choices = [('---', '---')]
+    team_choices.extend(chk.get_team_choices2("2019"))
     form_view_stats = ViewStats(year_choices, team_choices, initial={'form_type': 'view_stats'})
 
     if request.method == 'POST':
 
+        print(request.POST)
         year_choices = chk.get_year_choices2()
         team_choices = chk.get_team_choices2(str(request.POST['year']))
+        print(team_choices)
         form = ViewStats(year_choices, team_choices, request.POST)
 
         if form.is_valid():

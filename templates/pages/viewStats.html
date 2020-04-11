@@ -27,14 +27,14 @@
     <br>
 
     <script>
-    // for the teams dropdown dependency
+    // for the teams drop-down dependency
     $("#id_year").change(function () {
         var url = $("#view_stats").attr("data-teams-url");  // get the url of the `load_teams` view
         var yearId = $(this).val();  // get selected YEAR
-        console.log(yearId);
+        console.log(url);
         // initialize an AJAX request
         $.ajax({
-            async: true,
+            //async: true,
             url: url,  // set the url of the request (= localhost:8000/ajax/load-teams/)
             data: {
                 'year': yearId  // add the year id to the GET parameters
