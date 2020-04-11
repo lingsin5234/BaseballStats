@@ -20,10 +20,10 @@ for f in files:
 '''
 '''
 # ^ above done wrong. should be processing ALL stats before doing a generate stats!
-query = "SELECT DISTINCT game_id FROM raw_player_stats"
+query = "SELECT COUNT(*) FROM pitching"
 results = dr.baseball_db_reader(query)
 print(results)
 '''
 # print True if aggregate_statistics is completed
-print("Statistics Aggregated: ", ag.stats_aggregate(2018))
+# print("Statistics Aggregated: ", ag.stats_aggregate(2018))
 
