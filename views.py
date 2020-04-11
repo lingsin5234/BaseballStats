@@ -66,6 +66,7 @@ def stats_view(request):
     # declarations
     results = []
     batting_col = []
+    post_col = []  # only send columns once request.POST received!
     heading = ""
 
     # get batting stats table column names
@@ -109,13 +110,18 @@ def stats_view(request):
             # change heading
             heading = "Batting Stats for " + str(request.POST['team']) + " in " + str(request.POST['year'])
 
+            # show column headings
+            post_col = batting_col
+
         else:
+            if request.POST['team'] == '---':
+                heading = "Please Select a Team!"
             print(form.errors)
 
     context = {
         'form_view_stats': form_view_stats,
         'results': json.dumps(results),
-        'batting_col': batting_col,
+        'batting_col': post_col,
         'col_convert': json.dumps(gv.bat_stat_types),
         'heading': heading
     }
