@@ -50,12 +50,12 @@ def project_markdown(request):
 def load_teams(request):
 
     # request.GET['year'] and request.GET.get('year') work the same?
-    print("Load GET YEAR: ", request.GET['year'])
+    # print("Load GET YEAR: ", request.GET['year'])
     year = request.GET['year']
     teams = chk.get_team_choices2(year)
-    print("Load Teams: ", teams)
+    # print("Load Teams: ", teams)
     team_choices = [r for (r, r) in teams]  # break the tuple
-    print("Load Teams View: ", team_choices)
+    # print("Load Teams View: ", team_choices)
 
     return render(request, 'partials/teams_dropdown_options.html', {'teams': team_choices})
 
@@ -75,20 +75,19 @@ def stats_view(request):
         batting_col.append(str(i).replace('batting.', ''))
     batting_col = batting_col[1:len(batting_col)]  # ignore ID
 
-    # similar to the generate stats form, but gets those that are AVAILABLE.
-    # year_choices = chk.get_team_choices('view_stats')[1]
-    # team_choices = chk.get_team_choices('view_stats')[3]
+    # get the year and team choices then grab the ViewStats Form
     year_choices = chk.get_year_choices2()
     team_choices = [('---', '---')]
     team_choices.extend(chk.get_team_choices2("2019"))
     form_view_stats = ViewStats(year_choices, team_choices, initial={'form_type': 'view_stats'})
 
+    # handle the POST request
     if request.method == 'POST':
 
-        print(request.POST)
+        # print(request.POST)
         year_choices = chk.get_year_choices2()
         team_choices = chk.get_team_choices2(str(request.POST['year']))
-        print(team_choices)
+        # print(team_choices)
         form = ViewStats(year_choices, team_choices, request.POST)
 
         if form.is_valid():
@@ -114,6 +113,7 @@ def stats_view(request):
             post_col = batting_col
 
         else:
+            # if user submits with a '---' team
             if request.POST['team'] == '---':
                 heading = "Please Select a Team!"
             print(form.errors)

@@ -24,7 +24,7 @@ class JobRequirements(models.Model):
     form_type = models.CharField(max_length=20, choices=FORM_TYPE, null=True, default=None)
 
     def __str__(self):
-        return str(self.year) + self.team + self.form_type
+        return str(self.year) + str(self.team) + str(self.form_type)
 
 
 # Teams
