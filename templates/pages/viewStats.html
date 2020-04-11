@@ -9,8 +9,10 @@
         {{ form_view_stats.as_table }}
         <input type="submit" value="View Stats">
     </form>
-    <br>
 
+    <div id="selected" class="d-flex justify-content-center">
+        <h3>{{ heading }}</h3>
+    </div><br>
     <div id="table_output" class="d-flex justify-content-center"></div>
 
     <script>
@@ -25,6 +27,7 @@
     <br>
 
     <script>
+    // for the teams dropdown dependency
     $("#id_year").change(function () {
         var url = $("#view_stats").attr("data-teams-url");  // get the url of the `load_teams` view
         var yearId = $(this).val();  // get selected YEAR

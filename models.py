@@ -8,7 +8,11 @@ STAT_CATEGORY = [('batting', 0), ('pitching', 1), ('defense', 2)]
 
 # constants
 YEARS = dt.gen_year()
-TEAMS = (('TOR', 'TOR'), ('BOS', 'BOS'), ('ANA', 'ANA'), ('TEX', 'TEX'))
+TEAMS = (('ANA', 'ANA'), ('ARI', 'ARI'), ('ATL', 'ATL'), ('BAL', 'BAL'), ('BOS', 'BOS'), ('CHA', 'CHA'),
+         ('CHN', 'CHN'), ('CIN', 'CIN'), ('CLE', 'CLE'), ('COL', 'COL'), ('DET', 'DET'), ('HOU', 'HOU'),
+         ('KCA', 'KCA'), ('LAN', 'LAN'), ('MIA', 'MIA'), ('MIL', 'MIL'), ('MIN', 'MIN'), ('NYA', 'NYA'),
+         ('NYN', 'NYN'), ('OAK', 'OAK'), ('PHI', 'PHI'), ('PIT', 'PIT'), ('SDN', 'SDN'), ('SEA', 'SEA'),
+         ('SFN', 'SFN'), ('SLN', 'SLN'), ('TBA', 'TBA'), ('TEX', 'TEX'), ('TOR', 'TOR'), ('WAS', 'WAS'))
 FORM_TYPE = (('import_year', 'import_year'), ('process_team', 'process_team'), ('generate_stats', 'generate_stats'),
              ('view_stats', 'view_stats'))
 

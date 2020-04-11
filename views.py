@@ -65,6 +65,7 @@ def stats_view(request):
     # declarations
     results = []
     batting_col = []
+    heading = ""
 
     # get batting stats table column names
     cols = cs.batting_stats.columns
@@ -81,14 +82,14 @@ def stats_view(request):
 
     if request.method == 'POST':
 
-        year_choices = chk.get_team_choices('view_stats')[1]
-        team_choices = chk.get_team_choices('view_stats')[3]
+        year_choices = chk.get_year_choices2()
+        team_choices = chk.get_team_choices2(str(request.POST['year']))
         form = ViewStats(year_choices, team_choices, request.POST)
 
         if form.is_valid():
             # read from database
             query = "SELECT * FROM batting WHERE team_name='" + str(request.POST['team']) + \
-                    "' AND data_year=" + str(request.POST['year'])
+                    "' AND data_year=" + str(request.POST['year']) + " ORDER BY rbis desc"
             temp = dr.baseball_db_reader(query)
 
             # because `temp` is NOT a dictionary we need to convert it!
@@ -101,6 +102,9 @@ def stats_view(request):
                 results.append(add)
             # print(results)
 
+            # change heading
+            heading = "Batting Stats for " + str(request.POST['team']) + " in " + str(request.POST['year'])
+
         else:
             print(form.errors)
 
@@ -108,7 +112,8 @@ def stats_view(request):
         'form_view_stats': form_view_stats,
         'results': json.dumps(results),
         'batting_col': batting_col,
-        'col_convert': json.dumps(gv.bat_stat_types)
+        'col_convert': json.dumps(gv.bat_stat_types),
+        'heading': heading
     }
 
     return render(request, 'pages/viewStats.html', context)
