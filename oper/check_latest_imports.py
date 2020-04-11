@@ -7,6 +7,7 @@ from django import forms
 from . import db_setup as dbs
 from . import date_time as dt
 from . import global_variables as gv
+from . import database_reader as dr
 
 
 # check teams remaining in year
@@ -172,3 +173,33 @@ def get_team_choices(which_process):
         team = forms.ChoiceField(required=True, label='Team', choices=team_choices)
 
     return [year, year_choices, team, team_choices]
+
+
+# return year choices - version 2
+def get_year_choices2():
+
+    # only batting for now
+    query = 'SELECT DISTINCT data_year FROM batting'
+    results = dr.baseball_db_reader(query)
+    results = [r for r, in results]
+
+    # remember to assign them as tuples
+    year_choices = [(y, y) for y in results]
+    # print("Get Year Choices 2: ", year_choices)
+
+    return year_choices
+
+
+# return team choices - version 2
+def get_team_choices2(year):
+
+    # only batting for now
+    query = 'SELECT DISTINCT team_name FROM batting WHERE data_year=' + year
+    results = dr.baseball_db_reader(query)
+    results = [r for r, in results]
+
+    # remember to assign them as tuples
+    team_choices = [(t, t) for t in results]
+    # print("Get Team Choices 2: ", team_choices)
+
+    return team_choices

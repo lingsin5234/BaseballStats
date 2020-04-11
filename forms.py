@@ -56,9 +56,6 @@ class GenerateStats(forms.ModelForm):
 
 class ViewStats(forms.ModelForm):
 
-    year = chk.get_team_choices('view_stats')[0]
-    team = chk.get_team_choices('view_stats')[2]
-
     def __init__(self, year_choices, team_choices, *args, **kwargs):
         super(ViewStats, self).__init__(*args, **kwargs)
         self.fields['year'].choices = year_choices
