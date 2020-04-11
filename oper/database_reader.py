@@ -46,6 +46,27 @@ def baseball_db_reader(query):
     engine = sa.create_engine('sqlite:///baseball.db', echo=True)
     # c = dbs.engine.connect()
     c = engine.connect()
-    results = c.execute(query).fetchall()
+    try:
+        results = c.execute(query).fetchall()
+    except Exception as e:
+        print("Something went wrong with the db_reader")
+        c.close()
+        return False
 
     return results
+
+
+# add a DELETE FROM option
+def baseball_db_remove(query):
+
+    engine = sa.create_engine('sqlite:///baseball.db', echo=True)
+    # c = dbs.engine.connect()
+    c = engine.connect()
+    try:
+        c.execute(query)
+    except Exception as e:
+        print("Something went wrong with the db_remove")
+        c.close()
+        return False
+
+    return True
