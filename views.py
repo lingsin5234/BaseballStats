@@ -307,7 +307,7 @@ def jobs_dashboard(request):
     # IF FULLY COMPLETED -- merge them together!
     # first drop the completed
     for i, st in reversed(list(enumerate(stats_generated))):
-        # if it's num year, drop it
+        # if it's done year, drop it
         if st['num_teams'] == 1:
             stats_generated.pop(i)
 
@@ -316,6 +316,19 @@ def jobs_dashboard(request):
         'data_year': str(min(done_years)) + '-' + str(max(done_years)),
         'num_teams': 1
     }] + stats_generated
+
+    # adjust the SAME done_years for the teams_processed
+    # print(teams_processed)
+    for i, st in reversed(list(enumerate(teams_processed))):
+        # if it's done year, drop it
+        if st['data_year'] in done_years:
+            teams_processed.pop(i)
+
+    # then add the completed, merged together, to top of the list
+    teams_processed = [{
+        'data_year': str(min(done_years)) + '-' + str(max(done_years)),
+        'num_teams': 1
+    }] + teams_processed
 
     # 10 most recent processes run
     recent_10 = []
