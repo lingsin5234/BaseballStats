@@ -80,7 +80,7 @@ def stats_view(request):
     # get batting cols and convert for user as needed
     viewer_col = gv.bat_stat_types
     # print(", ".join(viewer_col.values()).replace("team_name", "b.team_name"))
-    print(viewer_col)
+    # print(viewer_col)
 
     # get the year and team choices then grab the ViewStats Form
     year_choices = chk.get_year_choices2()
