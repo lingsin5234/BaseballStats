@@ -27,3 +27,8 @@ print(results)
 # print True if aggregate_statistics is completed
 # print("Statistics Aggregated: ", ag.stats_aggregate(2018))
 
+# Check the Rosters table
+query = "SELECT * FROM starters"
+results = dr.baseball_db_reader(query)
+print(results)
+
