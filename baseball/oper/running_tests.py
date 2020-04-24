@@ -4,6 +4,7 @@ from . import process_imports as pi
 from . import generate_statistics as gs
 from . import aggregate_statistics as ag
 from . import database_reader as dr
+from . import fix_quotes_in_names as fqn
 import os
 
 '''
@@ -26,6 +27,11 @@ print(results)
 '''
 # print True if aggregate_statistics is completed
 # print("Statistics Aggregated: ", ag.stats_aggregate(2018))
+
+'''
+# test run for removing strings
+fqn.remove_quotes_fix()
+'''
 
 # Check the Rosters table
 query = "SELECT * FROM starters"
