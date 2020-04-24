@@ -113,10 +113,9 @@ def stats_view(request):
 
             # because `temp` is NOT a dictionary we need to convert it!
             results = []
-            for t, i in temp:
+            for t in temp:
                 add = dict(zip(query_col, t))
                 add['player_nm'] = add['player_nm'].replace('"', '')  # replace the extra '"' if there.
-                print(i, add)
                 results.append(add)
             # print(results)
 
