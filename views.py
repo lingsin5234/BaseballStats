@@ -77,10 +77,15 @@ def stats_view(request):
     batting_col = batting_col[1:len(batting_col)]  # ignore ID
     '''
 
-    # get batting cols and convert for user as needed
-    viewer_col = gv.bat_stat_types
-    # print(", ".join(viewer_col.values()).replace("team_name", "b.team_name"))
-    # print(viewer_col)
+    # get batting cols and pop the columns not being displayed
+    viewer_col = gv.bat_stat_types.copy()
+    viewer_col.pop('PID')
+    viewer_col.pop('YEAR')
+
+    # get the keys and values, then add in name to the viewer_col
+    query_col = ['player_nm'] + list(viewer_col.values())
+    post_col_keys = ['NAME'] + list(viewer_col.keys())
+    viewer_col['NAME'] = 'player_nm'  # this way the order for will remain the same
 
     # get the year and team choices then grab the ViewStats Form
     year_choices = chk.get_year_choices2()
@@ -100,7 +105,7 @@ def stats_view(request):
         if form.is_valid():
             # read from database
             query = "SELECT DISTINCT {} FROM batting b JOIN starters s ON "\
-                        .format(", ".join(viewer_col.values()).replace("team_name", "b.team_name")) + \
+                        .format(", ".join(query_col).replace("team_name", "b.team_name")) + \
                     "b.player_id=s.player_id WHERE b.team_name='{}' AND b.data_year={} "\
                         .format(str(request.POST['team']), str(request.POST['year'])) + "ORDER BY rbis desc"
             temp = dr.baseball_db_reader(query)
@@ -108,9 +113,10 @@ def stats_view(request):
 
             # because `temp` is NOT a dictionary we need to convert it!
             results = []
-            for t in temp:
-                add = dict(zip(list(viewer_col.values()), t))
+            for t, i in temp:
+                add = dict(zip(query_col, t))
                 add['player_nm'] = add['player_nm'].replace('"', '')  # replace the extra '"' if there.
+                print(i, add)
                 results.append(add)
             # print(results)
 
@@ -118,8 +124,9 @@ def stats_view(request):
             heading = "Batting Stats for " + str(request.POST['team']) + " in " + str(request.POST['year'])
 
             # show column headings
-            post_col = list(viewer_col.keys())
+            post_col = post_col_keys
             # print(post_col)
+            # print(viewer_col)
 
         else:
             # if user submits with a '---' team
