@@ -49,7 +49,7 @@ def baseball_db_reader(query):
     try:
         results = c.execute(query).fetchall()
     except Exception as e:
-        print("Something went wrong with the db_reader")
+        print("Something went wrong with the db_reader", e)
         c.close()
         return False
 

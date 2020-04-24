@@ -175,7 +175,7 @@ def game_tracker(all_starts, data_year):
             lineup_dict = {'game_id': game_id,
                            'data_year': data_year,
                            'player_id': ss[1],
-                           'player_nm': ss[2],
+                           'player_nm': ss[2].replace('"', ''),
                            'team_id': ss[3],
                            'team_name': team_nm,
                            'bat_lineup': ss[4],

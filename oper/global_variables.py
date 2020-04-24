@@ -29,8 +29,8 @@ bases_after = '---'
 
 # global dictionary for stat types
 bat_stat_types = {
-    'PID': 'player_id',
-    'YEAR': 'data_year',
+    'NAME': 'player_nm',
+    # 'YEAR': 'data_year',
     'TEAM': 'team_name',
     'GP': 'games_played',
     'GS': 'games_started',
@@ -57,8 +57,8 @@ bat_stat_types = {
 }
 
 pitch_stat_types = {
-    'PID': 'player_id',
-    'YEAR': 'data_year',
+    'NAME': 'player_nm',
+    # 'YEAR': 'data_year',
     'TEAM': 'team_name',
     'GP': 'games_played',
     'GS': 'games_started',

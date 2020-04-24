@@ -65,15 +65,22 @@ def stats_view(request):
 
     # declarations
     results = []
-    batting_col = []
+    # batting_col = []
     post_col = []  # only send columns once request.POST received!
     heading = ""
 
+    '''
     # get batting stats table column names
     cols = cs.batting_stats.columns
     for i in cols:
         batting_col.append(str(i).replace('batting.', ''))
     batting_col = batting_col[1:len(batting_col)]  # ignore ID
+    '''
+
+    # get batting cols and convert for user as needed
+    viewer_col = gv.bat_stat_types
+    # print(", ".join(viewer_col.values()).replace("team_name", "b.team_name"))
+    print(viewer_col)
 
     # get the year and team choices then grab the ViewStats Form
     year_choices = chk.get_year_choices2()
@@ -92,17 +99,18 @@ def stats_view(request):
 
         if form.is_valid():
             # read from database
-            query = "SELECT * FROM batting WHERE team_name='" + str(request.POST['team']) + \
-                    "' AND data_year=" + str(request.POST['year']) + " ORDER BY rbis desc"
+            query = "SELECT DISTINCT {} FROM batting b JOIN starters s ON "\
+                        .format(", ".join(viewer_col.values()).replace("team_name", "b.team_name")) + \
+                    "b.player_id=s.player_id WHERE b.team_name='{}' AND b.data_year={} "\
+                        .format(str(request.POST['team']), str(request.POST['year'])) + "ORDER BY rbis desc"
             temp = dr.baseball_db_reader(query)
+            # print(temp)
 
             # because `temp` is NOT a dictionary we need to convert it!
             results = []
             for t in temp:
-                t = t[1:len(t)]  # ignore the ID in first column!
-                add = dict(zip(batting_col, t))
-                # add.pop('Id', None)
-                # print(add)
+                add = dict(zip(list(viewer_col.values()), t))
+                add['player_nm'] = add['player_nm'].replace('"', '')  # replace the extra '"' if there.
                 results.append(add)
             # print(results)
 
@@ -110,7 +118,8 @@ def stats_view(request):
             heading = "Batting Stats for " + str(request.POST['team']) + " in " + str(request.POST['year'])
 
             # show column headings
-            post_col = batting_col
+            post_col = list(viewer_col.keys())
+            # print(post_col)
 
         else:
             # if user submits with a '---' team
@@ -120,9 +129,9 @@ def stats_view(request):
 
     context = {
         'form_view_stats': form_view_stats,
-        'results': json.dumps(results),
-        'batting_col': post_col,
-        'col_convert': json.dumps(gv.bat_stat_types),
+        'results': json.dumps(results, cls=DjangoJSONEncoder),
+        'post_col': post_col,
+        'col_convert': json.dumps(viewer_col),
         'heading': heading
     }
 
