@@ -292,13 +292,30 @@ def jobs_dashboard(request):
         stats_generated.append(dict(zip(['data_year', 'num_teams'], r)))
 
     # go thru and divide teams/processed by total num of teams
+    done_years = []
     for s in stats_generated:
         year = s['data_year']
         for n in num_teams_array:
             if int(n['data_year']) == year:
                 s['num_teams'] = s['num_teams'] / int(n['num_teams'])
+                # also check if the year is completed
+                if s['num_teams'] == 1:
+                    done_years.append(year)
                 # print(t)
                 break
+
+    # IF FULLY COMPLETED -- merge them together!
+    # first drop the completed
+    for i, st in reversed(list(enumerate(stats_generated))):
+        # if it's num year, drop it
+        if st['num_teams'] == 1:
+            stats_generated.pop(i)
+
+    # then add the completed, merged together, to top of the list
+    stats_generated = [{
+        'data_year': str(min(done_years)) + '-' + str(max(done_years)),
+        'num_teams': 1
+    }] + stats_generated
 
     # 10 most recent processes run
     recent_10 = []
