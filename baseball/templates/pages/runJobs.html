@@ -1,0 +1,46 @@
+{% include 'partials/header_baseball.html' %}
+    <div id="my_title" class="d-flex justify-content-center">
+        <h1>Run Jobs</h1>
+    </div><br>
+
+    <div id="startContent" class="container-fluid">
+
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% load crispy_forms_tags %}
+        <form id="import_year" action="" method="post">
+            {% csrf_token %}
+            {{ form_import.as_table }}
+            <input type="submit" value="Import Year">
+        </form>
+        <br>
+        <form id="process_team" action="" method="post">
+            {% csrf_token %}
+            {{ form_process.as_table }}
+            <input type="submit" value="Process Team">
+        </form>
+        <br>
+        <form id="generate_stats" action="" method="post">
+            {% csrf_token %}
+            {{ form_gen_stats.as_table }}
+            <input type="submit" value="Generate Stats">
+        </form>
+        <br>
+    </div>
+
+    <script>
+        (function () {
+                window.results = JSON.parse('{{results|safe}}');
+                window.columns = JSON.parse('{{columns|safe}}');
+            }());
+    </script>
+    {% load static %}
+    <script src="{% static 'scripts/baseball_load_processes.js' %}"></script>
+
+{% include 'partials/footer_baseball.html' %}

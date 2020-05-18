@@ -1,0 +1,54 @@
+{% include 'partials/header_baseball.html' %}
+    <div id="my_title" class="d-flex justify-content-center">
+        <h1>Jobs Dashboard</h1>
+    </div><br>
+
+    <div id="startContent" class="d-flex justify-content-center">
+
+
+    </div><br>
+
+    <script>
+        (function () {
+                window.processes = JSON.parse('{{processes|safe}}');
+                window.years_imported = JSON.parse('{{years_imported|safe}}');
+                window.teams_processed = JSON.parse('{{teams_processed|safe}}');
+                // use years_imported if no teams processed yet
+                if (teams_processed.length == 0) {
+                    window.teams_processed = years_imported;
+                }
+                window.stats_generated = JSON.parse('{{stats_generated|safe}}');
+                window.recent_10 = JSON.parse('{{recent_10|safe}}');
+                window.recent_10_min_time = new Date({{recent_10_min_time|safe}});
+                window.recent_10_max_time = new Date({{recent_10_max_time|safe}});
+                window.max_time_elapsed = {{recent_10_max_elapsed|safe}};
+                window.error_rate = {{error_rate|safe}};
+                window.team_data = {{team_data|safe}};
+                window.max_hits = {{max_hits|safe}};
+                window.max_hrs = {{max_hrs|safe}};
+                // window.num_teams_array = {{num_teams_array|safe}};
+
+                /* #### parameters #### */
+                // overall progress - reuse window sizes as well
+                window.grid_width = 120;
+                window.grid_height = years_imported.length * 50 + 10
+                window.bar_height = 30;
+                window.bar_spacing = 10 + bar_height;
+                window.op_trans = 1000; // overall progress bar transition time (ms)
+                window.view_height = grid_height + 100;
+                window.view_width = grid_width * processes.length + 150;
+
+                // recent 10 completions
+                window.recent_start_x = view_width + 25;
+
+                window.svg_height = view_height * 2 + 50;
+                window.svg_width = view_width * 2 + 25;
+            }());
+    </script>
+    {% load static %}
+    <script src="{% static 'scripts/baseball_dashboard_overall.js' %}"></script>
+    <script src="{% static 'scripts/baseball_dashboard_recent.js' %}"></script>
+    <script src="{% static 'scripts/baseball_dashboard_error_pie.js' %}"></script>
+    <script src="{% static 'scripts/baseball_dashboard_leaders.js' %}"></script>
+
+{% include 'partials/footer_baseball.html' %}

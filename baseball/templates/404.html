@@ -1,0 +1,15 @@
+{% include 'partials/header_baseball.html' %}
+    <div id="my_title" class="d-flex justify-content-center">
+        <h1>PAGE NOT FOUND</h1>
+    </div><br>
+
+    <br><br>
+    <div class="d-flex justify-content-center">
+        <div>
+            {% load static %}
+            <img src="{% static 'img/youre_out.jpg' %}" style="width:150px;height:auto;">
+            <h3>YOU'RE OUT!</h3>
+            <p>This page is not found.</p>
+        </div>
+    </div>
+{% include 'partials/footer_baseball.html' %}
