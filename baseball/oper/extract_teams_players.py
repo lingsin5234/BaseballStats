@@ -45,16 +45,16 @@ def extract_teams(year):
         teams['team_name'] = teams['city_name'] + ' ' + teams['name_of_team']
 
         # write the teams to sql database
-        print(teams.to_dict('records'))
+        # print(teams.to_dict('records'))
         conn = dbs.engine.connect()
         insert_time = t.time()
         conn.execute(cl.teams.insert(), teams.to_dict('records'))
-        print('Import TEAMS to Database:', dt.seconds_convert(t.time() - insert_time))
+        print('Import TEAMS to Database for ', str(year), ':', dt.seconds_convert(t.time() - insert_time))
 
         # send completion notice for TEAMS
         conn.fast_executemany = True
         finish_str = {
-            'process_name': 'team_names_import',
+            'process_name': 'team_import',
             'data_year': year,
             'team_name': None,
             'time_elapsed': t.time() - s_time,
@@ -65,7 +65,7 @@ def extract_teams(year):
 
     except Exception as e:
         # accept any types of errors
-        el.error_logger(e, 'team_names_import', '', year)
+        el.error_logger(e, 'team_import', '', year)
         return False
 
     return True
@@ -91,7 +91,7 @@ def extract_players(year):
     # grab all team names from database
     query = "SELECT team_id FROM teams WHERE data_year=\'" + str(year) + "\'"
     teams = dr.baseball_db_reader(query)
-    teams = [tm for (tm, ) in teams]  # untuple
+    teams = [tm for (tm, ) in teams]  # un-tuple
 
     # connect to db
     conn = dbs.engine.connect()
@@ -121,19 +121,20 @@ def extract_players(year):
             players['data_year'] = year
 
             # write the players to sql database
+            # print(players_list.to_dict('records'))
             insert_time = t.time()
             conn.execute(cl.players.insert(), players.to_dict('records'))
-            print('Import PLAYERS to Database:', dt.seconds_convert(t.time() - insert_time))
+            print('Import PLAYERS to Database for ', str(year), ':', dt.seconds_convert(t.time() - insert_time))
 
         except Exception as e:
             # accept any types of errors
-            el.error_logger(e, 'player_names_import', tm, year)
+            el.error_logger(e, 'player_import', tm, year)
             return False
 
     # send completion notice for all PLAYERS
     conn.fast_executemany = True
     finish_str = {
-        'process_name': 'player_names_import',
+        'process_name': 'player_import',
         'data_year': year,
         'team_name': None,
         'time_elapsed': t.time() - s_time,
@@ -145,5 +146,9 @@ def extract_players(year):
     return True
 
 
-# extract_teams(2019)
-# extract_players(2019)
+# run 2010-2018 in dev
+# run 2012-2019 in prod
+for yr in range(2012, 2020):
+    print(yr)
+    extract_teams(yr)
+    extract_players(yr)
