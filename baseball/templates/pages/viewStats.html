@@ -17,9 +17,9 @@
 
     <script>
         (function () {
-            window.results = JSON.parse('{{results|safe}}');
+            window.results = {{results|safe}};
             window.columns = {{post_col|safe}};
-            window.bat_col = JSON.parse('{{col_convert|safe}}');
+            window.bat_col = {{col_convert|safe}};
         }());
     </script>
     {% load static %}
