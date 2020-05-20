@@ -32,6 +32,18 @@ processing_errors = Table('processing_errors', metadata,
                           Column('error', String),
                           Column('timestamp', String))
 
+
+# teams table
+teams = Table('teams', metadata,
+              Column('Id', Integer, primary_key=True),
+              Column('data_year', Integer),
+              Column('team_id', String),
+              Column('league_id', String),
+              Column('city_name', String),
+              Column('name_of_team', String),
+              Column('team_name', String))
+
+
 # starters table
 starters = Table('starters', metadata,
                  Column('Id', Integer, primary_key=True),
