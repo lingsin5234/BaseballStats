@@ -103,11 +103,14 @@ def stats_view(request):
         form = ViewStats(year_choices, team_choices, request.POST)
 
         if form.is_valid():
-            # read from database
-            query = "SELECT DISTINCT {} FROM batting b JOIN starters s ON "\
-                        .format(", ".join(query_col).replace("team_name", "b.team_name")) + \
-                    "b.player_id=s.player_id WHERE b.team_name='{}' AND b.data_year={} "\
+            # read from database; || is concatenate in sqlite!
+            query = "SELECT DISTINCT {} FROM batting b JOIN players p ON "\
+                        .format(", ".join(query_col).replace("team_name", "b.team_name")
+                                .replace("player_nm", "(first_name || ' ' || last_name) as player_nm")) + \
+                    "b.player_id=p.player_id AND b.team_name = p.team_id AND b.data_year = p.data_year " + \
+                    "WHERE b.team_name='{}' AND b.data_year={} "\
                         .format(str(request.POST['team']), str(request.POST['year'])) + "ORDER BY rbis desc"
+            # print(query)
             temp = dr.baseball_db_reader(query)
             # print(temp)
 
