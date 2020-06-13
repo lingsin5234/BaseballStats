@@ -5,6 +5,7 @@ from . import generate_statistics as gs
 from . import aggregate_statistics as ag
 from . import database_reader as dr
 from . import fix_quotes_in_names as fqn
+from . import db_setup as dbs
 import os
 
 '''
@@ -34,7 +35,10 @@ fqn.remove_quotes_fix()
 '''
 
 # Check the Rosters table
-query = "SELECT * FROM starters"
+query = "SELECT * FROM pitching LIMIT 10"
 results = dr.baseball_db_reader(query)
 print(results)
+
+# Show all tables
+# print(dbs.engine.table_names())
 
