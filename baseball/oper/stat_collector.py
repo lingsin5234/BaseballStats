@@ -1,1 +1,1 @@
-C:/Users/Sinto/Documents/PycharmProjects/BaseballApp/baseball/oper/stat_collector.py
+../BaseballApp/baseball/oper/stat_collector.py

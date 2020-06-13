@@ -1,1 +1,1 @@
-C:/Users/Sinto/Documents/PycharmProjects/BaseballApp/baseball/oper/pitcher_oper.py
+../BaseballApp/baseball/oper/pitcher_oper.py

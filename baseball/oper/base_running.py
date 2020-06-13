@@ -1,1 +1,1 @@
-C:/Users/Sinto/Documents/PycharmProjects/BaseballApp/baseball/oper/base_running.py
+../BaseballApp/baseball/oper/base_running.py

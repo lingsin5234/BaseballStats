@@ -1,1 +1,1 @@
-C:/Users/Sinto/Documents/PycharmProjects/BaseballApp/baseball/oper/extract_data.py
+../BaseballApp/baseball/oper/extract_data.py

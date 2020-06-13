@@ -1,1 +1,1 @@
-C:/Users/Sinto/Documents/PycharmProjects/BaseballApp/baseball/oper/database_reader.py
+../BaseballApp/baseball/oper/database_reader.py

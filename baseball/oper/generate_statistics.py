@@ -1,1 +1,1 @@
-C:/Users/Sinto/Documents/PycharmProjects/BaseballApp/baseball/oper/generate_statistics.py
+../BaseballApp/baseball/oper/generate_statistics.py

@@ -1,1 +1,1 @@
-C:/Users/Sinto/Documents/PycharmProjects/BaseballApp/baseball/oper/fielding_oper.py
+../BaseballApp/baseball/oper/fielding_oper.py

@@ -1,1 +1,1 @@
-C:/Users/Sinto/Documents/PycharmProjects/BaseballApp/baseball/oper/class_structure.py
+../BaseballApp/baseball/oper/class_structure.py
