@@ -1,1 +1,0 @@
-C:/Users/Sinto/Documents/vscodeworkspace/static/scripts/baseball_load_processes.js
