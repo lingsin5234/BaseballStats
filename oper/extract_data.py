@@ -16,6 +16,9 @@ import csv
 # get argument
 year_range = sys.argv[1]
 
+# set a default year
+a_year = 2018
+
 # check if range or single
 if re.search(r'^(19[0-9]{2}|20[0-9]{2})-(19{2}|20[0-9]{2})$', year_range):
     # add range later
@@ -27,7 +30,7 @@ else:
     pass
 
 # open and read data files
-dir_str = 'retrodata/' + a_year
+dir_str = 'baseball/import/' + a_year
 # for event_file in os.listdir(dir_str):
 # print(x)
 # file_dir = dir_str + '/' + event_file
@@ -52,6 +55,10 @@ for file_nm in all_files:
     file_dir = dir_str + '/' + file_nm
     f = open(file_dir, "r")
     f1 = f.readlines()
+
+    # get team name and year
+    data_year = a_year
+    team_name = file_nm[4:7]
 
     # collect id and group the games
     games = []
@@ -87,7 +94,7 @@ for file_nm in all_files:
     f1 = None
 
     # extract all starting lineups by game (replaced each iteration in the variable)
-    gv.game_roster = sc.game_tracker(games)
+    gv.game_roster = sc.game_tracker(games, data_year)
     games_roster = pd.DataFrame(gv.game_roster).transpose()
     games_roster.to_csv('STARTERS.csv', sep=',', mode='a', index=False)
 
@@ -101,7 +108,7 @@ for file_nm in all_files:
         a1_time = t.time()
 
         # then run the processor
-        this_game = pp.play_processor3(each_game, games_roster)
+        this_game = pp.play_processor4(each_game, games_roster, team_name, data_year)
 
         # game performance
         a2_time = t.time()
@@ -136,6 +143,29 @@ for file_nm in all_files:
     fgp = open('GAMEPLAY.LOG', mode='a')
     fgp.write('COMPLETED: ' + file_nm + ' - ' + str(dt.seconds_convert(e_time - s_time)) + '\n')
     fgp.close()
+
+    # ------------- SINGLE-TEAM USE ONLY ------------- #
+    # '''
+    # Write Output File after converting entire list of dict to data frame
+    o1_time = t.time()
+
+    print('Completed', a_year, ':', dt.seconds_convert(o1_time - y_time))
+
+    csv_columns = list(gv.full_output[0].keys())
+    csv_file = 'OUTPUT_' + file_nm[0:7] + ' .csv'
+    try:
+        with open(csv_file, 'w', newline='') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
+            writer.writeheader()
+            for l in gv.full_output:
+                writer.writerow(gv.full_output[l])
+    except IOError:
+        print("I/O error")
+        exit()
+
+    exit()
+    # '''
+    # ------------------------------------------------ #
 
 # Write Output File after converting entire list of dict to data frame
 o1_time = t.time()

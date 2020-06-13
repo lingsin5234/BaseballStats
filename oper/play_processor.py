@@ -198,7 +198,8 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                             elif re.search(r'\(3\)', begin_play):
                                 gv.bases_after = 'X' + gv.bases_after[:2] + 'X'
                             else:
-                                # baserunners will resolve last out
+                                # baserunners will resolve last out (e.g. doubled up)
+                                # print('BR resolve LAST OUT??', begin_play, the_game_id, this_line['inning'])
                                 gv.bases_after = 'X' + gv.bases_after
                                 this_line['outs'] -= 1
                         # batter is safe
