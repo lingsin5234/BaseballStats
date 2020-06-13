@@ -1,1 +1,1 @@
-../BaseballApp/baseball/oper/generate_statistics.py
+../../../BaseballApp/baseball/oper/generate_statistics.py

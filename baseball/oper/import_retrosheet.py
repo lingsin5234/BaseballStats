@@ -1,1 +1,1 @@
-../BaseballApp/baseball/oper/import_retrosheet.py
+../../../BaseballApp/baseball/oper/import_retrosheet.py

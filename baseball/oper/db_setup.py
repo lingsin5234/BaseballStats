@@ -1,1 +1,1 @@
-../BaseballApp/baseball/oper/db_setup.py
+../../../BaseballApp/baseball/oper/db_setup.py

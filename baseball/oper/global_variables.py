@@ -1,1 +1,1 @@
-../BaseballApp/baseball/oper/global_variables.py
+../../../BaseballApp/baseball/oper/global_variables.py

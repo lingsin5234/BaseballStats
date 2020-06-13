@@ -1,1 +1,1 @@
-../BaseballApp/baseball/oper/extract_teams_players.py
+../../../BaseballApp/baseball/oper/extract_teams_players.py
