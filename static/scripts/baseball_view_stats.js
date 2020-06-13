@@ -1,1 +1,0 @@
-C:/Users/Sinto/Documents/vscodeworkspace/static/scripts/baseball_view_stats.js
