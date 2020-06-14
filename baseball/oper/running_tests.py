@@ -34,11 +34,16 @@ print(results)
 fqn.remove_quotes_fix()
 '''
 
-# Check the Rosters table
-query = "SELECT * FROM pitching LIMIT 10"
+# Check the gameplay table
+query = "SELECT * FROM gameplay LIMIT 10"
+results = dr.baseball_db_reader(query)
+print(results)
+
+# Check the processing_errors table
+query = "SELECT * FROM processing_errors"
 results = dr.baseball_db_reader(query)
 print(results)
 
 # Show all tables
-# print(dbs.engine.table_names())
+print(dbs.engine.table_names())
 
