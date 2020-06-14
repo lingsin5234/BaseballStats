@@ -163,6 +163,14 @@ for file_nm in all_files:
         print("I/O error")
         exit()
 
+    # CHECK FIELDING STATS
+    # t1_time = t.time()
+    # gv.player = pd.read_csv('PRE_STATS.csv')
+    gv.player_stats = sc.stat_organizer(gv.player)
+    # gv.player_stats['batting'].to_csv('BATTING.csv', sep=',', index=False)
+    # gv.player_stats['pitching'].to_csv('PITCHING.csv', sep=',', index=False)
+    gv.player_stats['fielding'].to_csv('FIELDING.csv', sep=',', index=False)
+
     exit()
     # '''
     # ------------------------------------------------ #

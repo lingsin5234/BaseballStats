@@ -199,9 +199,21 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                                 gv.bases_after = 'X' + gv.bases_after[:2] + 'X'
                             else:
                                 # baserunners will resolve last out (e.g. doubled up)
-                                # print('BR resolve LAST OUT??', begin_play, the_game_id, this_line['inning'])
                                 gv.bases_after = 'X' + gv.bases_after
                                 this_line['outs'] -= 1
+
+                            # since batter is out, last fielder is putout, everyone else is assist
+                            fielders = [int(f) for f in re.sub(r'\([\d]+\)|\D', '', begin_play)]
+                            for idx in range(0, len(fielders)):
+                                if idx < len(fielders)-1:
+                                    # record an assist & DP for this fielder
+                                    ft = ['A', 'DP']
+                                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                                else:
+                                    # record a putout & DP for this fielder
+                                    ft = ['PO', 'DP']
+                                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+
                         # batter is safe
                         else:
                             if bool(re.search(r'\(1\)', begin_play)) & bool(re.search(r'\(2\)', begin_play)):

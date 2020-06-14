@@ -88,3 +88,24 @@ pitch_stat_types = {
     'BT': 'balls_thrown',
     'FL': 'foul_balls'
 }
+
+field_stat_types = {
+    'PID': 'player_id',
+    'YEAR': 'data_year',
+    'TEAM': 'team_name',
+    'GP': 'games_played',
+    'GS': 'games_started',
+    'IP': 'innings_played',
+    # 'BF': 'batters_faced',
+    # 'W': 'wins',
+    # 'L': 'losses',
+    # 'HD': 'holds',
+    # 'SV': 'saves',
+    # 'R': 'runs_allowed',
+    # 'ER': 'earned_runs',
+    'A': 'assists',
+    'PO': 'put_outs',
+    'DP': 'double_plays',
+    'TP': 'triple_plays',
+    'E': 'errors'
+}

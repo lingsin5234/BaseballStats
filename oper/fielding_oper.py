@@ -65,14 +65,21 @@ def field_collector(fid, lineup, the_line, stat_types):
 
 
 # based on the fielding play, determine which stats should be recorded
-def fielding_processor(begin_play, lineup, the_line):
+def fielding_processor(field_index, lineup, the_line, stat_types):
 
-    # look at the begin_play
+    # check which team is batting
+    if the_line['team_id'] == '0':
+        field_team = '1'
+    else:
+        field_team = '0'
 
-    # starts with a number
+    # check which spot in the fielding, get the playerID:
+    fld_filter = (lineup.team_id == field_team) & (lineup.fielding == str(field_index))
+    fld_index = lineup.index[fld_filter]
+    fid = lineup.at[fld_index[0], 'player_id']
+    print(field_index, fid, the_line)
 
-
-    # starts with a letter
-
+    # send to field collector
+    field_collector(fid, lineup, the_line, stat_types)
 
     return True
