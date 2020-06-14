@@ -2,6 +2,7 @@
 from . import global_variables as gv
 from . import stat_collector as sc
 from . import base_running as br
+import re
 
 
 # fielding substitutions
@@ -81,5 +82,19 @@ def fielding_processor(field_index, lineup, the_line, stat_types):
 
     # send to field collector
     field_collector(fid, lineup, the_line, stat_types)
+
+    return True
+
+
+# get and send fielder position to record PO
+def fielding_po(begin_play, grep_search, lineup, this_line):
+
+    # get the fielder position who made the putout
+    fielders = [int(f) for f in re.sub(grep_search, '', begin_play)]
+    idx = len(fielders) - 1
+    ft = ['PO']
+
+    # send fielder position to processing (then collector)
+    fielding_processor(fielders[idx], lineup, this_line, ft)
 
     return True
