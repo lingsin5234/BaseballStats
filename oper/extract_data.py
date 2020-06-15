@@ -145,7 +145,7 @@ for file_nm in all_files:
     fgp.close()
 
     # ------------- SINGLE-TEAM USE ONLY ------------- #
-    # '''
+    '''
     # Write Output File after converting entire list of dict to data frame
     o1_time = t.time()
 
@@ -172,7 +172,7 @@ for file_nm in all_files:
     gv.player_stats['fielding'].to_csv('FIELDING.csv', sep=',', index=False)
 
     exit()
-    # '''
+    '''
     # ------------------------------------------------ #
 
 # Write Output File after converting entire list of dict to data frame
@@ -191,7 +191,7 @@ try:
 except IOError:
     print("I/O error")
     exit()
-
+exit()
 # WRITING OUTPUT PERFORMANCE
 o2_time = t.time()
 fgp = open('GAMEPLAY.LOG', mode='a')

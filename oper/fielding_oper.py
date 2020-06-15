@@ -78,7 +78,7 @@ def fielding_processor(field_index, lineup, the_line, stat_types):
     fld_filter = (lineup.team_id == field_team) & (lineup.fielding == str(field_index))
     fld_index = lineup.index[fld_filter]
     fid = lineup.at[fld_index[0], 'player_id']
-    print(field_index, fid, the_line)
+    # print(field_index, fid, the_line)
 
     # send to field collector
     field_collector(fid, lineup, the_line, stat_types)
@@ -89,12 +89,36 @@ def fielding_processor(field_index, lineup, the_line, stat_types):
 # get and send fielder position to record PO
 def fielding_po(begin_play, grep_search, lineup, this_line):
 
-    # get the fielder position who made the putout
-    fielders = [int(f) for f in re.sub(grep_search, '', begin_play)]
-    idx = len(fielders) - 1
-    ft = ['PO']
+    # remove (B) if not part of grep_search
+    if not(bool(re.search(r'(B)', grep_search))):
+        begin_play = re.sub(r'\(B\)', '', begin_play)
 
-    # send fielder position to processing (then collector)
-    fielding_processor(fielders[idx], lineup, this_line, ft)
+    # get the fielder position who made the putout
+    try:
+        fielders = fielding_unique(grep_search, begin_play)
+    except Exception as e:
+        print(grep_search, this_line['play'], begin_play, e)
+    else:
+        idx = len(fielders) - 1
+        ft = ['PO']
+
+        # send fielder position to processing (then collector)
+        fielding_processor(fielders[idx], lineup, this_line, ft)
 
     return True
+
+
+# return a unique list of fielding assists whilst keeping the order
+# unique in reverse because the last fielder is key to put out in most cases
+def fielding_unique(grep_search, begin_play):
+
+    fielders = [int(f) for f in re.sub(grep_search, '', begin_play)]
+    length = len(fielders)
+    unique_set = set()
+    for i in reversed(range(0, length)):
+        if fielders[i] not in unique_set:
+            unique_set.add(fielders[i])
+        else:
+            fielders.pop(i)
+
+    return fielders
