@@ -173,6 +173,9 @@ for file_nm in all_files:
 
     exit()
     '''
+    # if file_nm is washington, move on to next
+    if re.search(r'WAS', file_nm):
+        break
     # ------------------------------------------------ #
 
 # Write Output File after converting entire list of dict to data frame
@@ -188,6 +191,19 @@ try:
         writer.writeheader()
         for l in gv.full_output:
             writer.writerow(gv.full_output[l])
+except IOError:
+    print("I/O error")
+    exit()
+
+# Write to PRE_STATS for comparison
+csv_columns = list(gv.player[0].keys())
+csv_file = 'PRE_STATS.csv'
+try:
+    with open(csv_file, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
+        writer.writeheader()
+        for l in gv.player:
+            writer.writerow(gv.player[l])
 except IOError:
     print("I/O error")
     exit()
