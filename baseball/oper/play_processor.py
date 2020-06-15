@@ -168,8 +168,8 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
 
                             # for CS, the base_running will handle the assists and putouts
                             # only take care of the DP/TP here
-                            if not(bool(re.search(r'NDP', begin_play))) and bool(re.search(r'CS', begin_play)):
-                                fielders = re.sub(r'.*CS[23H]\(([1-9]+)\).*', '\\1', begin_play)
+                            if not(bool(re.search(r'NDP', begin_play))) and bool(re.search(r'CS|PO', begin_play)):
+                                fielders = re.sub(r'.*(CS|PO)[123H]\(([1-9]+)\).*', '\\2', begin_play)
                                 for idx in range(0, len(fielders)):
                                     if bool(re.search(r'DP', begin_play)):
                                         ft = ['DP']
@@ -178,7 +178,7 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                                     fo.fielding_processor(fielders[idx], lineup, this_line, ft)
                             else:
                                 if not(bool(re.search(r'NDP', begin_play))):
-                                    print('Not CS case', this_line['play'])
+                                    print('Not CS or PO case', this_line['play'])
 
                     # if no batter movements, then put batter on first!
                     if run_play is not None:
