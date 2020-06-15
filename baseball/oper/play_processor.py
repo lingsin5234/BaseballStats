@@ -184,35 +184,128 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                     st = ['AB', 'PA']
                     pt = ['IP', 'BF']
 
-                    # DP or TP
-                    if bool(re.search(r'(DP|TP)', begin_play)):
+                    # DP or TP -- exclude NDPs, so political
+                    if bool(re.search(r'(DP|TP)', begin_play)) and not(bool(re.search(r'NDP', begin_play))):
                         this_line['outs'] += 2
 
                         # batter is one of the outs
-                        if not(re.search(r'\([123]\)([0-9]+)?\([123]\)', begin_play)):
+                        check_batter = [p for p in re.sub(r'/.*', '', begin_play)]
+                        if (check_batter[len(check_batter) - 1].isdigit()) or (bool(re.search(r'\(B\)', begin_play))):
                             # find out where the other out is
                             if re.search(r'\(1\)', begin_play):
                                 gv.bases_after = 'XX' + gv.bases_after[1:]
+                                fo.fielding_po(begin_play, r'\(1\).*', lineup, this_line)  # record PO
+
                             elif re.search(r'\(2\)', begin_play):
                                 gv.bases_after = 'X' + gv.bases_after[0:1] + 'X' + gv.bases_after[2]
+                                fo.fielding_po(begin_play, r'\(2\).*', lineup, this_line)  # record PO
+
                             elif re.search(r'\(3\)', begin_play):
                                 gv.bases_after = 'X' + gv.bases_after[:2] + 'X'
+                                fo.fielding_po(begin_play, r'\(3\).*', lineup, this_line)  # record PO
+
                             else:
-                                # baserunners will resolve last out
+                                # baserunners will resolve last out (e.g. doubled up)
                                 gv.bases_after = 'X' + gv.bases_after
                                 this_line['outs'] -= 1
+
+                            # since batter is out, last fielder is putout, everyone else is assist
+                            # unless otherwise specified - e.g. 43(B)6(1)/GDP
+                            if bool(re.search(r'\(B\)', begin_play)):
+                                # assign the batter put out
+                                fo.fielding_po(begin_play, r'\(B\).*', lineup, this_line)  # record PO
+
+                                # everyone except last will be assigned assist only ONCE
+                                fielders = fo.fielding_unique(r'\([\dB]+\)|\D', begin_play)
+                                for idx in range(0, len(fielders)):
+                                    if idx < len(fielders)-1:
+                                        # record an assist & IP for this fielder
+                                        ft = ['A', 'IP']
+                                        fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                                    else:
+                                        # record only IP for this fielder
+                                        ft = ['IP']
+                                        fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+
+                            else:
+                                fielders = fo.fielding_unique(r'\([\d]+\)|\D', begin_play)
+                                for idx in range(0, len(fielders)):
+                                    if idx < len(fielders)-1:
+                                        # record an assist & IP for this fielder
+                                        ft = ['A', 'IP']
+                                        fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                                    else:
+                                        # record a putout & IP for this fielder
+                                        ft = ['PO', 'IP']
+                                        fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+
+                        # double play on a force-out type situation -- one of the outs marked as [123]X[23H]
+                        elif bool(re.search(r'\..*[B123]X[123H]\([1-9]+\)', this_line['play'])):
+                            # the other out will be handled by the runners. here mark the first out
+                            if re.search(r'\(B\)', begin_play):
+                                gv.bases_after = 'X' + gv.bases_after[0:]
+                                fo.fielding_po(begin_play, r'\(B\).*', lineup, this_line)  # record PO
+
+                            elif re.search(r'\(1\)', begin_play):
+                                gv.bases_after = 'BX' + gv.bases_after[1:]
+                                fo.fielding_po(begin_play, r'\(1\).*', lineup, this_line)  # record PO
+
+                            elif re.search(r'\(2\)', begin_play):
+                                gv.bases_after = 'B' + gv.bases_after[0:1] + 'X' + gv.bases_after[2]
+                                fo.fielding_po(begin_play, r'\(2\).*', lineup, this_line)  # record PO
+
+                            elif re.search(r'\(3\)', begin_play):
+                                gv.bases_after = 'B' + gv.bases_after[:2] + 'X'
+                                fo.fielding_po(begin_play, r'\(3\).*', lineup, this_line)  # record PO
+
                         # batter is safe
                         else:
                             if bool(re.search(r'\(1\)', begin_play)) & bool(re.search(r'\(2\)', begin_play)):
                                 gv.bases_after = 'BXX'
+                                # record POs
+                                fo.fielding_po(begin_play.replace('(2)', ''), r'\(1\).*', lineup, this_line)
+                                fo.fielding_po(begin_play.replace('(1)', ''), r'\(2\).*', lineup, this_line)
+
                             elif bool(re.search(r'\(1\)', begin_play)) & bool(re.search(r'\(3\)', begin_play)):
                                 gv.bases_after = 'BX2'
+                                # record POs
+                                fo.fielding_po(begin_play.replace('(3)', ''), r'\(1\).*', lineup, this_line)
+                                fo.fielding_po(begin_play.replace('(1)', ''), r'\(3\).*', lineup, this_line)
+
                             else:
                                 gv.bases_after = 'B1X'
+                                # record POs
+                                fo.fielding_po(begin_play.replace('(3)', ''), r'\(2\).*', lineup, this_line)
+                                fo.fielding_po(begin_play.replace('(2)', ''), r'\(3\).*', lineup, this_line)
 
+                            fielders = fo.fielding_unique(r'\([\d]+\)|\D', begin_play)
+                            for idx in range(0, len(fielders)):
+                                if idx < len(fielders)-1:
+                                    # record Assist & IP for not-last fielder
+                                    ft = ['A', 'IP']
+                                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                                else:
+                                    # DO NOT RECORD PUT OUT -- already recorded above
+                                    ft = ['IP']
+                                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+
+                        # record the TP stat
                         if bool(re.search(r'TP', begin_play)):
                             this_line['outs'] += 1
                             gv.bases_after = '---'
+
+                            # check if batter was one of the 3 outs
+                            check_batter = [p for p in re.sub(r'/.*', '', begin_play)]
+                            if check_batter[len(check_batter)-1].isdigit():
+                                fo.fielding_po(begin_play, r'/.*', lineup, this_line)  # record PO
+                            else:
+                                print(begin_play, the_game_id, this_line['play'])
+                        # record the DP stat
+                        else:
+                            fielders = fo.fielding_unique(r'\([\dB]+\)|\D', begin_play)
+                            ft = ['DP']
+                            for idx in range(0, len(fielders)):
+                                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
 
                         if re.search('GDP', begin_play):
                             st.append('GDP')
@@ -225,15 +318,34 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                         # a runner is out
                         if re.search(r'\(B\)', begin_play):
                             gv.bases_after = 'X' + gv.bases_after
+                            fo.fielding_po(begin_play, r'\(B\).*', lineup, this_line)  # record PO
+
                         elif re.search(r'\(1\)', begin_play):
                             gv.bases_after = 'BX' + gv.bases_after[1:]
                             this_line['after_1B'] = pid
+                            fo.fielding_po(begin_play, r'\(1\).*', lineup, this_line)  # record PO
+
                         elif re.search(r'\(2\)', begin_play):
                             gv.bases_after = 'B' + gv.bases_after[0:1] + 'X' + gv.bases_after[2]
                             this_line['after_1B'] = pid
+                            fo.fielding_po(begin_play, r'\(2\).*', lineup, this_line)  # record PO
+
                         else:
                             gv.bases_after = 'B' + gv.bases_after[:2] + 'X'
                             this_line['after_1B'] = pid
+                            fo.fielding_po(begin_play, r'\(3\).*', lineup, this_line)  # record PO
+
+                        # assign assists and IP
+                        fielders = fo.fielding_unique(r'\([\dB]+\)|\D', begin_play)
+                        for idx in range(0, len(fielders)):
+                            if idx < len(fielders) - 1:
+                                # record Assist & IP for not-last fielder
+                                ft = ['A', 'IP']
+                                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                            else:
+                                # DO NOT RECORD PUT OUT -- already recorded above
+                                ft = ['IP']
+                                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
 
                     # fielding error
                     elif bool(re.search(r'^([0-9]+)?E', begin_play)):
@@ -241,6 +353,18 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                         gv.bases_after = 'B' + gv.bases_after
                         st.append('ROE')  # reached on error
                         pt = ['BF']
+
+                        # assign assists? and errors
+                        fielders = fo.fielding_unique(r'E|\D', begin_play)
+                        for idx in range(0, len(fielders)):
+                            if idx < len(fielders) - 1:
+                                # record Assist for not-last fielder
+                                ft = ['A']
+                                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                            else:
+                                # record Error
+                                ft = ['E']
+                                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
 
                     # normal out -- this should be last to handle all cases prior
                     elif bool(re.search(r'^[0-9]+', begin_play)):
@@ -252,6 +376,18 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                         # batter is out
                         # using dash instead of X as this will hold runners unless run_play includes them
                         gv.bases_after = '-' + gv.bases_after
+
+                        # record assist(s), put out and IP
+                        fielders = fo.fielding_unique(r'\D', begin_play)
+                        for idx in range(0, len(fielders)):
+                            if idx < len(fielders) - 1:
+                                # record Assist & IP for not-last fielder
+                                ft = ['A', 'IP']
+                                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                            else:
+                                # record PO & IP for last fielder
+                                ft = ['PO', 'IP']
+                                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
 
                     # fielding plays that are not included above
                     else:
@@ -275,11 +411,27 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
 
                 # Fielder's Choice
                 elif bool(re.search(r'^FC', begin_play)):
+
+                    # WHAT!??!!?! I think FC section is completely WRONG...
+                    # print("FIELDER'S CHOICE DONE WRONG LOL:", begin_play, this_line['play'])
+
                     # DPs are handled by the runner marked out.
                     this_line['outs'] += 1
                     st = ['AB', 'PA']
                     pt = ['IP', 'BF']
 
+                    # determine if out is implied (batter) or explicit
+                    if re.search(r'[123]X[23H]', this_line['play']):
+                        # this is handled in the base-running section
+                        pass
+                    else:
+                        # print("Fielder's Choice Implied:", this_line['play'])
+                        # fielder's choice implied; batter is out
+                        begin_play = re.sub(r'FC', '', begin_play)
+                        fo.fielding_po(begin_play, r'/.*', lineup, this_line)  # record PO
+
+                    # below is incorrect. save this for a couple iterations if needed.
+                    '''
                     # determine who is out
                     if re.search(r'\(B\)', begin_play):
                         gv.bases_after = 'X' + gv.bases_after
@@ -300,6 +452,8 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                         # NO ONE IS OUT
                         gv.bases_after = 'B' + gv.bases_after
                         this_line['outs'] -= 1
+                    '''
+
                     sc.stat_collector(pid, lineup, this_line, st)
                     po.pitch_collector(hid, lineup, this_line, pt)
 
@@ -405,11 +559,13 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                         sc.stat_collector(pid, lineup, this_line, ['GP'])
 
         # do a check for > 3 outs
+        '''
         if this_line['outs'] > 3:
             print('BAD OUTS:', this_line['game_id'], '-', the_play, ' ', this_line['outs'])
             el.processing_errors('BAD OUTS:' + str(the_play) + ' ' + str(this_line['outs']),
                                  'play_processor', team_name, data_year,
                                  the_game_id, this_line['half_innings'])
+        '''
         #
         # # performance checkpoint
         # q3_time = t.time()

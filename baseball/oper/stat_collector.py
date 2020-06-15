@@ -105,7 +105,8 @@ def stat_organizer(player_dict):
 
     # separate pitching, batting and fielding stats here
     stats_tb = {"pitching": player_tb[player_tb.bat_pitch == 'pitching'],
-                "batting": player_tb[player_tb.bat_pitch == 'batting']}
+                "batting": player_tb[player_tb.bat_pitch == 'batting'],
+                "fielding": player_tb[player_tb.bat_pitch == 'fielding']}
     # print(stats_tb)
     # only include relevant columns for each type of stat
     bat_col = ['player_id', 'team_name', 'data_year']
@@ -114,10 +115,14 @@ def stat_organizer(player_dict):
     pitch_col = ['player_id', 'team_name', 'data_year']
     pitch_col.extend(list(gv.pitch_stat_types.keys()))
     pitch_col = [c for c in pitch_col if c not in ['PID', 'YEAR', 'TEAM']]
+    field_col = ['player_id', 'team_name', 'data_year']
+    field_col.extend(list(gv.field_stat_types.keys()))
+    field_col = [c for c in field_col if c not in ['PID', 'YEAR', 'TEAM']]
 
     # if any of the stat types are missing, assign a random 0
     missing_bat_col = [b for b in bat_col if b not in stats_tb['batting'].columns]
     missing_pitch_col = [p for p in pitch_col if p not in stats_tb['pitching'].columns]
+    missing_field_col = [p for p in field_col if p not in stats_tb['fielding'].columns]
     # print("Missing Columns", bat_col, missing_bat_col, pitch_col, missing_pitch_col)
     if len(missing_bat_col) > 0:
         for e in missing_bat_col:
@@ -130,24 +135,39 @@ def stat_organizer(player_dict):
             zeros = [0.0] * len(stats_tb['pitching'])
             num_cols = int(stats_tb['pitching'].count(axis=1).reset_index(drop=True)[0])
             stats_tb['pitching'].insert(num_cols, e, zeros, True)
+    if len(missing_field_col) > 0:
+        print(missing_field_col)
+        for e in missing_field_col:
+            zeros = [0.0] * len(stats_tb['fielding'])
+            num_cols = int(stats_tb['fielding'].count(axis=1).reset_index(drop=True)[0])
+            stats_tb['fielding'].insert(num_cols, e, zeros, True)
 
     # assign the appropriate columns
     stats_tb['batting'] = stats_tb['batting'][bat_col]
     stats_tb['pitching'] = stats_tb['pitching'][pitch_col]
+    stats_tb['fielding'] = stats_tb['fielding'][field_col]
 
     # no need to rename columns! :)
     print("RENAMING IN PROGRESS . . . ")
-    stats_tb['batting'] = stats_tb['batting'].rename(columns={"player_id": 'PID', 'team_name': 'TEAM', 'data_year': 'YEAR'})
-    stats_tb['pitching'] = stats_tb['pitching'].rename(columns={'player_id': 'PID', 'team_name': 'TEAM', 'data_year': 'YEAR'})
+    stats_tb['batting'] = stats_tb['batting'].rename(
+        columns={"player_id": 'PID', 'team_name': 'TEAM', 'data_year': 'YEAR'})
+    stats_tb['pitching'] = stats_tb['pitching'].rename(
+        columns={'player_id': 'PID', 'team_name': 'TEAM', 'data_year': 'YEAR'})
+    stats_tb['fielding'] = stats_tb['fielding'].rename(
+        columns={'player_id': 'PID', 'team_name': 'TEAM', 'data_year': 'YEAR'})
 
     # innings - divided into 3 outs
     floor_innings = stats_tb['pitching']['IP'] // 3
     modulus_innings = stats_tb['pitching']['IP'] % 3 / 10
     stats_tb['pitching']['IP'] = floor_innings + modulus_innings
+    floor_innings = stats_tb['fielding']['IP'] // 3
+    modulus_innings = stats_tb['fielding']['IP'] % 3 / 10
+    stats_tb['fielding']['IP'] = floor_innings + modulus_innings
 
     # quick checks
     # print(stats_tb['batting'].head)
     # print(stats_tb['pitching'].head)
+    print(stats_tb['fielding'].head)
 
     return stats_tb
 
