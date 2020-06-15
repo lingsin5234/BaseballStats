@@ -4,6 +4,7 @@ import re
 from . import stat_collector as sc
 from . import global_variables as gv
 from . import pitcher_oper as po
+from . import fielding_oper as fo
 
 
 # stolen base tracking
@@ -222,7 +223,19 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
         the_runner = runner[0]
         gv.bases_after = gv.bases_after.replace(the_runner, '-')
 
-    # handle weird outs for the batter previously marked on base and NOT Error, e.g. BX1(6E1)
+        # process fielding
+        fielders = fo.fielding_unique(r'.*\(|\D', runner)
+        for idx in range(0, len(fielders)):
+            if idx < len(fielders) - 1:
+                # record Assist & IP for not-last fielder
+                ft = ['A', 'IP']
+                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+            else:
+                # record PO & IP for last fielder
+                ft = ['PO', 'IP']
+                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+
+    # handle weird outs for the batter previously marked on base and NOT Error, e.g. not BX1(6E1)
     if bool(re.search(r'BX[123H]', runner)) & bool(not(re.search(r'E', runner))) & \
             bool(not(re.search(r'^([0-9]+)?E', this_line['play']))):
         this_line['outs'] += 1
@@ -246,6 +259,18 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
             this_line['after_3B'] = 'X'
         if re.search(r'(H[1-9]|HR).*\..*BXH', this_line['play']):
             this_line['runs_scored'] -= 1
+
+        # process fielding
+        fielders = fo.fielding_unique(r'.*\(|\D', runner)
+        for idx in range(0, len(fielders)):
+            if idx < len(fielders) - 1:
+                # record Assist & IP for not-last fielder
+                ft = ['A', 'IP']
+                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+            else:
+                # record PO & IP for last fielder
+                ft = ['PO', 'IP']
+                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
 
     # batter on base due to error
     if bool(re.search(r'BX[123H]\(([0-9]+)?E', runner)) | \
@@ -271,6 +296,20 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
             # definitely an unearned run too
             pt = ['R']
             po.pitch_collector(hid, lineup, this_line, pt)
+
+        # process fielding - only for assists BEFORE the E
+        if bool(re.search(r'E', runner)):
+            fielders = fo.fielding_unique(r'.*\(|\D', runner)
+            for idx in range(0, len(fielders)):
+                if idx < len(fielders) - 1:
+                    # record Assist & IP for not-last fielder
+                    ft = ['A']
+                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                else:
+                    # record PO & IP for last fielder
+                    ft = ['E']
+                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+        # otherwise, nothing happens, as the E is recorded -- most likely for the throw; no assist, no put out
 
     # batter on base due to PB or WP
     if bool(re.search(r'^K\+(WP|PB).*B-1', this_line['play'])):
