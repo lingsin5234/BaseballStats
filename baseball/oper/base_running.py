@@ -51,17 +51,64 @@ def steal_processor(this_line, lineup):
             st = ['CS']
             sc.stat_collector(this_line['before_1B'], lineup, this_line, st)
 
+            # fielding assist and putout
+            fielders = re.sub(r'.*CS2\(([1-9]+)\).*', '\\1', this_line['play'])
+            for idx in range(0, len(fielders)):
+                if idx < len(fielders) - 1:
+                    ft = ['A']
+                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                else:
+                    ft = ['PO']
+                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+
         if re.search(r'CS3', this_line['play']):
             gv.bases_after = gv.bases_after.replace('2', 'X')
             # stat add: CS
             st = ['CS']
             sc.stat_collector(this_line['before_2B'], lineup, this_line, st)
 
+            # fielding assist and putout
+            fielders = re.sub(r'.*CS3\(([1-9]+)\).*', '\\1', this_line['play'])
+            print(fielders, this_line['play'])
+            for idx in range(0, len(fielders)):
+                if idx < len(fielders) - 1:
+                    ft = ['A']
+                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                else:
+                    ft = ['PO']
+                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+
         if re.search(r'CSH', this_line['play']):
             gv.bases_after = gv.bases_after.replace('3', 'X')
             # stat add: CS
             st = ['CS']
             sc.stat_collector(this_line['before_3B'], lineup, this_line, st)
+
+            # fielding assist and putout
+            fielders = re.sub(r'.*CSH\(([1-9]+)\).*', '\\1', this_line['play'])
+            for idx in range(0, len(fielders)):
+                if idx < len(fielders) - 1:
+                    ft = ['A']
+                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                else:
+                    ft = ['PO']
+                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+
+        # caught double steal DP
+        if re.search(r'CS.*CS.*DP', this_line['play']):
+            print('CAUGHT DOUBLE STEAL!!', this_line['play'])
+
+            # fielding assist and putout
+            steal1, steal2 = re.sub(r'.*CSH\(([1-9]+)\).*CSH\(([1-9]+)\).*', '\\1-\\2', this_line['play']).split('-')
+            steal_list = [fo.fielding_unique(r'.*\(|\D', steal1), fo.fielding_unique(r'.*\(|\D', steal2)]
+            for fielders in steal_list:
+                for idx in range(0, len(fielders)):
+                    if idx < len(fielders) - 1:
+                        ft = ['A']
+                        fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                    else:
+                        ft = ['PO']
+                        fo.fielding_processor(fielders[idx], lineup, this_line, ft)
 
     return this_line
 
@@ -227,12 +274,12 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
         fielders = fo.fielding_unique(r'.*\(|\D', runner)
         for idx in range(0, len(fielders)):
             if idx < len(fielders) - 1:
-                # record Assist & IP for not-last fielder
-                ft = ['A', 'IP']
+                # record Assist for not-last fielder
+                ft = ['A']
                 fo.fielding_processor(fielders[idx], lineup, this_line, ft)
             else:
-                # record PO & IP for last fielder
-                ft = ['PO', 'IP']
+                # record PO for last fielder
+                ft = ['PO']
                 fo.fielding_processor(fielders[idx], lineup, this_line, ft)
 
     # handle weird outs for the batter previously marked on base and NOT Error, e.g. not BX1(6E1)
@@ -264,12 +311,12 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
         fielders = fo.fielding_unique(r'.*\(|\D', runner)
         for idx in range(0, len(fielders)):
             if idx < len(fielders) - 1:
-                # record Assist & IP for not-last fielder
-                ft = ['A', 'IP']
+                # record Assist for not-last fielder
+                ft = ['A']
                 fo.fielding_processor(fielders[idx], lineup, this_line, ft)
             else:
-                # record PO & IP for last fielder
-                ft = ['PO', 'IP']
+                # record PO for last fielder
+                ft = ['PO']
                 fo.fielding_processor(fielders[idx], lineup, this_line, ft)
 
     # batter on base due to error
