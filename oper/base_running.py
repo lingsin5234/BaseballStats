@@ -43,8 +43,8 @@ def steal_processor(this_line, lineup):
             st = ['SB', 'R']
             sc.stat_collector(this_line['before_3B'], lineup, this_line, st)
 
-    # check if caught stealing, then which base(s)
-    if re.search(r'CS', this_line['play']):
+    # check if caught stealing, then which base(s); but NO ERROR for this particular CS
+    if bool(re.search(r'CS', this_line['play'])) and not(bool(re.search(r'CS[23H]\([1-9E/TH]+\)', this_line['play']))):
         if re.search(r'CS2', this_line['play']):
             gv.bases_after = gv.bases_after.replace('1', 'X')
             # stat add: CS
@@ -52,7 +52,8 @@ def steal_processor(this_line, lineup):
             sc.stat_collector(this_line['before_1B'], lineup, this_line, st)
 
             # fielding assist and putout
-            fielders = re.sub(r'.*CS2\(([1-9]+)\).*', '\\1', this_line['play'])
+            cs_play = re.sub(r'.*CS2\(([1-9]+)\).*', '\\1', this_line['play'])
+            fielders = fo.fielding_unique(r'E|\D', cs_play)
             for idx in range(0, len(fielders)):
                 if idx < len(fielders) - 1:
                     ft = ['A']
@@ -68,7 +69,8 @@ def steal_processor(this_line, lineup):
             sc.stat_collector(this_line['before_2B'], lineup, this_line, st)
 
             # fielding assist and putout
-            fielders = re.sub(r'.*CS3\(([1-9]+)\).*', '\\1', this_line['play'])
+            cs_play = re.sub(r'.*CS2\(([1-9]+)\).*', '\\1', this_line['play'])
+            fielders = fo.fielding_unique(r'E|\D', cs_play)
             print(fielders, this_line['play'])
             for idx in range(0, len(fielders)):
                 if idx < len(fielders) - 1:
@@ -85,7 +87,8 @@ def steal_processor(this_line, lineup):
             sc.stat_collector(this_line['before_3B'], lineup, this_line, st)
 
             # fielding assist and putout
-            fielders = re.sub(r'.*CSH\(([1-9]+)\).*', '\\1', this_line['play'])
+            cs_play = re.sub(r'.*CS2\(([1-9]+)\).*', '\\1', this_line['play'])
+            fielders = fo.fielding_unique(r'E|\D', cs_play)
             for idx in range(0, len(fielders)):
                 if idx < len(fielders) - 1:
                     ft = ['A']
@@ -109,6 +112,22 @@ def steal_processor(this_line, lineup):
                     else:
                         ft = ['PO']
                         fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+
+    # else if caught stealing but error
+    elif bool(re.search(r'CS', this_line['play'])) and bool(re.search(r'CS[23H]\([1-9E/TH]+\)', this_line['play'])):
+
+        # the runner advance will be handled separately just need to handle the fielding here
+        play_in_question = re.sub(r'.*CS[23H]\(([1-9E]+)\).*', '\\1', this_line['play'])
+        fielders = fo.fielding_unique(r'E|\D', play_in_question)
+        for idx in range(0, len(fielders)):
+            if idx < len(fielders) - 1:
+                # record Assist for not-last fielder
+                ft = ['A']
+                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+            else:
+                # record Error
+                ft = ['E']
+                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
 
     return this_line
 

@@ -3,6 +3,7 @@ import re
 from . import pitcher_oper as po
 from . import base_running as br
 from . import global_variables as gv
+from . import fielding_oper as fo
 
 
 # function for processing non-plate appearances
@@ -45,6 +46,33 @@ def non_pa(this_line, begin_play, run_play, lineup, pid, hid):
                 gv.bases_after = gv.bases_after.replace('2', 'X')
             elif re.search(r'PO3', begin_play):
                 gv.bases_after = gv.bases_after.replace('3', 'X')
+
+            # fielding for Pick-Offs (PO)
+            if re.search(r'PO[123]\([1-9E/TH]+\)', begin_play):
+
+                # runner movement handled in the base_running
+                po_play = re.sub(r'.*PO[123]\(([1-9E/TH]+)\).*', '\\1', begin_play)
+                fielders = fo.fielding_unique(r'E|\D', po_play)
+                if bool(re.search('E', po_play)):
+                    for idx in range(0, len(fielders)):
+                        if idx < len(fielders) - 1:
+                            # record Assist for not-last fielder
+                            ft = ['A']
+                            fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                        else:
+                            # record Error
+                            ft = ['E']
+                            fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                else:
+                    for idx in range(0, len(fielders)):
+                        if idx < len(fielders) - 1:
+                            # record Assist for not-last fielder
+                            ft = ['A']
+                            fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                        else:
+                            # record put out
+                            ft = ['PO']
+                            fo.fielding_processor(fielders[idx], lineup, this_line, ft)
 
     if re.search(r'POCS', begin_play):
         pt = ['POA']
