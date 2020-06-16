@@ -86,40 +86,46 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                 # if it is a HIT
                 if bool(re.search(r'^((S|D|T)([1-9]+)?/?|H/|HR|DGR)', begin_play)):
 
-                    if bool(not(re.search(r'E[0-9]+', begin_play))):
+                    # if not error. if explicit batter movement, don't perform batter movement
+                    if not(bool(re.search(r'E[0-9]+', begin_play))):
+
+                        batter_move = bool(re.search('B(-|X)[123H]', this_line['play']))
 
                         # stats
                         st = ['AB', 'PA', 'H']
                         pt = ['BF', 'H']
 
                         # single
-                        if re.search(r'^S', begin_play):
+                        if re.search(r'^S', begin_play) and not batter_move:
                             this_line['after_1B'] = pid
                             gv.bases_after = 'B' + gv.bases_after
                         # double
                         elif re.search(r'^D', begin_play):
-                            this_line['after_2B'] = pid
-                            gv.bases_after = '0B' + gv.bases_after
+                            if not batter_move:
+                                this_line['after_2B'] = pid
+                                gv.bases_after = '0B' + gv.bases_after
                             st.append('D')
                             pt.append('D')
                         # triple
                         elif re.search(r'^T', begin_play):
-                            this_line['after_3B'] = pid
-                            gv.bases_after = '00B' + gv.bases_after
+                            if not batter_move:
+                                this_line['after_3B'] = pid
+                                gv.bases_after = '00B' + gv.bases_after
                             st.append('T')
                             pt.append('T')
                         # home run
                         else:
-                            this_line['runs_scored'] += 1
-                            gv.bases_after = '---'
-                            st.extend(['HR', 'R', 'RBI'])
-                            pt.extend(['HR', 'R', 'ER'])
+                            if not batter_move:
+                                this_line['runs_scored'] += 1
+                                gv.bases_after = '---'
+                                st.extend(['HR', 'R', 'RBI'])
+                                pt.extend(['HR', 'R', 'ER'])
 
                         # stat process
                         sc.stat_collector(pid, lineup, this_line, st)
                         po.pitch_collector(hid, lineup, this_line, pt)
 
-                        # base_runner movements
+                        # base_runner movements, including batter moves
                         this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
                     else:
@@ -190,13 +196,13 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
 
                     # if no batter movements, then put batter on first!
                     if run_play is not None:
-                        if bool(not(re.search(r'B', run_play))) & bool(not(re.search(r'K', begin_play))):
+                        if not(bool(re.search(r'B', run_play))) and not(bool(re.search(r'K', begin_play))):
                             this_line['after_1B'] = pid
-                        elif bool(re.search('K.*B-', this_line['play'])) & bool(not(re.search('\+', begin_play))):
+                        elif bool(re.search('K.*B-', this_line['play'])) and not(bool(re.search('\+', begin_play))):
                             this_line['outs'] -= 1
                             # let base_runner function handle this.
                     else:
-                        if bool(not(re.search(r'K', begin_play))):
+                        if not(bool(re.search(r'K', begin_play))):
                             this_line['after_1B'] = pid
                     # the K+WP.B-1 or K+PB.B-1 scenarios - runner is moved by below.
 
@@ -314,7 +320,12 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                         # Case 2: Force Outs; No Runner Outs
                         elif check_force_out and (not check_runner_out):
 
-                            fielders = fo.fielding_unique(r'\([\dB]+\)|\D', begin_play)
+                            # grab all but last fielder if batter was out, then run unique
+                            if bool(re.search(r'([1-9])/.*', begin_play)):
+                                case_two = re.sub(r'([1-9])/.*', '', begin_play)
+                            else:
+                                case_two = re.sub(r'/.*', '', begin_play)
+                            fielders = fo.fielding_unique(r'\([\dB]+\)|\D', case_two)
                             for idx in range(0, len(fielders)):
                                 if idx < len(fielders) - 1:
                                     # record Assist for not-last fielder
@@ -434,7 +445,7 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                         st.append('SH')
                     elif bool(re.search(r'SF', begin_play)):
                         st.append('SF')
-                    elif bool(not(re.search(r'E', begin_play))):
+                    elif not(bool(re.search(r'E', begin_play))):
                         st.extend(['LOB', 'RLSP'])
                     sc.stat_collector(pid, lineup, this_line, st)
                     po.pitch_collector(hid, lineup, this_line, pt)
@@ -445,23 +456,24 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                 # Fielder's Choice
                 elif bool(re.search(r'^FC', begin_play)):
 
-                    # WHAT!??!!?! I think FC section is completely WRONG...
-                    # print("FIELDER'S CHOICE DONE WRONG LOL:", begin_play, this_line['play'])
-
                     # DPs are handled by the runner marked out.
-                    this_line['outs'] += 1
+                    # this_line['outs'] += 1
                     st = ['AB', 'PA']
-                    pt = ['IP', 'BF']
+                    pt = ['BF']
 
-                    # determine if out is implied (batter) or explicit
-                    if re.search(r'[B123]X[23H]', this_line['play']):
+                    # determine if anyone is out
+                    if bool(re.search(r'[B123]X[23H]', this_line['play'])) and \
+                            not(bool(re.search(r'[B123]X[23H]\([1-9]?E[1-9]+', this_line['play']))):
                         # this is handled in the base-running section
                         pass
                     else:
-                        # print("Fielder's Choice Implied:", this_line['play'])
-                        # fielder's choice implied; batter is out
-                        begin_play = re.sub(r'FC', '', begin_play)
-                        fo.fielding_po(begin_play, r'/.*', lineup, this_line)  # record PO
+                        # everyone is safe; move batter unless explicit
+                        if bool(re.search(r'B(-|X)[123H]', this_line['play'])):
+                            # print("Explicit Batter - FC", this_line['play'])
+                            # base-running section will move the batter accordingly
+                            pass
+                        else:
+                            gv.bases_after = 'B' + gv.bases_after
 
                     sc.stat_collector(pid, lineup, this_line, st)
                     po.pitch_collector(hid, lineup, this_line, pt)

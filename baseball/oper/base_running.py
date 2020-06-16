@@ -44,7 +44,8 @@ def steal_processor(this_line, lineup):
             sc.stat_collector(this_line['before_3B'], lineup, this_line, st)
 
     # check if caught stealing, then which base(s); but NO ERROR for this particular CS
-    if bool(re.search(r'CS', this_line['play'])) and not(bool(re.search(r'CS[23H]\([1-9E/TH]+\)', this_line['play']))):
+    if bool(re.search(r'CS', this_line['play'])) and \
+            not(bool(re.search(r'CS[23H]\([1-9]?E[1-9/TH]+\)', this_line['play']))):
         if re.search(r'CS2', this_line['play']):
             gv.bases_after = gv.bases_after.replace('1', 'X')
             # stat add: CS
@@ -85,7 +86,8 @@ def steal_processor(this_line, lineup):
             fo.fielding_assign_stats(r'.*\(|\D', steal2, lineup, this_line, ['A'], ['PO'])
 
     # else if caught stealing but error
-    elif bool(re.search(r'CS', this_line['play'])) and bool(re.search(r'CS[23H]\([1-9E/TH]+\)', this_line['play'])):
+    elif bool(re.search(r'CS', this_line['play'])) and \
+            bool(re.search(r'CS[23H]\([1-9]?E[1-9/TH]+\)', this_line['play'])):
 
         # the runner advance will be handled separately just need to handle the fielding here
         play_in_question = re.sub(r'.*CS[23H]\(([1-9E]+)\).*', '\\1', this_line['play'])
@@ -137,8 +139,8 @@ def base_running2(this_line, run_play, lineup, pid, pitcher_id):
         this_line['after_3B'] = this_line['before_3B']
 
     # if DP advanced runners with NO run play (and not SB/CS)
-    if bool(re.search(r'DP', this_line['play'])) & bool(run_play is None) & \
-            bool(not(re.search('(SB|CS)', this_line['play']))):
+    if bool(re.search(r'DP', this_line['play'])) and bool(run_play is None) and \
+            not(bool(re.search('(SB|CS)', this_line['play']))):
         if gv.bases_after[0] == 'B':
             this_line['after_1B'] = pid
         elif gv.bases_after[0] == '1':
@@ -186,7 +188,7 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
         elif re.search(r'1-', runner):
             gv.bases_after = gv.bases_after.replace('1', 'R')
             sc.stat_collector(this_line['before_1B'], lineup, this_line, st)
-        elif bool(re.search(r'B-', runner)) & \
+        elif bool(re.search(r'B-', runner)) and \
                 (not(re.search(r'^(H/|HR|([0-9]+)?E)', this_line['play']))):
             sc.stat_collector(this_line['playerID'], lineup, this_line, st)
 
@@ -254,8 +256,8 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
 
     # remove runners that are explicitly out but not FC nor the error above or DP/TP
     if re.search(r'[123]X[123H]', runner):
-        if bool(not(re.search(r'^FC', this_line['play']))) & bool(not(re.search(r'E', runner))) & \
-                bool(not(re.search(r'(DP|TP)', this_line['play']))):
+        if not(bool(re.search(r'^FC', this_line['play']))) and not(bool(re.search(r'E', runner))) and \
+                not(bool(re.search(r'(DP|TP)', this_line['play']))):
             this_line['outs'] += 1
 
         # first character is runner
@@ -266,13 +268,13 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
         fo.fielding_assign_stats(r'.*\(|\D', runner, lineup, this_line, ['A'], ['PO'])
 
     # handle weird outs for the batter previously marked on base and NOT Error, e.g. not BX1(6E1)
-    if bool(re.search(r'BX[123H]', runner)) & bool(not(re.search(r'E', runner))) & \
-            bool(not(re.search(r'^([0-9]+)?E', this_line['play']))):
+    if bool(re.search(r'BX[123H]', runner)) and not(bool(re.search(r'E', runner))) and \
+            not(bool(re.search(r'^([0-9]+)?E', this_line['play']))):
         this_line['outs'] += 1
 
         # stat add: AB, PA -- if NOT already added on a hit or DP (incl. FC.*DP)
-        if bool(not(re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', this_line['play']))) & \
-                bool(not(re.search(r'DP', this_line['play']))):
+        if not(bool(re.search(r'^((S|D|T)([1-9]+)?/|H/|HR|DGR)', this_line['play']))) and \
+                not(bool(re.search(r'DP', this_line['play']))):
             st = ['AB', 'PA']
             sc.stat_collector(this_line['playerID'], lineup, this_line, st)
 
@@ -328,11 +330,27 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
 
         # otherwise, nothing happens, as the E is recorded -- most likely for the throw; no assist, no put out
 
-    # batter on base due to PB or WP
-    if bool(re.search(r'^K\+(WP|PB).*B-1', this_line['play'])):
+    # batter on base due to PB or WP or E
+    if bool(re.search(r'B-1', runner)) and bool(re.search(r'^K\+(WP|PB|E).*B-1', this_line['play'])):
         this_line['outs'] -= 1
         this_line['after_1B'] = this_line['playerID']
         gv.bases_after = 'B' + gv.bases_after[1:]  # to replace the initial - placed by the K
+
+    # if batter on base explicitly - probably advance on throw or just defense fell asleep
+    if bool(re.search(r'B-[123]', runner)):
+        bases_before = gv.bases_after
+        batter_move = re.sub(r'.*(B-[123]).*', '\\1', runner)
+        if bool(re.search(r'-1', batter_move)):
+            this_line['after_1B'] = this_line['playerID']
+            if len(gv.bases_after) == 4 and not(bool(re.search(r'^B', gv.bases_after))):
+                gv.bases_after = 'B' + gv.bases_after[0:]
+        elif bool(re.search(r'-2', batter_move)):
+            this_line['after_2B'] = this_line['playerID']
+            gv.bases_after = '0B' + gv.bases_after[1:]  # if Error on play, this should overwrite B-- to 0B--
+        else:
+            this_line['after_3B'] = this_line['playerID']
+            gv.bases_after = '00B' + gv.bases_after[2:]
+        print("Batter advanced:", this_line['play'], bases_before, gv.bases_after)
 
     return this_line
 
