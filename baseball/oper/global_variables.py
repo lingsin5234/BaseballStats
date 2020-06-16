@@ -11,6 +11,20 @@ else:
 # create global tables.
 player_stats = pd.DataFrame()
 
+# pujols tracker -- just to help check fielding lol
+pujols_tracker = {
+    'A': 0,
+    'PO': 0,
+    'E': 0,
+    'DP': 0,
+    'TP': 0,
+    'game_id': '',
+    'this_half': '',
+    'play': '',
+    'stat_type': '',
+    'batter': ''
+}
+
 # create dictionary for storing player data to be processed later
 # with an unknown number of entries - index stored in player_idx
 player = {}
