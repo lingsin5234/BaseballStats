@@ -8,6 +8,7 @@ from . import fix_quotes_in_names as fqn
 from . import db_setup as dbs
 import os
 import re
+import pandas as pd
 
 '''
 # import Year; print True if completed
@@ -50,6 +51,7 @@ print(dbs.engine.table_names())
 '''
 
 #  -----  Fielder's Choice Fix  -----  #
+'''
 # load the imports for 2018 then find FC
 FC = []
 dir_str = 'baseball/import/2018'
@@ -71,5 +73,15 @@ for file_nm in all_files:
 FC = list(set(FC))
 for f in FC:
     print(f)
+'''
 #  ----------------------------------  #
 
+# Using Albert Pujols as a check, load PRE_STATS and sort for pujoa001
+df = pd.read_csv('PRE_STATS.csv')
+df = df[(df['player_id'] == 'pujoa001') & (df['bat_pitch'] == 'fielding')]
+pujols = df.groupby(['game_id', 'stat_type']).agg({'stat_value': 'sum'}).reset_index()
+pujols = pujols.set_index(['game_id']).pivot(columns='stat_type')['stat_value'].reset_index()
+pujols['game_id'] = pujols['game_id'].apply(lambda x: re.sub(r'^[A-Z]{3}', '', x))
+pujols = pujols.sort_values('game_id')
+# pujols.to_csv('pujols.csv', index=False)
+df.to_csv('pujols.csv', index=False)
