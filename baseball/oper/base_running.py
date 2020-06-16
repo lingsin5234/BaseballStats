@@ -206,10 +206,6 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
         if not (re.search(r'[B123]-H([/THE0-9NOBI]+)?\(UR\)', runner)):
             pt.append('ER')
 
-            # apply assists and fielding error
-            scored_play = re.sub(r'[B123]-H([/THE0-9NOBI]+)?\(UR\)', '\\1', runner)
-            fo.fielding_assign_stats(r'\D', scored_play, lineup, this_line, ['A'], ['E'])
-
         po.pitch_collector(hid, lineup, this_line, pt)
 
     # stay put
@@ -246,13 +242,13 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
             gv.bases_after = gv.bases_after.replace('1', '-1')
         this_line['after_3B'] = this_line['before_1B']
 
-    # Errors from play that should have been made
-    if bool(re.search(r'[123]X[123H]\(([E1-9/TH]+)\)', runner)):
+    # Errors from play that should have been made; batter on base to error handled further below
+    if bool(re.search(r'[123]X[123H]\([1-9]?E[1-9/TH]+\)', runner)):
         error_play = re.sub(r'[123]X[123H]\(([E1-9/TH]+)\)', '\\1', runner)
         fo.fielding_assign_stats(r'E|\D', error_play, lineup, this_line, ['A'], ['E'])
 
     # Errors leading to advanced
-    if bool(re.search(r'[B123]-[123H]\(([E1-9/TH]+)\)', runner)):
+    if bool(re.search(r'[B123]-[123H]\([1-9]?E[1-9/TH]+\)', runner)):
         error_throw = re.sub(r'[B123]-[123H]\(([E1-9/TH]+)\)', '\\1', runner)
         fo.fielding_assign_stats(r'E|\D', error_throw, lineup, this_line, ['A'], ['E'])
 
@@ -295,6 +291,9 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
             this_line['runs_scored'] -= 1
 
         # process fielding
+        # pujols check:
+        if bool(re.search(r'DP\.1X1\([12456789]+3\)', this_line['play'])):
+            print("BATTER", this_line['play'])
         fo.fielding_assign_stats(r'.*\(|\D', runner, lineup, this_line, ['A'], ['PO'])
 
     # batter on base due to error
