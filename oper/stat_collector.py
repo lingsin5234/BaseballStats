@@ -79,6 +79,11 @@ def stat_appender(player_id, team_name, data_year, game_id, this_half, stat_type
                                 "stat_team": stat_team,
                                 "bat_pitch": bat_pitch}
     gv.player_idx += 1  # increment index for next use
+
+    # pujols tracker
+    if player_id == 'pujoa001' and stat_type in ['A', 'PO', 'DP', 'TP', 'E']:
+        gv.pujols_tracker[stat_type] += 1
+
     return True
 
 

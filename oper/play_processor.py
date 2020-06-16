@@ -419,7 +419,8 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                         gv.bases_after = '-' + gv.bases_after
 
                         # record assist(s) and put out
-                        fo.fielding_assign_stats(r'\D', begin_play, lineup, this_line, ['A'], ['PO'])
+                        normal_out = re.sub('/.*', '', begin_play)
+                        fo.fielding_assign_stats(r'\D', normal_out, lineup, this_line, ['A'], ['PO'])
 
                     # fielding plays that are not included above
                     else:
