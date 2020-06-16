@@ -83,5 +83,5 @@ pujols = df.groupby(['game_id', 'stat_type']).agg({'stat_value': 'sum'}).reset_i
 pujols = pujols.set_index(['game_id']).pivot(columns='stat_type')['stat_value'].reset_index()
 pujols['game_id'] = pujols['game_id'].apply(lambda x: re.sub(r'^[A-Z]{3}', '', x))
 pujols = pujols.sort_values('game_id')
-# pujols.to_csv('pujols.csv', index=False)
-df.to_csv('pujols.csv', index=False)
+pujols.to_csv('pujols.csv', index=False)
+# df.to_csv('pujols.csv', index=False)
