@@ -122,3 +122,18 @@ def fielding_unique(grep_search, begin_play):
             fielders.pop(i)
 
     return fielders
+
+
+# common assigning assists and putouts/errors function
+def fielding_assign_stats(grep_unique, the_play, lineup, this_line, ft1, ft2):
+
+    fielders = fielding_unique(grep_unique, the_play)
+    for idx in range(0, len(fielders)):
+        if idx < len(fielders) - 1:
+            # record the stat(s) for non-last fielders (usually this assigns 'A')
+            fielding_processor(fielders[idx], lineup, this_line, ft1)
+        else:
+            # record stat(s) for last fielder (usually 'PO' or 'E')
+            fielding_processor(fielders[idx], lineup, this_line, ft2)
+
+    return True

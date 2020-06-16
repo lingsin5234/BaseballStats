@@ -52,27 +52,10 @@ def non_pa(this_line, begin_play, run_play, lineup, pid, hid):
 
                 # runner movement handled in the base_running
                 po_play = re.sub(r'.*PO[123]\(([1-9E/TH]+)\).*', '\\1', begin_play)
-                fielders = fo.fielding_unique(r'E|\D', po_play)
                 if bool(re.search('E', po_play)):
-                    for idx in range(0, len(fielders)):
-                        if idx < len(fielders) - 1:
-                            # record Assist for not-last fielder
-                            ft = ['A']
-                            fo.fielding_processor(fielders[idx], lineup, this_line, ft)
-                        else:
-                            # record Error
-                            ft = ['E']
-                            fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                    fo.fielding_assign_stats(r'E|\D', po_play, lineup, this_line, ['A'], ['E'])
                 else:
-                    for idx in range(0, len(fielders)):
-                        if idx < len(fielders) - 1:
-                            # record Assist for not-last fielder
-                            ft = ['A']
-                            fo.fielding_processor(fielders[idx], lineup, this_line, ft)
-                        else:
-                            # record put out
-                            ft = ['PO']
-                            fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                    fo.fielding_assign_stats(r'E|\D', po_play, lineup, this_line, ['A'], ['PO'])
 
     if re.search(r'POCS', begin_play):
         pt = ['POA']
@@ -91,6 +74,14 @@ def non_pa(this_line, begin_play, run_play, lineup, pid, hid):
 
             # run steal_processor
             this_line = br.steal_processor(this_line, lineup)
+
+            # fielding
+            pocs_play = re.sub(r'.*POCS[123H]\(([1-9])\).*', '\\1', begin_play)
+            fo.fielding_assign_stats(r'\D', pocs_play, lineup, this_line, ['A'], ['PO'])
+        # else error
+        else:
+            pocs_play = re.sub(r'.*POCS[123H]\(([E1-9/TH])\).*', '\\1', begin_play)
+            fo.fielding_assign_stats(r'E|\D', pocs_play, lineup, this_line, ['A'], ['E'])
 
     if re.search(r'DI', begin_play):
         pt = ['DI']
