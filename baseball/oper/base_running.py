@@ -53,14 +53,7 @@ def steal_processor(this_line, lineup):
 
             # fielding assist and putout
             cs_play = re.sub(r'.*CS2\(([1-9]+)\).*', '\\1', this_line['play'])
-            fielders = fo.fielding_unique(r'E|\D', cs_play)
-            for idx in range(0, len(fielders)):
-                if idx < len(fielders) - 1:
-                    ft = ['A']
-                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
-                else:
-                    ft = ['PO']
-                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+            fo.fielding_assign_stats(r'\D', cs_play, lineup, this_line, ['A'], ['PO'])
 
         if re.search(r'CS3', this_line['play']):
             gv.bases_after = gv.bases_after.replace('2', 'X')
@@ -69,16 +62,8 @@ def steal_processor(this_line, lineup):
             sc.stat_collector(this_line['before_2B'], lineup, this_line, st)
 
             # fielding assist and putout
-            cs_play = re.sub(r'.*CS2\(([1-9]+)\).*', '\\1', this_line['play'])
-            fielders = fo.fielding_unique(r'E|\D', cs_play)
-            print(fielders, this_line['play'])
-            for idx in range(0, len(fielders)):
-                if idx < len(fielders) - 1:
-                    ft = ['A']
-                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
-                else:
-                    ft = ['PO']
-                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+            cs_play = re.sub(r'.*CS3\(([1-9]+)\).*', '\\1', this_line['play'])
+            fo.fielding_assign_stats(r'\D', cs_play, lineup, this_line, ['A'], ['PO'])
 
         if re.search(r'CSH', this_line['play']):
             gv.bases_after = gv.bases_after.replace('3', 'X')
@@ -87,15 +72,8 @@ def steal_processor(this_line, lineup):
             sc.stat_collector(this_line['before_3B'], lineup, this_line, st)
 
             # fielding assist and putout
-            cs_play = re.sub(r'.*CS2\(([1-9]+)\).*', '\\1', this_line['play'])
-            fielders = fo.fielding_unique(r'E|\D', cs_play)
-            for idx in range(0, len(fielders)):
-                if idx < len(fielders) - 1:
-                    ft = ['A']
-                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
-                else:
-                    ft = ['PO']
-                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+            cs_play = re.sub(r'.*CSH\(([1-9]+)\).*', '\\1', this_line['play'])
+            fo.fielding_assign_stats(r'\D', cs_play, lineup, this_line, ['A'], ['PO'])
 
         # caught double steal DP
         if re.search(r'CS.*CS.*DP', this_line['play']):
@@ -103,31 +81,15 @@ def steal_processor(this_line, lineup):
 
             # fielding assist and putout
             steal1, steal2 = re.sub(r'.*CSH\(([1-9]+)\).*CSH\(([1-9]+)\).*', '\\1-\\2', this_line['play']).split('-')
-            steal_list = [fo.fielding_unique(r'.*\(|\D', steal1), fo.fielding_unique(r'.*\(|\D', steal2)]
-            for fielders in steal_list:
-                for idx in range(0, len(fielders)):
-                    if idx < len(fielders) - 1:
-                        ft = ['A']
-                        fo.fielding_processor(fielders[idx], lineup, this_line, ft)
-                    else:
-                        ft = ['PO']
-                        fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+            fo.fielding_assign_stats(r'.*\(|\D', steal1, lineup, this_line, ['A'], ['PO'])
+            fo.fielding_assign_stats(r'.*\(|\D', steal2, lineup, this_line, ['A'], ['PO'])
 
     # else if caught stealing but error
     elif bool(re.search(r'CS', this_line['play'])) and bool(re.search(r'CS[23H]\([1-9E/TH]+\)', this_line['play'])):
 
         # the runner advance will be handled separately just need to handle the fielding here
         play_in_question = re.sub(r'.*CS[23H]\(([1-9E]+)\).*', '\\1', this_line['play'])
-        fielders = fo.fielding_unique(r'E|\D', play_in_question)
-        for idx in range(0, len(fielders)):
-            if idx < len(fielders) - 1:
-                # record Assist for not-last fielder
-                ft = ['A']
-                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
-            else:
-                # record Error
-                ft = ['E']
-                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+        fo.fielding_assign_stats(r'E|\D', play_in_question, lineup, this_line, ['A'], ['E'])
 
     return this_line
 
@@ -243,6 +205,11 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
         # check earned run counted or not
         if not (re.search(r'[B123]-H([/THE0-9NOBI]+)?\(UR\)', runner)):
             pt.append('ER')
+
+            # apply assists and fielding error
+            scored_play = re.sub(r'[B123]-H([/THE0-9NOBI]+)?\(UR\)', '\\1', runner)
+            fo.fielding_assign_stats(r'\D', scored_play, lineup, this_line, ['A'], ['E'])
+
         po.pitch_collector(hid, lineup, this_line, pt)
 
     # stay put
@@ -279,6 +246,16 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
             gv.bases_after = gv.bases_after.replace('1', '-1')
         this_line['after_3B'] = this_line['before_1B']
 
+    # Errors from play that should have been made
+    if bool(re.search(r'[123]X[123H]\(([E1-9/TH]+)\)', runner)):
+        error_play = re.sub(r'[123]X[123H]\(([E1-9/TH]+)\)', '\\1', runner)
+        fo.fielding_assign_stats(r'E|\D', error_play, lineup, this_line, ['A'], ['E'])
+
+    # Errors leading to advanced
+    if bool(re.search(r'[B123]-[123H]\(([E1-9/TH]+)\)', runner)):
+        error_throw = re.sub(r'[B123]-[123H]\(([E1-9/TH]+)\)', '\\1', runner)
+        fo.fielding_assign_stats(r'E|\D', error_throw, lineup, this_line, ['A'], ['E'])
+
     # remove runners that are explicitly out but not FC nor the error above or DP/TP
     if re.search(r'[123]X[123H]', runner):
         if bool(not(re.search(r'^FC', this_line['play']))) & bool(not(re.search(r'E', runner))) & \
@@ -290,16 +267,7 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
         gv.bases_after = gv.bases_after.replace(the_runner, '-')
 
         # process fielding
-        fielders = fo.fielding_unique(r'.*\(|\D', runner)
-        for idx in range(0, len(fielders)):
-            if idx < len(fielders) - 1:
-                # record Assist for not-last fielder
-                ft = ['A']
-                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
-            else:
-                # record PO for last fielder
-                ft = ['PO']
-                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+        fo.fielding_assign_stats(r'.*\(|\D', runner, lineup, this_line, ['A'], ['PO'])
 
     # handle weird outs for the batter previously marked on base and NOT Error, e.g. not BX1(6E1)
     if bool(re.search(r'BX[123H]', runner)) & bool(not(re.search(r'E', runner))) & \
@@ -327,16 +295,7 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
             this_line['runs_scored'] -= 1
 
         # process fielding
-        fielders = fo.fielding_unique(r'.*\(|\D', runner)
-        for idx in range(0, len(fielders)):
-            if idx < len(fielders) - 1:
-                # record Assist for not-last fielder
-                ft = ['A']
-                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
-            else:
-                # record PO for last fielder
-                ft = ['PO']
-                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+        fo.fielding_assign_stats(r'.*\(|\D', runner, lineup, this_line, ['A'], ['PO'])
 
     # batter on base due to error
     if bool(re.search(r'BX[123H]\(([0-9]+)?E', runner)) | \
@@ -363,18 +322,11 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
             pt = ['R']
             po.pitch_collector(hid, lineup, this_line, pt)
 
-        # process fielding - only for assists BEFORE the E
+        # process fielding - only for errors generated from the running plays
+        # the errors from actual plays already processed in play_processor
         if bool(re.search(r'E', runner)):
-            fielders = fo.fielding_unique(r'.*\(|\D', runner)
-            for idx in range(0, len(fielders)):
-                if idx < len(fielders) - 1:
-                    # record Assist & IP for not-last fielder
-                    ft = ['A']
-                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
-                else:
-                    # record PO & IP for last fielder
-                    ft = ['E']
-                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+            fo.fielding_assign_stats(r'.*\(|\D', runner, lineup, this_line, ['A'], ['E'])
+
         # otherwise, nothing happens, as the E is recorded -- most likely for the throw; no assist, no put out
 
     # batter on base due to PB or WP

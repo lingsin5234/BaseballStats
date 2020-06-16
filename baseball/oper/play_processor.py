@@ -77,6 +77,9 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                 if run_play is not None:
                     this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
+                # handle defensive errors for non-PA plays
+
+
             # plate-appearance play
             else:
 
@@ -137,6 +140,11 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                         sc.stat_collector(pid, lineup, this_line, st)
                         pt = ['IP', 'BF', 'K']
                         po.pitch_collector(hid, lineup, this_line, pt)
+
+                        # handle defensive throws
+                        if bool(re.search(r'K[1-9]+', begin_play)):
+                            k_play = re.sub(r'K([1-9]+).*', '\\1', begin_play)
+                            fo.fielding_assign_stats(r'', k_play, lineup, this_line, ['A'], ['PO'])
 
                     elif bool(re.search(r'HP', begin_play)):
                         gv.bases_after = 'B' + gv.bases_after
@@ -396,17 +404,8 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                         st.append('ROE')  # reached on error
                         pt = ['BF']
 
-                        # assign assists? and errors
-                        fielders = fo.fielding_unique(r'E|\D', begin_play)
-                        for idx in range(0, len(fielders)):
-                            if idx < len(fielders) - 1:
-                                # record Assist for not-last fielder
-                                ft = ['A']
-                                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
-                            else:
-                                # record Error
-                                ft = ['E']
-                                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                        # assign assists and errors
+                        fo.fielding_assign_stats(r'E|\D', begin_play, lineup, this_line, ['A'], ['E'])
 
                     # normal out -- this should be last to handle all cases prior
                     elif bool(re.search(r'^[0-9]+', begin_play)):
@@ -420,16 +419,7 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                         gv.bases_after = '-' + gv.bases_after
 
                         # record assist(s) and put out
-                        fielders = fo.fielding_unique(r'\D', begin_play)
-                        for idx in range(0, len(fielders)):
-                            if idx < len(fielders) - 1:
-                                # record Assist for not-last fielder
-                                ft = ['A']
-                                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
-                            else:
-                                # record PO for last fielder
-                                ft = ['PO']
-                                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                        fo.fielding_assign_stats(r'\D', begin_play, lineup, this_line, ['A'], ['PO'])
 
                     # fielding plays that are not included above
                     else:
@@ -471,30 +461,6 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                         # fielder's choice implied; batter is out
                         begin_play = re.sub(r'FC', '', begin_play)
                         fo.fielding_po(begin_play, r'/.*', lineup, this_line)  # record PO
-
-                    # below is incorrect. save this for a couple iterations if needed.
-                    '''
-                    # determine who is out
-                    if re.search(r'\(B\)', begin_play):
-                        gv.bases_after = 'X' + gv.bases_after
-                        st.append('LOB', 'RLSP')
-                    elif re.search(r'\(1\)', begin_play):
-                        gv.bases_after = 'BX' + gv.bases_after[1:]
-                        this_line['after_1B'] = pid
-                        st.append('LOB', 'RLSP')
-                    elif re.search(r'\(2\)', begin_play):
-                        gv.bases_after = 'B' + gv.bases_after[0:1] + 'X' + gv.bases_after[2]
-                        this_line['after_1B'] = pid
-                        st.append('LOB', 'RLSP')
-                    elif re.search(r'\(3\)', begin_play):
-                        gv.bases_after = 'B' + gv.bases_after[:2] + 'X'
-                        this_line['after_1B'] = pid
-                        st.append('LOB', 'RLSP')
-                    else:
-                        # NO ONE IS OUT
-                        gv.bases_after = 'B' + gv.bases_after
-                        this_line['outs'] -= 1
-                    '''
 
                     sc.stat_collector(pid, lineup, this_line, st)
                     po.pitch_collector(hid, lineup, this_line, pt)

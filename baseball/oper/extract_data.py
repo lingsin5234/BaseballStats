@@ -173,6 +173,7 @@ for file_nm in all_files:
 
     exit()
     '''
+
     # if file_nm is washington, move on to next
     if re.search(r'WAS', file_nm):
         break
@@ -207,7 +208,7 @@ try:
 except IOError:
     print("I/O error")
     exit()
-exit()
+
 # WRITING OUTPUT PERFORMANCE
 o2_time = t.time()
 fgp = open('GAMEPLAY.LOG', mode='a')
@@ -221,6 +222,7 @@ t1_time = t.time()
 gv.player_stats = sc.stat_organizer(gv.player)
 gv.player_stats['batting'].to_csv('BATTING.csv', sep=',', index=False)
 gv.player_stats['pitching'].to_csv('PITCHING.csv', sep=',', index=False)
+gv.player_stats['fielding'].to_csv('FIELDING.csv', sep=',', index=False)
 
 # WRITING STATS PERFORMANCE
 t2_time = t.time()
