@@ -74,8 +74,8 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                 this_line = npa.non_pa(this_line, begin_play, run_play, lineup, pid, hid)
 
                 # base_runner movements
-                if run_play is not None:
-                    this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
+                # if run_play is not None:
+                #     this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
                 # handle defensive errors for non-PA plays
 
@@ -415,6 +415,10 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                         st.append('ROE')  # reached on error
                         pt = ['BF']
 
+                        # if not explicit, then place the batter
+                        if not(bool(re.search('B(-|X)', this_line['play']))):
+                            this_line['after_1B'] = pid
+
                         # assign assists and errors
                         fo.fielding_assign_stats(r'E|\D', begin_play, lineup, this_line, ['A'], ['E'])
 
@@ -443,8 +447,10 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                     # record any SH/SF otherwise, all are LOB/RLSP if not an error
                     if bool(re.search(r'SH', begin_play)):
                         st.append('SH')
+                        st.remove('AB')  # also remove at-bat
                     elif bool(re.search(r'SF', begin_play)):
                         st.append('SF')
+                        st.remove('AB')  # also remove at-bat
                     elif not(bool(re.search(r'E', begin_play))):
                         st.extend(['LOB', 'RLSP'])
                     sc.stat_collector(pid, lineup, this_line, st)
@@ -466,14 +472,16 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                             not(bool(re.search(r'[B123]X[23H]\([1-9]?E[1-9]+', this_line['play']))):
                         # this is handled in the base-running section
                         pass
+
+                    # move batter unless explicit
+                    if bool(re.search(r'B(-|X)[123H]', this_line['play'])):
+                        # print("Explicit Batter - FC", this_line['play'])
+                        # base-running section will move the batter accordingly
+                        pass
                     else:
-                        # everyone is safe; move batter unless explicit
-                        if bool(re.search(r'B(-|X)[123H]', this_line['play'])):
-                            # print("Explicit Batter - FC", this_line['play'])
-                            # base-running section will move the batter accordingly
-                            pass
-                        else:
-                            gv.bases_after = 'B' + gv.bases_after
+                        # move batter to 1B
+                        gv.bases_after = 'B' + gv.bases_after
+                        this_line['after_1B'] = pid
 
                     sc.stat_collector(pid, lineup, this_line, st)
                     po.pitch_collector(hid, lineup, this_line, pt)
@@ -522,7 +530,9 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                     # update the lineup for this person
                     substitution = fo.lineup_substitution(this_line, lineup, pid, 'batting', '12')
                     lineup = substitution[0]
-                    sub_player_id = lineup.at[substitution[1][0], 'player_id']
+                    sub_player_id = substitution[3]
+                    # if the_game_id == 'COL201805090':
+                    #     print(this_line, '\n', sub_player_id, pid, substitution, '\n', lineup)
 
                     # check the bases for the runner:
                     if this_line['after_1B'] == sub_player_id:

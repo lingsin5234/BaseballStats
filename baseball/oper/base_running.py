@@ -225,14 +225,21 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
         gv.bases_after = gv.bases_after[:len(gv.bases_after)-2] + '-' + \
                          gv.bases_after[len(gv.bases_after)-2:len(gv.bases_after)-1]
         this_line['after_3B'] = this_line['before_2B']
+
     elif bool(re.search(r'1-2', runner)) | bool(re.search(r'1X2\(([0-9]+)?E', runner)):
 
         # remove the 2B runner (either - or 2, this should have moved first based on running event order
         # e.g. .2-H;1-2
+        # curr_bases = gv.bases_after
         gv.bases_after = gv.bases_after[:len(gv.bases_after)-3] + \
                          gv.bases_after[len(gv.bases_after)-3:len(gv.bases_after)-2] + \
                          gv.bases_after[len(gv.bases_after)-1:]
+        # if this made it too short, tack on '-' behind it. e.g. 13 is actually -13
+        if len(gv.bases_after) < 3:
+            # print(curr_bases, gv.bases_after, this_line['play'])
+            gv.bases_after = gv.bases_after.replace('1', '-1')
         this_line['after_2B'] = this_line['before_1B']
+
     elif bool(re.search(r'1-3', runner)) | bool(re.search(r'1X3\(([0-9]+)?E', runner)):
 
         # remove the 2B and 3B runners; this should have moved already
@@ -343,14 +350,19 @@ def runner_processor(runner, this_line, lineup, pitcher_id):
         if bool(re.search(r'-1', batter_move)):
             this_line['after_1B'] = this_line['playerID']
             if len(gv.bases_after) == 4 and not(bool(re.search(r'^B', gv.bases_after))):
-                gv.bases_after = 'B' + gv.bases_after[0:]
+                gv.bases_after = 'B' + gv.bases_after[1:]
         elif bool(re.search(r'-2', batter_move)):
             this_line['after_2B'] = this_line['playerID']
-            gv.bases_after = '0B' + gv.bases_after[1:]  # if Error on play, this should overwrite B-- to 0B--
+            gv.bases_after = '0B' + gv.bases_after[2:]  # if Error on play, this should overwrite B-- to 0B--
         else:
             this_line['after_3B'] = this_line['playerID']
-            gv.bases_after = '00B' + gv.bases_after[2:]
-        print("Batter advanced:", this_line['play'], bases_before, gv.bases_after)
+            gv.bases_after = '00B' + gv.bases_after[3:]
+        # print("Batter advanced:", this_line['play'], bases_before, gv.bases_after)
+        '''
+        #  NOTE: This will OVERWRITE 'R', runs scored, however, the 'R' gets replaced in base_running2
+        #  This is not an issue as the 'runs_scored' are recorded in 'this_line' separately
+        #  Runner movement for the bases is still correct, so there is no stat issue overwriting the error plays.
+        '''
 
     return this_line
 
