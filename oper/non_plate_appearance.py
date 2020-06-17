@@ -28,14 +28,14 @@ def non_pa(this_line, begin_play, run_play, lineup, pid, hid):
         # run steal_processor
         this_line = br.steal_processor(this_line, lineup)
 
-    if bool(re.search(r'CS', begin_play)) & bool(not(re.search(r'POCS', begin_play))):
+    if bool(re.search(r'CS', begin_play)) and not(bool(re.search(r'POCS', begin_play))):
         # run steal_processor
         this_line = br.steal_processor(this_line, lineup)
 
-    if bool(re.search(r'PO', begin_play)) & bool(not(re.search(r'POCS', begin_play))):
+    if bool(re.search(r'PO', begin_play)) and not(bool(re.search(r'POCS', begin_play))):
         pt = ['POA']
         # if not an error then PO successful
-        if bool(not(re.search(r'E', begin_play))):
+        if not(bool(re.search(r'E', begin_play))):
             this_line['outs'] += 1
             pt.append('PO')
 
@@ -55,12 +55,12 @@ def non_pa(this_line, begin_play, run_play, lineup, pid, hid):
                 if bool(re.search('E', po_play)):
                     fo.fielding_assign_stats(r'E|\D', po_play, lineup, this_line, ['A'], ['E'])
                 else:
-                    fo.fielding_assign_stats(r'E|\D', po_play, lineup, this_line, ['A'], ['PO'])
+                    fo.fielding_assign_stats(r'\D', po_play, lineup, this_line, ['A'], ['PO'])
 
     if re.search(r'POCS', begin_play):
         pt = ['POA']
         # if not an error then PO successful
-        if bool(not (re.search(r'E', begin_play))):
+        if not(bool(re.search(r'E', begin_play))):
             this_line['outs'] += 1
             pt.append('PO')
 
@@ -72,19 +72,20 @@ def non_pa(this_line, begin_play, run_play, lineup, pid, hid):
             elif re.search(r'PO3', begin_play):
                 gv.bases_after = gv.bases_after.replace('3', 'X')
 
-            # run steal_processor
+            # run steal_processor - fielding taken care of here as well
             this_line = br.steal_processor(this_line, lineup)
 
-            # fielding
-            pocs_play = re.sub(r'.*POCS[123H]\(([1-9])\).*', '\\1', begin_play)
-            fo.fielding_assign_stats(r'\D', pocs_play, lineup, this_line, ['A'], ['PO'])
         # else error
         else:
-            pocs_play = re.sub(r'.*POCS[123H]\(([E1-9/TH])\).*', '\\1', begin_play)
+            pocs_play = re.sub(r'.*POCS[123H]\(([E1-9/TH]+)\).*', '\\1', begin_play)
             fo.fielding_assign_stats(r'E|\D', pocs_play, lineup, this_line, ['A'], ['E'])
 
     if re.search(r'DI', begin_play):
         pt = ['DI']
+
+    # manage the baserunners if not CS, SB, PO
+    if (run_play is not None) and not(bool(re.search(r'(SB|CS|PO)', begin_play))):
+        this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
     if pt is not None:
         po.pitch_collector(hid, lineup, this_line, pt)

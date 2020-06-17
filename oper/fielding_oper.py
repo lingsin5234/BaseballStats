@@ -21,12 +21,15 @@ def lineup_substitution(this_line, lineup, pid, sub_type, field_pos):
                  (lineup.bat_lineup == this_line['batting'])
     sub_index = lineup.index[sub_filter]
 
+    # keep the person subbed out on hand
+    sub_out_id = lineup.at[sub_index[0], 'player_id']
+
     # replace the person in the lineup
     lineup.at[sub_index[0], 'player_id'] = pid
     lineup.at[sub_index[0], 'player_nm'] = this_line['player_name']
     lineup.at[sub_index[0], 'fielding'] = field_pos
 
-    return [lineup, sub_index, new_substitution]
+    return [lineup, sub_index, new_substitution, sub_out_id]
 
 
 # fielding stats collector
