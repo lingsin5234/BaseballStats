@@ -83,6 +83,10 @@ def non_pa(this_line, begin_play, run_play, lineup, pid, hid):
     if re.search(r'DI', begin_play):
         pt = ['DI']
 
+    # manage the baserunners if not CS, SB, PO
+    if (run_play is not None) and not(bool(re.search(r'(SB|CS|PO)', begin_play))):
+        this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
+
     if pt is not None:
         po.pitch_collector(hid, lineup, this_line, pt)
 
