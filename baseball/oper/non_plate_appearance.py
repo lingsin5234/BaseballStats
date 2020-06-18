@@ -47,15 +47,16 @@ def non_pa(this_line, begin_play, run_play, lineup, pid, hid):
             elif re.search(r'PO3', begin_play):
                 gv.bases_after = gv.bases_after.replace('3', 'X')
 
-            # fielding for Pick-Offs (PO)
-            if re.search(r'PO[123]\([1-9E/TH]+\)', begin_play):
+        # fielding for Pick-Offs (PO)
+        if re.search(r'PO[123]\([1-9E/TH]+\)', begin_play):
 
-                # runner movement handled in the base_running
-                po_play = re.sub(r'.*PO[123]\(([1-9E/TH]+)\).*', '\\1', begin_play)
-                if bool(re.search('E', po_play)):
-                    fo.fielding_assign_stats(r'E|\D', po_play, lineup, this_line, ['A'], ['E'])
-                else:
-                    fo.fielding_assign_stats(r'\D', po_play, lineup, this_line, ['A'], ['PO'])
+            # pick off plays
+            po_play = re.sub(r'.*PO[123]\(([1-9E/TH]+)\).*', '\\1', begin_play)
+            if bool(re.search('E', po_play)):
+                fo.fielding_assign_stats(r'E|\D', po_play, lineup, this_line, ['A'], ['E'])
+            else:
+                fo.fielding_assign_stats(r'\D', po_play, lineup, this_line, ['A'], ['PO'])
+        # this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
     if re.search(r'POCS', begin_play):
         pt = ['POA']
@@ -79,15 +80,19 @@ def non_pa(this_line, begin_play, run_play, lineup, pid, hid):
         else:
             pocs_play = re.sub(r'.*POCS[123H]\(([E1-9/TH]+)\).*', '\\1', begin_play)
             fo.fielding_assign_stats(r'E|\D', pocs_play, lineup, this_line, ['A'], ['E'])
+            # this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
     if re.search(r'DI', begin_play):
         pt = ['DI']
 
     # manage the baserunners if not CS, SB, PO
-    if (run_play is not None) and not(bool(re.search(r'(SB|CS|PO)', begin_play))):
-        this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
+    # if (run_play is not None) and not(bool(re.search(r'(SB|CS|PO)', begin_play))):
+    #     this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
     if pt is not None:
         po.pitch_collector(hid, lineup, this_line, pt)
+
+    # needs to be run regardless
+    this_line = br.base_running2(this_line, run_play, lineup, pid, hid)
 
     return this_line
