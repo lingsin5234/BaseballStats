@@ -79,7 +79,6 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
 
                 # handle defensive errors for non-PA plays
 
-
             # plate-appearance play
             else:
 
@@ -96,9 +95,13 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                         pt = ['BF', 'H']
 
                         # single
-                        if re.search(r'^S', begin_play) and not batter_move:
-                            this_line['after_1B'] = pid
-                            gv.bases_after = 'B' + gv.bases_after
+                        if re.search(r'^S', begin_play):
+                            if not batter_move:
+                                this_line['after_1B'] = pid
+                                gv.bases_after = 'B' + gv.bases_after
+                            else:
+                                # base-running will take care of it
+                                pass
                         # double
                         elif re.search(r'^D', begin_play):
                             if not batter_move:
@@ -115,11 +118,13 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                             pt.append('T')
                         # home run
                         else:
+                            this_line['runs_scored'] += 1
+                            gv.bases_after = '---'
+                            st.extend(['HR', 'R'])
+                            pt.extend(['HR', 'R'])
                             if not batter_move:
-                                this_line['runs_scored'] += 1
-                                gv.bases_after = '---'
-                                st.extend(['HR', 'R', 'RBI'])
-                                pt.extend(['HR', 'R', 'ER'])
+                                st.append('RBI')
+                                pt.append('ER')
 
                         # stat process
                         sc.stat_collector(pid, lineup, this_line, st)
@@ -320,17 +325,15 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                         # Case 2: Force Outs; No Runner Outs
                         elif check_force_out and (not check_runner_out):
 
-                            # grab all but last fielder if batter was out, then run unique
+                            # grab all but last fielder, then run unique
                             if bool(re.search(r'([1-9])/.*', begin_play)):
                                 case_two = re.sub(r'([1-9])/.*', '', begin_play)
                             else:
-                                case_two = re.sub(r'/.*', '', begin_play)
+                                case_two = re.sub(r'[1-9]\([B123]\)/.*', '', begin_play)
                             fielders = fo.fielding_unique(r'\([\dB]+\)|\D', case_two)
                             for idx in range(0, len(fielders)):
-                                if idx < len(fielders) - 1:
-                                    # record Assist for not-last fielder
-                                    ft = ['A']
-                                    fo.fielding_processor(fielders[idx], lineup, this_line, ft)
+                                ft = ['A']
+                                fo.fielding_processor(fielders[idx], lineup, this_line, ft)
 
                         # Case 3: Only 1 Force Out; and Runner is out:
                         elif (not check_force_out) and check_runner_out:
@@ -518,6 +521,7 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
             this_line['inning'] = the_dict[i-1]['inning']
             this_line['half'] = the_dict[i-1]['half']
             this_line['half_innings'] = the_dict[i-1]['half_innings']
+            this_line['outs'] = the_dict[i-1]['outs']
             pid = this_line['playerID']
 
             # if pinch-runner, put in the runner
