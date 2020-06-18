@@ -172,7 +172,7 @@ def stat_organizer(player_dict):
     # quick checks
     # print(stats_tb['batting'].head)
     # print(stats_tb['pitching'].head)
-    print(stats_tb['fielding'].head)
+    # print(stats_tb['fielding'].head)
 
     return stats_tb
 
