@@ -79,10 +79,10 @@ for f in FC:
 # Using Albert Pujols as a check, load PRE_STATS and sort for pujoa001
 # Second check, Trea turner; turnt001
 df = pd.read_csv('PRE_STATS.csv')
-df = df[(df['player_id'] == 'turnt001') & (df['bat_pitch'] == 'batting')]
+df = df[(df['player_id'] == 'pujoa001') & (df['bat_pitch'] == 'fielding')]
 pujols = df.groupby(['game_id', 'stat_type']).agg({'stat_value': 'sum'}).reset_index()
 pujols = pujols.set_index(['game_id']).pivot(columns='stat_type')['stat_value'].reset_index()
 pujols['game_id'] = pujols['game_id'].apply(lambda x: re.sub(r'^[A-Z]{3}', '', x))
 pujols = pujols.sort_values('game_id')
-pujols.to_csv('turntrea.csv', index=False)
+pujols.to_csv('pujols.csv', index=False)
 # df.to_csv('turntrea.csv', index=False)
