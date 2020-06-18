@@ -1,5 +1,5 @@
 # this file sets up the classes for the datasets and database
-from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey
+from sqlalchemy import Table, Column, Integer, String, Float, MetaData, ForeignKey
 
 metadata = MetaData()
 
@@ -177,3 +177,43 @@ pitching_stats = Table('pitching', metadata,
                        Column('strikes_thrown', Integer),
                        Column('balls_thrown', Integer),
                        Column('foul_balls', Integer))
+
+# fielding stats table
+fielding = Table('fielding', metadata,
+                 Column('Id', Integer, primary_key=True),
+                 Column('player_id', String),
+                 Column('data_year', Integer),
+                 Column('team_name', String),
+                 Column('games_played', Integer),
+                 Column('games_started', Integer),
+                 # Column('innings_played', Float),
+                 # Column('batters_faced', Integer),
+                 # Column('wins', Integer),
+                 # Column('losses', Integer),
+                 # Column('holds', Integer),
+                 # Column('saves', Integer),
+                 # Column('runs_allowed', Integer),
+                 # Column('earned_runs', Integer),
+                 Column('assists', Integer),
+                 Column('put_outs', Integer),
+                 Column('double_plays', Integer),
+                 Column('triple_plays', Integer),
+                 Column('errors', Integer))
+
+# batting calculated stats table
+batting_calc = Table('batting_calc', metadata,
+                     Column('Id', Integer, primary_key=True),
+                     Column('player_id', String),
+                     Column('data_year', Integer),
+                     Column('team_name', String),
+                     Column('batting_avg', Float),
+                     Column('on_base_per', Float),
+                     Column('slugging', Float),
+                     Column('obp_slug', Float),
+                     Column('obp_slug_plus', Float),
+                     Column('total_bases', Integer),
+                     Column('batting_avg_bip', Float),
+                     Column('runs_created', Float),
+                     Column('runs_created_per', Float))
+
+

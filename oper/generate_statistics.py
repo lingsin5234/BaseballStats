@@ -76,6 +76,17 @@ def generate_stats(year, team):
         return False
 
     try:
+        # write to FIELDING stats database
+        update_time = t.time()
+        conn.fast_executemany = True
+        pitch_stats.to_sql('fielding', conn, if_exists='append', index=False)
+        print('Import FIELDING STATS to Database: ', dt.seconds_convert(t.time() - update_time))
+    except Exception as e:
+        # accept any types of errors
+        el.error_logger(e, 'WRITE fielding stats: ' + str(e), team, year)
+        return False
+
+    try:
         # WRITING STATS PERFORMANCE
         t2_time = t.time()
         fgp = open('GAMEPLAY.LOG', mode='a')
