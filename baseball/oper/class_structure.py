@@ -1,5 +1,5 @@
 # this file sets up the classes for the datasets and database
-from sqlalchemy import Table, Column, Integer, String, Float, MetaData, ForeignKey
+from sqlalchemy import Table, Column, Integer, String, Float, MetaData, ForeignKey, UniqueConstraint
 
 metadata = MetaData()
 
@@ -18,6 +18,7 @@ error_log = Table('error_log', metadata,
                   Column('process_name', String),
                   Column('data_year', Integer),
                   Column('team_name', String),
+                  Column('stat_category', String),
                   Column('error', String),
                   Column('timestamp', String))
 
@@ -216,4 +217,55 @@ batting_calc = Table('batting_calc', metadata,
                      Column('runs_created', Float),
                      Column('runs_created_per', Float))
 
+# test case stats
+test_cases = Table('test_cases', metadata,
+                   Column('Id', Integer, primary_key=True),
+                   Column('player_id', String),
+                   Column('data_year', Integer),
+                   Column('stat_category', String),
+                   UniqueConstraint('player_id', 'data_year', 'stat_category', name='player_year_stat'))
 
+test_batting = Table('test_batting', metadata,
+                     Column('Id', Integer, primary_key=True),
+                     Column('test_case', ForeignKey('test_cases.Id')),
+                     Column('GameDate', String),
+                     Column('PA', Integer),
+                     Column('AB', Integer),
+                     Column('R', Integer),
+                     Column('H', Integer),
+                     Column('D', Integer),
+                     Column('T', Integer),
+                     Column('HR', Integer),
+                     Column('RBI', Integer),
+                     Column('BB', Integer),
+                     Column('IBB', Integer),
+                     Column('SO', Integer),
+                     Column('HBP', Integer),
+                     Column('SH', Integer),
+                     Column('SF', Integer),
+                     Column('ROE', Integer),
+                     Column('GDP', Integer),
+                     Column('SB', Integer),
+                     Column('CS', Integer),
+                     Column('BA', Float),
+                     Column('OBP', Float),
+                     Column('SLG', Float),
+                     Column('OPS', Float),
+                     Column('BOP', Integer),
+                     Column('aLI', Float),
+                     Column('WPA', Float),
+                     Column('RE24', Float),
+                     Column('DFS_DK', Float),
+                     Column('DFS_FD', Float),
+                     Column('Pos', String))
+
+test_fielding = Table('test_fielding', metadata,
+                      Column('Id', Integer, primary_key=True),
+                      Column('test_case', ForeignKey('test_cases.Id')),
+                      Column('GameDate', String),
+                      Column('PO', Integer),
+                      Column('A', Integer),
+                      Column('E', Integer),
+                      Column('Ch', Integer),
+                      Column('DP', Integer),
+                      Column('Pos', String))
