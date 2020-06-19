@@ -6,22 +6,28 @@ from . import aggregate_statistics as ag
 from . import database_reader as dr
 from . import fix_quotes_in_names as fqn
 from . import db_setup as dbs
+from . import date_time as dt
+import time as t
 import os
 import re
 import pandas as pd
 
-'''
+# '''
 # import Year; print True if completed
-print("Import Completed: ", ir.import_data(2018))
+# print("Import Completed: ", ir.import_data(2018))
 
 # print True if this succeeds
+start_time = t.time()
 files = os.listdir('baseball/import/2018')
 files = [f[4:7] for f in files if f.find('ROS') == -1 and f.find('TEAM') == -1]
 for f in files:
-    # print("Processing Completed: ", f, pi.process_data_single_team(2018, f))
+    print("Processing Completed: ", f, pi.process_data_single_team(2018, f))
     # print(f)
-    print("Stats Generated: ", f, gs.generate_stats(2018, f))
-'''
+print("All Processing Completed", dt.seconds_convert(t.time() - start_time))
+print("Stats Generated: ", 'Batting', gs.generate_stats2(2018, 'batting'))
+print("Stats Generated: ", 'Pitching', gs.generate_stats2(2018, 'pitching'))
+print("Stats Generated: ", 'Fielding', gs.generate_stats2(2018, 'fielding'))
+# '''
 '''
 # ^ above done wrong. should be processing ALL stats before doing a generate stats!
 query = "SELECT COUNT(*) FROM pitching"
@@ -76,6 +82,7 @@ for f in FC:
 '''
 #  ----------------------------------  #
 
+'''
 # Using Albert Pujols as a check, load PRE_STATS and sort for pujoa001
 # Second check, Trea turner; turnt001
 df = pd.read_csv('PRE_STATS.csv')
@@ -86,3 +93,4 @@ pujols['game_id'] = pujols['game_id'].apply(lambda x: re.sub(r'^[A-Z]{3}', '', x
 pujols = pujols.sort_values('game_id')
 pujols.to_csv('pujols.csv', index=False)
 # df.to_csv('turntrea.csv', index=False)
+'''
