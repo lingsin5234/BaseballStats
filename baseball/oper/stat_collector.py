@@ -229,8 +229,8 @@ def stat_organizer2(player_dict, stat_category):
     # convert player_dict into table
     # player_tb = pd.DataFrame.from_dict(player_dict, "index")
     # player_tb.to_csv('PRE_STATS.csv', sep=',')
-    player_tb = pd.DataFrame.from_dict(player_dict)
-    print(player_tb.head())
+    player_tb = pd.DataFrame.from_dict(player_dict).transpose()
+    # print(player_tb.head())
     # reshape the data
     player_tb = player_tb.groupby(['player_id', 'team_name', 'data_year', 'bat_pitch', 'stat_type'])\
         .agg({'stat_value': 'sum'}).reset_index()
