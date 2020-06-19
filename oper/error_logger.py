@@ -4,17 +4,19 @@ from . import db_setup as dbs
 
 
 # error logging function
-def error_logger(error, process_name, team_name, data_year):
+def error_logger(error, process_name, team_name, data_year, stat_category):
 
     c = dbs.engine.connect()
     error_dict = {
         'process_name': process_name,
         'data_year': data_year,
         'team_name': team_name,
+        'stat_category': stat_category,
         'error': str(error),
         'timestamp': t.strftime("%Y-%m-%d %H:%M:%S", t.localtime())
     }
-    query = "INSERT INTO error_log ('process_name', 'data_year', 'team_name', 'error', 'timestamp') VALUES (?,?,?,?,?)"
+    query = "INSERT INTO error_log ('process_name', 'data_year', 'team_name', 'stat_category', 'error', 'timestamp')" \
+            " VALUES (?,?,?,?,?,?)"
     c.execute(query, list(error_dict.values()))
 
 

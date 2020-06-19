@@ -221,3 +221,70 @@ def game_tracker(all_starts, data_year):
 
     return games_dict
 
+
+# in order to split the generate stats function into separate batting, fielding and pitching jobs
+# need to split the stat_organizer into separate functions
+def stat_organizer2(player_dict, stat_category):
+
+    # convert player_dict into table
+    # player_tb = pd.DataFrame.from_dict(player_dict, "index")
+    # player_tb.to_csv('PRE_STATS.csv', sep=',')
+    player_tb = pd.DataFrame.from_dict(player_dict)
+    print(player_tb.head())
+    # reshape the data
+    player_tb = player_tb.groupby(['player_id', 'team_name', 'data_year', 'bat_pitch', 'stat_type'])\
+        .agg({'stat_value': 'sum'}).reset_index()
+
+    # set index to BOTH player_id and team_name and pivot based on stat_type column and values
+    player_tb = player_tb.set_index(
+        ['player_id', 'team_name', 'data_year', 'bat_pitch']).pivot(columns='stat_type')['stat_value']
+
+    # reset index and rename to fix the structure of the columns
+    player_tb = player_tb.reset_index().rename_axis(None, axis=1)
+    player_tb = player_tb.fillna(0)
+    # print(player_tb.head)
+
+    # separate pitching, batting and fielding stats here
+    stats_tb = {"pitching": player_tb[player_tb.bat_pitch == 'pitching'],
+                "batting": player_tb[player_tb.bat_pitch == 'batting'],
+                "fielding": player_tb[player_tb.bat_pitch == 'fielding']}
+
+    # only include relevant columns for each type of stat
+    stat_col = ['player_id', 'team_name', 'data_year']
+    if stat_category == 'batting':
+        stat_col.extend(list(gv.bat_stat_types.keys()))
+    elif stat_category == 'pitching':
+        stat_col.extend(list(gv.pitch_stat_types.keys()))
+    elif stat_category == 'fielding':
+        stat_col.extend(list(gv.field_stat_types.keys()))
+    stat_col = [c for c in stat_col if c not in ['PID', 'YEAR', 'TEAM']]
+
+    # if any of the stat types are missing, assign a random 0
+    missing_stat_col = [b for b in stat_col if b not in stats_tb[stat_category].columns]
+    if len(missing_stat_col) > 0:
+        for e in missing_stat_col:
+            zeros = [0.0] * len(stats_tb[stat_category])
+            num_cols = int(stats_tb[stat_category].count(axis=1).reset_index(drop=True)[0])
+            stats_tb[stat_category].insert(num_cols, e, zeros, True)
+
+    # assign the appropriate columns
+    stats_tb[stat_category] = stats_tb[stat_category][stat_col]
+
+    # no need to rename columns! :)
+    print("RENAMING IN PROGRESS . . . ")
+    stats_tb[stat_category] = stats_tb[stat_category].rename(
+        columns={"player_id": 'PID', 'team_name': 'TEAM', 'data_year': 'YEAR'})
+
+    # innings - divided into 3 outs
+    if stat_category in ['pitching', 'fielding']:
+        floor_innings = stats_tb[stat_category]['IP'] // 3
+        modulus_innings = stats_tb[stat_category]['IP'] % 3 / 10
+        stats_tb[stat_category]['IP'] = floor_innings + modulus_innings
+
+    # quick checks
+    # print(stats_tb[stat_category].head)
+
+    return stats_tb
+
+
+
