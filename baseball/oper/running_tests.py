@@ -7,6 +7,7 @@ from . import database_reader as dr
 from . import fix_quotes_in_names as fqn
 from . import db_setup as dbs
 from . import date_time as dt
+from . import automated_tests as aut
 import time as t
 import os
 import re
@@ -24,6 +25,15 @@ for f in files:
     print("Processing Completed: ", f, pi.process_data_single_team(2018, f))
     # print(f)
 print("All Processing Completed", dt.seconds_convert(t.time() - start_time))
+
+# import, then run test cases
+aut.import_test_cases()
+print('Test Cases IMPORTED.')
+aut.run_test_cases('batting')
+print('Test Cases for batting completed.')
+aut.run_test_cases('fielding')
+print('Test Cases for fielding completed.')
+
 print("Stats Generated: ", 'Batting', gs.generate_stats2(2018, 'batting'))
 print("Stats Generated: ", 'Pitching', gs.generate_stats2(2018, 'pitching'))
 print("Stats Generated: ", 'Fielding', gs.generate_stats2(2018, 'fielding'))
