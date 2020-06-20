@@ -8,6 +8,7 @@ from . import fix_quotes_in_names as fqn
 from . import db_setup as dbs
 from . import date_time as dt
 from . import automated_tests as aut
+from . import calculate_statistics as cs
 import time as t
 import os
 import re
@@ -34,7 +35,27 @@ print('Test Cases for batting completed.')
 aut.run_test_cases('fielding')
 print('Test Cases for fielding completed.')
 '''
-print("Stats Generated: ", 'Batting', gs.generate_stats2(2018, 'batting'))
+# print("Stats Generated: ", 'Batting', gs.generate_stats2(2018, 'batting'))
+# '''
+conn = dbs.engine.connect()
+query = 'SELECT * FROM batting'
+results = conn.execute(query).fetchall()
+columns = conn.execute(query)
+conn.close()
+
+# --- run calc bat stats --- #
+cs.calculate_bat_stats(results, columns, 2018)
+
+# select to see results
+conn = dbs.engine.connect()
+query = 'SELECT * FROM batting_calc'
+results = conn.execute(query).fetchall()
+columns = conn.execute(query)
+df = pd.DataFrame(results)
+df.columns = columns.keys()
+print(df)
+conn.close()
+# '''
 # print("Stats Generated: ", 'Pitching', gs.generate_stats2(2018, 'pitching'))
 # print("Stats Generated: ", 'Fielding', gs.generate_stats2(2018, 'fielding'))
 # '''
