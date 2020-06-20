@@ -7,6 +7,7 @@ from . import date_time as dt
 from . import db_setup as dbs
 from . import error_logger as el
 import pandas as pd
+import datetime
 
 
 '''
@@ -135,6 +136,7 @@ def generate_stats2(year, stat_category):
 
     try:
         gv.player_stats = sc.stat_organizer2(gv.player, stat_category)
+        # t.sleep(10)
     except Exception as e:
         # accept any types of errors
         el.error_logger(e, 'STAT_ORGANIZER: ' + str(e), 'ALL', year, stat_category)
@@ -155,24 +157,19 @@ def generate_stats2(year, stat_category):
         return False
 
     try:
-        # first check player_year_team table
-        update_time = t.time()
+        # check player_year_team table to get/create pyts_id, then remove player, year, team
+        check_time = t.time()
         conn.fast_executemany = True
-
-        check_pyts(gen_stats, conn, year, stat_category)
-
-        # gen_stats.to_sql(stat_category, conn, if_exists='append', index=False)
-        # print('Import', stat_category.upper(), 'STATS to Database: ', dt.seconds_convert(t.time() - update_time))
+        gen_stats = check_pyts(gen_stats, conn, year, stat_category)
+        gen_stats = gen_stats.drop(columns=['player_id', 'data_year', 'team_name'])
+        print('CHECK PYTS Table:', dt.seconds_convert(t.time() - check_time))
     except Exception as e:
         # accept any type of errors
         el.error_logger(e, 'Check PYTS table: ' + str(e), 'ALL', year, stat_category)
 
-    quit()
-
     try:
         # write the STATS to corresponding database
         update_time = t.time()
-        conn.fast_executemany = True
         gen_stats.to_sql(stat_category, conn, if_exists='append', index=False)
         print('Import', stat_category.upper(), 'STATS to Database: ', dt.seconds_convert(t.time() - update_time))
     except Exception as e:
@@ -192,7 +189,6 @@ def generate_stats2(year, stat_category):
         return False
 
     # send completion notice
-    conn.fast_executemany = True
     finish_str = {
         'process_name': 'stat_processor: ' + stat_category,
         'data_year': year,
@@ -202,6 +198,7 @@ def generate_stats2(year, stat_category):
     }
     completion = pd.DataFrame([finish_str])
     completion.to_sql('process_log', conn, if_exists='append', index=False)
+    conn.close()
 
     return True
 
@@ -210,11 +207,30 @@ def generate_stats2(year, stat_category):
 # if it does not exist, then adds the corresponding ones
 def check_pyts(gen_stats, conn, data_year, stat_category):
 
+    gen_stats['pyts_id'] = 0
     df_unique = gen_stats[['player_id', 'team_name']].drop_duplicates()
     # print(df_unique)
     for index, row in df_unique.iterrows():
         query = 'SELECT Id FROM player_year_team WHERE player_id=? AND data_year=? AND team_name=? AND stat_category=?'
-        results = conn.execute(query, row['player_id'], data_year, row['team_name'], stat_category)
-        print(index, results)
+        results = conn.execute(query, row['player_id'], data_year, row['team_name'], stat_category).fetchall()
 
-    return True
+        # add new entry if no results
+        if len(results) == 0:
+            entry = {
+                'player_id': row['player_id'],
+                'data_year': data_year,
+                'team_name': row['team_name'],
+                'stat_category': stat_category,
+                'date_generated': str(datetime.datetime.now())
+            }
+            pd.DataFrame([entry]).to_sql('player_year_team', conn, if_exists='append', index=False)
+
+            # retrieve entry
+            results = conn.execute(query, row['player_id'], data_year, row['team_name'], stat_category).fetchall()
+
+        results = [n for (n,) in results]
+        # print(results[0])
+        gen_stats.loc[(gen_stats['player_id'] == row['player_id']) & (gen_stats['team_name'] == row['team_name']),
+                      'pyts_id'] = results[0]
+
+    return gen_stats

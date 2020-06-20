@@ -2,10 +2,20 @@
 import sqlite3 as sql
 import sqlalchemy as sa
 from . import db_setup as dbs
+import datetime
+import pandas as pd
 
 # query
+# c = dbs.engine.connect()
+# query = 'SELECT * FROM batting'
+# results = c.execute(query).fetchall()
+# columns = c.execute(query)
+# df = pd.DataFrame(results)
+# df.columns = columns.keys()
+# print(df.head())
+# print(len(results))
+# print(str(datetime.datetime.now()))
 '''
-c = dbs.engine.connect()
 c.execute("DROP TABLE batting")
 c.execute("DROP TABLE pitching")
 c.execute("DROP TABLE fielding")

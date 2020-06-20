@@ -234,51 +234,12 @@ def stat_organizer2(player_dict, stat_category):
     # player_tb = pd.DataFrame.from_dict(player_dict, "index")
     # player_tb.to_csv('PRE_STATS.csv', sep=',')
     t1 = t.time()
-    # player_tb = pd.DataFrame.from_dict(player_dict).transpose()
-
-    '''
-    # --- THIS FAILS AS ALL THE STRINGS NEED TO BE CONVERTED TO INTEGERS --- #
-    # MSG: int() argument must be a string, a bytes-like object or a number, not 'NoneType'
-    # new vectorizer method
-    vect = DictVectorizer(dtype=np.uint8, sparse=False)
-    # print([v for (k, v) in list(player_dict.items())][0])
+    # pd.json_normalize
     p_dict = [v for (k, v) in list(player_dict.items())]
-
-    p_list = []
-    for p in p_dict:
-        result = {}
-        for key, value in p.items():
-            if value is None:
-                value = ''
-            result[key] = value
-        p_list.append(result)
-
-    print(p_list[0:3])
-    matrix = vect.fit_transform(p_dict)
-    print(matrix)
-    column_labels = vect.get_feature_names()
-    print(column_labels)
-    player_tb = pd.DataFrame(matrix, columns=column_labels)
-    '''
-
-    # pd.concat method
-    '''
-    player_tb = pd.concat({
-        k: pd.DataFrame.from_dict(v, 'index') for k, v in player_dict.items()
-    },
-    axis=0)
-    '''
-
-    # pd.io.json_normalize
-    p_dict = [v for (k, v) in list(player_dict.items())]
-    print(list(p_dict[0].keys()))
     player_tb = pd.json_normalize(p_dict, meta=list(p_dict[0].keys()))
-
-    print(player_tb.head())
-    # reshape the data
+    # print(player_tb.head())
     t2 = t.time()
-    print(dt.seconds_convert(t2-t1))
-    quit()
+    # reshape the data
     player_tb = player_tb.groupby(['player_id', 'team_name', 'data_year', 'bat_pitch', 'stat_type'])\
         .agg({'stat_value': 'sum'}).reset_index()
     t3 = t.time()
@@ -319,7 +280,7 @@ def stat_organizer2(player_dict, stat_category):
     stats_tb[stat_category] = stats_tb[stat_category][stat_col]
     t9 = t.time()
     # no need to rename columns! :)
-    print("RENAMING IN PROGRESS . . . ")
+    # print("RENAMING IN PROGRESS . . . ")
     stats_tb[stat_category] = stats_tb[stat_category].rename(
         columns={"player_id": 'PID', 'team_name': 'TEAM', 'data_year': 'YEAR'})
     t10 = t.time()
@@ -334,7 +295,7 @@ def stat_organizer2(player_dict, stat_category):
     # print(stats_tb[stat_category].head)
 
     dict_times = {
-        'dict transpose': dt.seconds_convert(t2 - t1),
+        'json_normalize': dt.seconds_convert(t2 - t1),
         'groupby agg': dt.seconds_convert(t3 - t2),
         'set_index pivot': dt.seconds_convert(t4 - t3),
         'reset_index rename_axis': dt.seconds_convert(t5 - t4),
