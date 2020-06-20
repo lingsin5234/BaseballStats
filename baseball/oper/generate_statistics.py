@@ -161,11 +161,13 @@ def generate_stats2(year, stat_category):
 
         check_pyts(gen_stats, conn, year, stat_category)
 
-        gen_stats.to_sql(stat_category, conn, if_exists='append', index=False)
-        print('Import', stat_category.upper(), 'STATS to Database: ', dt.seconds_convert(t.time() - update_time))
+        # gen_stats.to_sql(stat_category, conn, if_exists='append', index=False)
+        # print('Import', stat_category.upper(), 'STATS to Database: ', dt.seconds_convert(t.time() - update_time))
     except Exception as e:
         # accept any type of errors
-        el.error_logger(e, 'WRITE stats: ' + str(e), 'ALL', year, stat_category)
+        el.error_logger(e, 'Check PYTS table: ' + str(e), 'ALL', year, stat_category)
+
+    quit()
 
     try:
         # write the STATS to corresponding database
@@ -205,12 +207,14 @@ def generate_stats2(year, stat_category):
 
 
 # function that checks for player_ids already existing in the player_year_team table
+# if it does not exist, then adds the corresponding ones
 def check_pyts(gen_stats, conn, data_year, stat_category):
 
     df_unique = gen_stats[['player_id', 'team_name']].drop_duplicates()
-    for row in df_unique:
+    # print(df_unique)
+    for index, row in df_unique.iterrows():
         query = 'SELECT Id FROM player_year_team WHERE player_id=? AND data_year=? AND team_name=? AND stat_category=?'
-        conn.execute(query, row['player_id'], data_year, row['team_name'], stat_category)
-    quit()
+        results = conn.execute(query, row['player_id'], data_year, row['team_name'], stat_category)
+        print(index, results)
 
     return True
