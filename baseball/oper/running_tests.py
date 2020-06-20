@@ -13,7 +13,7 @@ import os
 import re
 import pandas as pd
 
-# '''
+'''
 # import Year; print True if completed
 # print("Import Completed: ", ir.import_data(2018))
 
@@ -33,10 +33,10 @@ aut.run_test_cases('batting')
 print('Test Cases for batting completed.')
 aut.run_test_cases('fielding')
 print('Test Cases for fielding completed.')
-
+'''
 print("Stats Generated: ", 'Batting', gs.generate_stats2(2018, 'batting'))
-print("Stats Generated: ", 'Pitching', gs.generate_stats2(2018, 'pitching'))
-print("Stats Generated: ", 'Fielding', gs.generate_stats2(2018, 'fielding'))
+# print("Stats Generated: ", 'Pitching', gs.generate_stats2(2018, 'pitching'))
+# print("Stats Generated: ", 'Fielding', gs.generate_stats2(2018, 'fielding'))
 # '''
 '''
 # ^ above done wrong. should be processing ALL stats before doing a generate stats!
