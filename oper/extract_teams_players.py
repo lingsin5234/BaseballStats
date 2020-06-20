@@ -150,7 +150,7 @@ def extract_players(year):
 # run 2012-2019 in prod
 # disable when done
 '''
-for yr in range(2012, 2020):
+for yr in range(2018, 2019):
     print(yr)
     extract_teams(yr)
     extract_players(yr)

@@ -179,7 +179,7 @@ def get_team_choices(which_process):
 def get_year_choices2():
 
     # only batting for now
-    query = 'SELECT DISTINCT data_year FROM batting ORDER BY data_year desc'
+    query = "SELECT DISTINCT data_year FROM player_year_team WHERE stat_category='batting' ORDER BY data_year desc"
     results = dr.baseball_db_reader(query)
     results = [r for r, in results]
 
@@ -194,12 +194,18 @@ def get_year_choices2():
 def get_team_choices2(year):
 
     # only batting for now
-    query = 'SELECT DISTINCT team_name FROM batting WHERE data_year=' + year + ' ORDER BY team_name'
+    query = 'SELECT DISTINCT team_name FROM player_year_team WHERE data_year=' + str(2018) + ' ORDER BY team_name'
     results = dr.baseball_db_reader(query)
     results = [r for r, in results]
 
     # remember to assign them as tuples
     team_choices = [(t, t) for t in results]
-    # print("Get Team Choices 2: ", team_choices)
+    print("Get Team Choices 2: ", team_choices)
+
+    query = 'SELECT COUNT(*) FROM players'
+    conn = dbs.engine.connect()
+    results = conn.execute(query).fetchall()
+    print("Players", results)
+    conn.close()
 
     return team_choices
