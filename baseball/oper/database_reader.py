@@ -7,14 +7,16 @@ import pandas as pd
 
 # query
 # c = dbs.engine.connect()
-# query = 'SELECT * FROM batting'
+# query = 'SELECT COUNT(*) FROM pitching'
 # results = c.execute(query).fetchall()
+# print(results)
 # columns = c.execute(query)
 # df = pd.DataFrame(results)
 # df.columns = columns.keys()
 # print(df.head())
 # print(len(results))
 # print(str(datetime.datetime.now()))
+# c.execute("DROP TABLE batting_calc")
 '''
 c.execute("DROP TABLE batting")
 c.execute("DROP TABLE pitching")

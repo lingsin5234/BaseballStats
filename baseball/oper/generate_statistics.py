@@ -166,6 +166,7 @@ def generate_stats2(year, stat_category):
     except Exception as e:
         # accept any type of errors
         el.error_logger(e, 'Check PYTS table: ' + str(e), 'ALL', year, stat_category)
+        return False
 
     try:
         # write the STATS to corresponding database
@@ -175,6 +176,7 @@ def generate_stats2(year, stat_category):
     except Exception as e:
         # accept any type of errors
         el.error_logger(e, 'WRITE stats: ' + str(e), 'ALL', year, stat_category)
+        return False
 
     try:
         # WRITING STATS PERFORMANCE
