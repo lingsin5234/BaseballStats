@@ -63,6 +63,7 @@ bat_stat_types = {
     'CS': 'caught_stealing',
     'LOB': 'left_on_base',
     'RLSP': 'rlsp',
+    'GDP': 'ground_dp',
     'HBP': 'hit_by_pitch',
     'SH': 'sac_hit',
     'SF': 'sac_fly',
@@ -123,3 +124,8 @@ field_stat_types = {
     'TP': 'triple_plays',
     'E': 'errors'
 }
+
+bat_calc_stat_types = {
+    ''
+}
+
