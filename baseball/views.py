@@ -101,15 +101,16 @@ def stats_view(request):
 
         if form.is_valid():
             # read from database; || is concatenate in sqlite!
-            query = "SELECT DISTINCT {} FROM batting b JOIN players p ON "\
-                        .format(", ".join(query_col).replace("team_name", "b.team_name")
+            query = "SELECT DISTINCT {} FROM batting b " \
+                        .format(", ".join(query_col).replace("team_name", "pyts.team_name")
                                 .replace("player_nm", "(first_name || ' ' || last_name) as player_nm")) + \
-                    "b.player_id=p.player_id AND b.team_name = p.team_id AND b.data_year = p.data_year " + \
-                    "WHERE b.team_name='{}' AND b.data_year={} "\
+                    " JOIN player_year_team pyts ON b.pyts_id = pyts.Id JOIN players p ON " + \
+                    "pyts.player_id=p.player_id AND pyts.team_name = p.team_id AND pyts.data_year = p.data_year " + \
+                    "WHERE pyts.team_name='{}' AND pyts.data_year={} "\
                         .format(str(request.POST['team']), str(request.POST['year'])) + "ORDER BY rbis desc"
-            # print(query)
+            print(query)
             temp = dr.baseball_db_reader(query)
-            # print(temp)
+            print(temp)
 
             # because `temp` is NOT a dictionary we need to convert it!
             results = []
