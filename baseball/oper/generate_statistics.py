@@ -144,15 +144,28 @@ def generate_stats2(year, stat_category):
         # reassign column names
         gen_stats = gv.player_stats[stat_category]
         if stat_category == 'batting':
-            gen_stats.rename(columns=gv.bat_stat_types)
+            gen_stats = gen_stats.rename(columns=gv.bat_stat_types)
         elif stat_category == 'pitching':
-            gen_stats.rename(columns=gv.pitch_stat_types)
+            gen_stats = gen_stats.rename(columns=gv.pitch_stat_types)
         elif stat_category == 'fielding':
-            gen_stats.rename(columns=gv.field_stat_types)
+            gen_stats = gen_stats.rename(columns=gv.field_stat_types)
     except Exception as e:
         # accept any types of errors
         el.error_logger(e, 'Re-assign Columns: ' + str(e), 'ALL', year, stat_category)
         return False
+
+    try:
+        # first check player_year_team table
+        update_time = t.time()
+        conn.fast_executemany = True
+
+        check_pyts(gen_stats, conn, year, stat_category)
+
+        gen_stats.to_sql(stat_category, conn, if_exists='append', index=False)
+        print('Import', stat_category.upper(), 'STATS to Database: ', dt.seconds_convert(t.time() - update_time))
+    except Exception as e:
+        # accept any type of errors
+        el.error_logger(e, 'WRITE stats: ' + str(e), 'ALL', year, stat_category)
 
     try:
         # write the STATS to corresponding database
@@ -187,5 +200,17 @@ def generate_stats2(year, stat_category):
     }
     completion = pd.DataFrame([finish_str])
     completion.to_sql('process_log', conn, if_exists='append', index=False)
+
+    return True
+
+
+# function that checks for player_ids already existing in the player_year_team table
+def check_pyts(gen_stats, conn, data_year, stat_category):
+
+    df_unique = gen_stats[['player_id', 'team_name']].drop_duplicates()
+    for row in df_unique:
+        query = 'SELECT Id FROM player_year_team WHERE player_id=? AND data_year=? AND team_name=? AND stat_category=?'
+        conn.execute(query, row['player_id'], data_year, row['team_name'], stat_category)
+    quit()
 
     return True
