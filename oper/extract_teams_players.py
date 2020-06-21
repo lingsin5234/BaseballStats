@@ -20,7 +20,7 @@ def extract_teams(year):
     if os.path.exists(file_str):
         pass
     else:
-        el.error_logger('NO TEAM FILE', str(year) + ' needs to be imported first!', year)
+        el.error_logger('NO TEAM FILE', str(year) + ' needs to be imported first!', year, '')
         return False
 
     # open the file and list all the teams
@@ -35,7 +35,7 @@ def extract_teams(year):
 
     except Exception as e:
         # accept any types of errors
-        el.error_logger(e, 'I/O Open Retrosheet Event File', '', year)
+        el.error_logger(e, 'I/O Open Retrosheet Event File', '', year, '')
         return False
 
     # process to data frame
@@ -65,7 +65,7 @@ def extract_teams(year):
 
     except Exception as e:
         # accept any types of errors
-        el.error_logger(e, 'team_import', '', year)
+        el.error_logger(e, 'team_import', '', year, '')
         return False
 
     return True
@@ -81,7 +81,7 @@ def extract_players(year):
     if os.path.exists(dir_str):
         pass
     else:
-        el.error_logger('NO IMPORT YEAR', str(year) + ' needs to be imported first!', year)
+        el.error_logger('NO IMPORT YEAR', str(year) + ' needs to be imported first!', year, '')
         return False
 
     # get all the team rosters; the loop will ignore the all-stars
@@ -112,7 +112,7 @@ def extract_players(year):
 
         except Exception as e:
             # accept any types of errors
-            el.error_logger(e, 'I/O Open Retrosheet Event File', tm, year)
+            el.error_logger(e, 'I/O Open Retrosheet Event File', tm, year, '')
             return False
 
         # process to data frame
@@ -128,7 +128,7 @@ def extract_players(year):
 
         except Exception as e:
             # accept any types of errors
-            el.error_logger(e, 'player_import', tm, year)
+            el.error_logger(e, 'player_import', tm, year, '')
             return False
 
     # send completion notice for all PLAYERS

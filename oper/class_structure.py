@@ -42,7 +42,8 @@ teams = Table('teams', metadata,
               Column('league_id', String),
               Column('city_name', String),
               Column('name_of_team', String),
-              Column('team_name', String))
+              Column('team_name', String),
+              UniqueConstraint('data_year', 'team_id', name='teams_tbl'))
 
 
 # players table
@@ -55,7 +56,8 @@ players = Table('players', metadata,
                 Column('bats', String),
                 Column('throws', String),
                 Column('team_id', String),
-                Column('position', String),)
+                Column('position', String),
+                UniqueConstraint('data_year', 'player_id', 'team_id', name='players_tbl'))
 
 
 # starters table
@@ -153,7 +155,8 @@ batting_stats = Table('batting', metadata,
                       Column('sac_hit', Integer),
                       Column('sac_fly', Integer),
                       Column('pinch_hit', Integer),
-                      Column('pinch_run', Integer))
+                      Column('pinch_run', Integer),
+                      UniqueConstraint('pyts_id', name='batting_stats'))
 
 # pitching stats table
 pitching_stats = Table('pitching', metadata,
@@ -185,7 +188,8 @@ pitching_stats = Table('pitching', metadata,
                        Column('pitches_thrown', Integer),
                        Column('strikes_thrown', Integer),
                        Column('balls_thrown', Integer),
-                       Column('foul_balls', Integer))
+                       Column('foul_balls', Integer),
+                       UniqueConstraint('pyts_id', name='pitching_stats'))
 
 # fielding stats table
 fielding = Table('fielding', metadata,
@@ -205,7 +209,8 @@ fielding = Table('fielding', metadata,
                  Column('put_outs', Integer),
                  Column('double_plays', Integer),
                  Column('triple_plays', Integer),
-                 Column('errors', Integer))
+                 Column('errors', Integer),
+                 UniqueConstraint('pyts_id', name='fielding_stats'))
 
 # batting calculated stats table
 batting_calc = Table('batting_calc', metadata,
@@ -224,7 +229,8 @@ batting_calc = Table('batting_calc', metadata,
                      Column('bases_adv', Float),
                      Column('opportunities', Integer),
                      Column('runs_created', Float),
-                     Column('runs_created_per', Float))
+                     Column('runs_created_per', Float),
+                     UniqueConstraint('pyts_id', name='batting_calc'))
 
 # test case stats
 test_cases = Table('test_cases', metadata,
