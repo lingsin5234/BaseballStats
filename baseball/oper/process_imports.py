@@ -19,11 +19,15 @@ from . import error_logger as el
 # extract data for single team
 def process_data_single_team(year, team):
 
+    # make sure the variables are cleared to start off
+    gv.full_output = {}
+    gv.player = {}
+
     # check for import YEAR:
     if os.path.exists(gv.data_dir + '/' + str(year)):
         pass
     else:
-        el.error_logger('NO IMPORT YEAR', str(year) + ' needs to be imported first!', team, year)
+        el.error_logger('NO IMPORT YEAR', str(year) + ' needs to be imported first!', team, year, 'ALL')
         return False
 
     # OPEN AND READ DATA FILES
@@ -47,7 +51,7 @@ def process_data_single_team(year, team):
 
     except Exception as e:
         # accept any types of errors
-        el.error_logger(e, 'I/O Open Retrosheet Event File', team, year)
+        el.error_logger(e, 'I/O Open Retrosheet Event File', team, year, 'ALL')
         return False
 
     # COLLECT GAME IDS AND RUN GAME_TRACKER
@@ -110,7 +114,7 @@ def process_data_single_team(year, team):
 
     except Exception as e:
         # accept any types of errors
-        el.error_logger(e, 'game_tracker', team, year)
+        el.error_logger(e, 'game_tracker', team, year, 'ALL')
         return False
 
     # CONVERT_GAMES
@@ -119,7 +123,7 @@ def process_data_single_team(year, team):
         a_full_df = g.convert_games(games, games_roster)
     except Exception as e:
         # accept any types of errors
-        el.error_logger(e, 'convert_games', team, year)
+        el.error_logger(e, 'convert_games', team, year, 'ALL')
         return False
 
     # PLAY_PROCESSOR FUNCTION
@@ -168,7 +172,7 @@ def process_data_single_team(year, team):
 
     except Exception as e:
         # accept any types of errors
-        el.error_logger(e, 'play_processor: ' + str(e), team, year)
+        el.error_logger(e, 'play_processor: ' + str(e), team, year, 'ALL')
         return False
 
     try:
@@ -186,7 +190,7 @@ def process_data_single_team(year, team):
 
     except Exception as e:
         # accept any types of errors
-        el.error_logger(e, 'Write to GAMEPLAY table', team, year)
+        el.error_logger(e, 'Write to GAMEPLAY table', team, year, 'ALL')
         return False
 
     try:
@@ -199,7 +203,7 @@ def process_data_single_team(year, team):
 
     except Exception as e:
         # accept any types of errors
-        el.error_logger(e, 'Write to RAW_PLAYER_STATS table', team, year)
+        el.error_logger(e, 'Write to RAW_PLAYER_STATS table', team, year, 'ALL')
         return False
 
     try:
@@ -217,11 +221,7 @@ def process_data_single_team(year, team):
 
     except Exception as e:
         # accept any types of errors
-        el.error_logger(e, 'Write process_import COMPLETION to PROCESS_LOG table', team, year)
+        el.error_logger(e, 'Write process_import COMPLETION to PROCESS_LOG table', team, year, 'ALL')
         return False
-
-    # clear full_output and player -- required when running in loop
-    gv.full_output = {}
-    gv.player = {}
 
     return True

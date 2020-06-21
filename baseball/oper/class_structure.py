@@ -114,7 +114,8 @@ raw_player_stats = Table('raw_player_stats', metadata,
                          Column('num_outs', Integer),
                          Column('bases_taken', String),
                          Column('stat_team', Integer),
-                         Column('bat_pitch', String))
+                         Column('bat_pitch', String),
+                         UniqueConstraint('Id', name='raw_player_stats_Id'))
 
 # player_year_team table
 player_year_team = Table('player_year_team', metadata,
@@ -271,6 +272,8 @@ test_fielding = Table('test_fielding', metadata,
                       Column('Id', Integer, primary_key=True),
                       Column('test_case', ForeignKey('test_cases.Id')),
                       Column('GameDate', String),
+                      Column('BF', Integer),
+                      Column('Inn', Float),
                       Column('PO', Integer),
                       Column('A', Integer),
                       Column('E', Integer),
