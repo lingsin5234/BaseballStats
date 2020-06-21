@@ -9,7 +9,7 @@ import pandas as pd
 # c = dbs.engine.connect()
 # query = 'SELECT data_year, stat_category, COUNT(*) FROM player_year_team GROUP BY data_year, stat_category'
 # query = 'SELECT COUNT(DISTINCT pyts_id) FROM batting_calc'
-# query = 'SELECT COUNT(*) FROM pitching'
+# query = 'SELECT * FROM batting LIMIT 10'
 # results = c.execute(query).fetchall()
 # print(results)
 # columns = c.execute(query)
