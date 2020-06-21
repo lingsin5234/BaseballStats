@@ -9,55 +9,62 @@ from . import db_setup as dbs
 from . import date_time as dt
 from . import automated_tests as aut
 from . import calculate_statistics as cs
+from . import extract_teams_players as etp
 import time as t
 import os
 import re
 import pandas as pd
 
-'''
-# import Year; print True if completed
-# print("Import Completed: ", ir.import_data(2018))
-
-# print True if this succeeds
-start_time = t.time()
-files = os.listdir('baseball/import/2018')
-files = [f[4:7] for f in files if f.find('ROS') == -1 and f.find('TEAM') == -1]
-for f in files:
-    print("Processing Completed: ", f, pi.process_data_single_team(2018, f))
-    # print(f)
-print("All Processing Completed", dt.seconds_convert(t.time() - start_time))
-
-# import, then run test cases
-aut.import_test_cases()
-print('Test Cases IMPORTED.')
-aut.run_test_cases('batting')
-print('Test Cases for batting completed.')
-aut.run_test_cases('fielding')
-print('Test Cases for fielding completed.')
-'''
-# print("Stats Generated: ", 'Batting', gs.generate_stats2(2018, 'batting'))
 # '''
-conn = dbs.engine.connect()
-query = 'SELECT * FROM batting'
-results = conn.execute(query).fetchall()
-columns = conn.execute(query)
-conn.close()
+# run from scratch
+for yr in reversed(range(2017, 2020)):
+    # import Year; print True if completed
+    print("Import Completed: ", ir.import_data(yr))
 
-# --- run calc bat stats --- #
-cs.calculate_bat_stats(results, columns, 2018)
+    # run the extract_player/teams
+    etp.extract_teams(yr)
+    etp.extract_players(yr)
 
-# select to see results
-conn = dbs.engine.connect()
-query = 'SELECT * FROM batting_calc'
-results = conn.execute(query).fetchall()
-columns = conn.execute(query)
-df = pd.DataFrame(results)
-df.columns = columns.keys()
-print(df)
-conn.close()
-# '''
-# print("Stats Generated: ", 'Pitching', gs.generate_stats2(2018, 'pitching'))
-# print("Stats Generated: ", 'Fielding', gs.generate_stats2(2018, 'fielding'))
+    start_time = t.time()
+    files = os.listdir('baseball/import/' + str(yr))
+    files = [f[4:7] for f in files if f.find('ROS') == -1 and f.find('TEAM') == -1]
+    for f in files:
+        print("Processing Completed: ", f, pi.process_data_single_team(yr, f))
+        # print(f)
+    print("All Processing Completed", dt.seconds_convert(t.time() - start_time))
+
+    aut.import_test_cases(yr)
+    print('Test Cases IMPORTED.')
+    aut.run_test_cases('batting', yr)
+    print('Test Cases for batting completed.')
+    aut.run_test_cases('fielding', yr)
+    print('Test Cases for fielding completed.')
+
+    print("Stats Generated: ", 'Batting', gs.generate_stats2(yr, 'batting'))
+    # '''
+    conn = dbs.engine.connect()
+    query = 'SELECT * FROM batting'
+    results = conn.execute(query).fetchall()
+    columns = conn.execute(query)
+    conn.close()
+    # '''
+
+    # --- run calc bat stats --- #
+    cs.calculate_bat_stats(results, columns, yr)
+
+    '''
+    # select to see results
+    conn = dbs.engine.connect()
+    query = 'SELECT * FROM batting_calc'
+    results = conn.execute(query).fetchall()
+    columns = conn.execute(query)
+    df = pd.DataFrame(results)
+    df.columns = columns.keys()
+    print(df)
+    conn.close()
+    '''
+    print("Stats Generated: ", 'Pitching', gs.generate_stats2(yr, 'pitching'))
+    print("Stats Generated: ", 'Fielding', gs.generate_stats2(yr, 'fielding'))
 # '''
 '''
 # ^ above done wrong. should be processing ALL stats before doing a generate stats!

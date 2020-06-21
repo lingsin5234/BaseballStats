@@ -6,10 +6,11 @@ import os, re
 import pandas as pd
 import numpy as np
 import time as t
+import json
 
 
 # import pujols and turner 2018 stats
-def import_test_cases():
+def import_test_cases(yr):
 
     conn = dbs.engine.connect()
     conn.fast_executemany = True
@@ -27,14 +28,14 @@ def import_test_cases():
             # write test case
             test_case = pd.DataFrame({
                 'player_id': player_id,
-                'data_year': 2018,
+                'data_year': yr,
                 'stat_category': stat_category
             }, index=[0])
             test_case.to_sql('test_cases', conn, if_exists='append', index=False)
 
             # get the test case Id
             query = 'SELECT Id FROM test_cases WHERE player_id=? AND data_year=? AND stat_category=?'
-            results = conn.execute(query, player_id, 2018, stat_category).fetchall()
+            results = conn.execute(query, player_id, yr, stat_category).fetchall()
             print([r for (r,) in results])
             test_id = [r for (r,) in results]
 
@@ -73,7 +74,7 @@ def import_test_cases():
 
 
 # run test cases
-def run_test_cases(stat_category):
+def run_test_cases(stat_category, yr):
 
     # connect to database
     conn = dbs.engine.connect()
@@ -81,12 +82,13 @@ def run_test_cases(stat_category):
     db_name = 'test_' + stat_category
 
     # get test cases
-    query = 'SELECT ts.*, tc.player_id, tc.data_year FROM ' + db_name + ' ts JOIN test_cases tc ON ts.test_case = tc.Id'
+    query = 'SELECT ts.*, tc.player_id, tc.data_year FROM ' + db_name + ' ts JOIN test_cases tc ' + \
+            'ON ts.test_case = tc.Id WHERE tc.data_year=?'
     a = t.time()
-    results = conn.execute(query).fetchall()
+    results = conn.execute(query, yr).fetchall()
     # print('Fetch All:', dt.seconds_convert(t.time() - a))
     b = t.time()
-    columns = conn.execute(query)
+    columns = conn.execute(query, yr)
     # print('Columns:', dt.seconds_convert(t.time() - b))
     # print(columns.keys())
     tc = pd.DataFrame(results)
@@ -159,6 +161,11 @@ def compare_data(df1, df2):
         results = {'Status': 'Success', 'columns': '100% match'}
     else:
         results = {'Status': 'Failed. Column Mismatches', 'columns': failed}
+
+    # write to log
+    fgp = open('TEST_CASES.LOG', mode='a')
+    fgp.write('Automated Testing: ' + json.dumps(results, indent=4))
+    fgp.close()
 
     return results
 
