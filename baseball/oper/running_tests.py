@@ -30,8 +30,10 @@ for yr in reversed(range(2017, 2020)):
     files = [f[4:7] for f in files if f.find('ROS') == -1 and f.find('TEAM') == -1]
     for f in files:
         print("Processing Completed: ", f, pi.process_data_single_team(yr, f))
-        # print(f)
-    print("All Processing Completed", dt.seconds_convert(t.time() - start_time))
+    print("Stats Generated: ", 'Batting', gs.generate_stats2(yr, 'batting'))
+    print("Stats Generated: ", 'Pitching', gs.generate_stats2(yr, 'pitching'))
+    print("Stats Generated: ", 'Fielding', gs.generate_stats2(yr, 'fielding'))
+    # print("All Processing Completed", dt.seconds_convert(t.time() - start_time))
 
     aut.import_test_cases(yr)
     print('Test Cases IMPORTED.')
@@ -40,12 +42,11 @@ for yr in reversed(range(2017, 2020)):
     aut.run_test_cases('fielding', yr)
     print('Test Cases for fielding completed.')
 
-    print("Stats Generated: ", 'Batting', gs.generate_stats2(yr, 'batting'))
     # '''
     conn = dbs.engine.connect()
-    query = 'SELECT * FROM batting'
-    results = conn.execute(query).fetchall()
-    columns = conn.execute(query)
+    query = 'SELECT * FROM batting WHERE data_year=?'
+    results = conn.execute(query, yr).fetchall()
+    columns = conn.execute(query, yr)
     conn.close()
     # '''
 
@@ -63,8 +64,6 @@ for yr in reversed(range(2017, 2020)):
     print(df)
     conn.close()
     '''
-    print("Stats Generated: ", 'Pitching', gs.generate_stats2(yr, 'pitching'))
-    print("Stats Generated: ", 'Fielding', gs.generate_stats2(yr, 'fielding'))
 # '''
 '''
 # ^ above done wrong. should be processing ALL stats before doing a generate stats!

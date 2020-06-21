@@ -14,7 +14,7 @@ def import_test_cases(yr):
 
     conn = dbs.engine.connect()
     conn.fast_executemany = True
-    file_dir = 'baseball/import/tests'
+    file_dir = 'baseball/import/tests/' + str(yr)
     try:
         files = os.listdir(file_dir)
         for f in files:
@@ -155,6 +155,7 @@ def compare_data(df1, df2):
             idx = comp_bool[comp_bool == False].index
             df_comp = pd.concat([df1.loc[idx, c], df2.loc[idx, c]], axis=1)
             df_comp.columns = ['raw_' + c, 'test_case_' + c]
+            fail_flag = True
             print(df_comp)
 
     if not fail_flag:
