@@ -48,7 +48,7 @@ def import_data(year):
             unzip.extractall(gv.data_dir + '/' + year)
     except Exception as e:
         # accept any types of errors
-        el.error_logger(e, 'unzipping import year: ' + str(e), None, year)
+        el.error_logger(e, 'unzipping import year: ' + str(e), None, year, '')
         return False
 
     # remove landing file
@@ -57,7 +57,7 @@ def import_data(year):
             remove(gv.data_dir + '/landing/' + zip_file)
     except Exception as e:
         # accept any types of errors
-        el.error_logger(e, 'removing landing file: ' + str(e), None, year)
+        el.error_logger(e, 'removing landing file: ' + str(e), None, year, '')
         return False
 
     t2_time = t.time()
