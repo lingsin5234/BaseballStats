@@ -119,7 +119,7 @@ def run_test_cases(stat_category, yr):
         # print(len(agg_stats), len(tc[tc['player_id'] == pid]))
 
         # compare with test case
-        print(compare_data(agg_stats, tc[tc['player_id'] == pid].set_index(['GameDate'])))
+        print(compare_data(agg_stats, tc[tc['player_id'] == pid].set_index(['GameDate']), pid, yr))
 
     # df = df.rename(columns=gv.bat_stat_types)
 
@@ -127,12 +127,19 @@ def run_test_cases(stat_category, yr):
 
 
 # compare columns for data frames
-def compare_data(df1, df2):
+def compare_data(df1, df2, pid, yr):
 
     # first check if lengths are the same
     # print(len(df1), len(df2))
     if len(df1) != len(df2):
-        return {'Status': 'Failed. DataFrame Lengths Different', 'columns': ''}
+
+        results = {'Status': 'Failed. DataFrame Lengths Different',
+                   'columns': 'agg:tc ' + str(len(df1)) + ':' + str(len(df2))}
+        # write to log
+        fgp = open('TEST_CASES.LOG', mode='a')
+        fgp.write('Automated Testing for ' + pid + ', ' + str(yr) + '\n' + json.dumps(results, indent=4) + '\n')
+        fgp.close()
+        return results
 
     # get comparable columns
     col1 = df1.columns.tolist()
@@ -156,7 +163,8 @@ def compare_data(df1, df2):
             df_comp = pd.concat([df1.loc[idx, c], df2.loc[idx, c]], axis=1)
             df_comp.columns = ['raw_' + c, 'test_case_' + c]
             fail_flag = True
-            print(df_comp)
+            failed.append(df_comp.to_dict())
+            print(df_comp.to_dict())
 
     if not fail_flag:
         results = {'Status': 'Success', 'columns': '100% match'}
@@ -165,7 +173,7 @@ def compare_data(df1, df2):
 
     # write to log
     fgp = open('TEST_CASES.LOG', mode='a')
-    fgp.write('Automated Testing: ' + json.dumps(results, indent=4))
+    fgp.write('Automated Testing for ' + pid + ', ' + str(yr) + '\n' + json.dumps(results, indent=4) + '\n')
     fgp.close()
 
     return results

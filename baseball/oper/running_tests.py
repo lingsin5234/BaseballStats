@@ -18,6 +18,7 @@ import pandas as pd
 # '''
 # run from scratch
 for yr in reversed(range(2017, 2020)):
+    '''
     # import Year; print True if completed
     print("Import Completed: ", ir.import_data(yr))
 
@@ -34,25 +35,25 @@ for yr in reversed(range(2017, 2020)):
     print("Stats Generated: ", 'Pitching', gs.generate_stats2(yr, 'pitching'))
     print("Stats Generated: ", 'Fielding', gs.generate_stats2(yr, 'fielding'))
     # print("All Processing Completed", dt.seconds_convert(t.time() - start_time))
-
+    
     aut.import_test_cases(yr)
     print('Test Cases IMPORTED.')
+    '''
     aut.run_test_cases('batting', yr)
     print('Test Cases for batting completed.')
     aut.run_test_cases('fielding', yr)
     print('Test Cases for fielding completed.')
 
-    # '''
+    '''
     conn = dbs.engine.connect()
-    query = 'SELECT * FROM batting WHERE data_year=?'
+    query = 'SELECT b.* FROM batting b JOIN player_year_team pyts ON b.pyts_id=pyts.Id WHERE pyts.data_year=?'
     results = conn.execute(query, yr).fetchall()
     columns = conn.execute(query, yr)
     conn.close()
-    # '''
-
+    
     # --- run calc bat stats --- #
     cs.calculate_bat_stats(results, columns, yr)
-
+    '''
     '''
     # select to see results
     conn = dbs.engine.connect()
