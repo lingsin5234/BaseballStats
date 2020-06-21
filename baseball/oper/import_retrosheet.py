@@ -75,13 +75,4 @@ def import_data(year):
     completion = pd.DataFrame([finish_str])
     completion.to_sql('process_log', conn, if_exists='append', index=False)
 
-    # now that import is done; run the teams/players extractions
-    status = etp.extract_teams(year)
-    if status:
-        status = etp.extract_players(year)
-        if not status:
-            return False
-    else:
-        return False
-
     return True

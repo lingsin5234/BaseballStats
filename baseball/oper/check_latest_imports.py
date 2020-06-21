@@ -209,3 +209,23 @@ def get_team_choices2(year):
     conn.close()
 
     return team_choices
+
+
+# get a list of years that have fully completed processing
+def get_process_complete_years():
+
+    # get list of years from stats
+    conn = dbs.engine.connect()
+    query = 'SELECT data_year, COUNT(DISTINCT team_name) FROM starters GROUP BY data_year'
+    years = conn.execute(query).fetchall()
+    # years = [y for (y, c) in years]
+    print(years)
+
+    query = 'SELECT data_year, COUNT(DISTINCT team_id) FROM teams GROUP BY data_year'
+    teams = conn.execute(query).fetchall()
+    print(teams)
+
+    # check how many team names loaded for particular year vs. stat years
+    diff = [y for (y, c) in teams if (y, c) not in years]
+
+    return diff
