@@ -38,10 +38,12 @@ idna==2.9
 isodate==0.6.0
 itsdangerous==1.1.0
 Jinja2==2.11.2
+joblib==0.15.1
 kiwisolver==1.2.0
 Markdown==3.2.1
 MarkupSafe==1.1.1
 matplotlib==3.2.1
+md-mermaid==0.1.0
 msrest==0.6.14
 numpy==1.18.3
 oauthlib==3.1.0
@@ -60,10 +62,14 @@ requests==2.23.0
 requests-oauthlib==1.3.0
 retrying==1.3.3
 rq==1.4.2
+scikit-learn==0.23.1
+scipy==1.4.1
 sendgrid==6.2.2
 six==1.14.0
+sklearn==0.0
 soupsieve==2.0
 SQLAlchemy==1.3.16
 sqlparse==0.3.1
+threadpoolctl==2.1.0
 urllib3==1.25.9
 Werkzeug==1.0.1
