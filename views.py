@@ -207,24 +207,25 @@ def jobs_dashboard(request):
     # print(teams_processed)
 
     # teams that have stats generated -- by year
-    query = "SELECT data_year, COUNT(team_name) FROM process_log WHERE process_name='stat_processor' "
+    query = "SELECT data_year, COUNT(process_name) FROM process_log WHERE process_name LIKE 'stat_processor%' "
     query += "GROUP BY data_year ORDER BY data_year desc"
     results = dr.baseball_db_reader(query)
 
     # for each row (tuple), sort and add columns
     stats_generated = []
     for r in results:
-        stats_generated.append(dict(zip(['data_year', 'num_teams'], r)))
+        stats_generated.append(dict(zip(['data_year', 'processes'], r)))
 
     # go thru and divide teams/processed by total num of teams
     done_years = []
+    stat_cats = ['batting', 'fielding', 'pitching']
     for s in stats_generated:
         year = s['data_year']
-        for n in num_teams_array:
-            if int(n['data_year']) == year:
-                s['num_teams'] = s['num_teams'] / int(n['num_teams'])
+        if int(s['data_year']) == year:
+            for n in stat_cats:
+                s['processes'] = s['processes'] / len(stat_cats)
                 # also check if the year is completed
-                if s['num_teams'] == 1:
+                if s['processes'] == 1:
                     done_years.append(year)
                 # print(t)
                 break
@@ -233,7 +234,7 @@ def jobs_dashboard(request):
     # first drop the completed
     for i, st in reversed(list(enumerate(stats_generated))):
         # if it's done year, drop it
-        if st['num_teams'] == 1:
+        if st['processes'] == 1:
             stats_generated.pop(i)
 
     # then add the completed, merged together, to top of the list
@@ -294,7 +295,8 @@ def jobs_dashboard(request):
 
     # group team: data hits, rbis, home_runs; MUST GROUP BY YEAR LATER!!
     team_data = []
-    query = 'SELECT SUM(hits), SUM(home_runs), SUM(rbis), team_name, data_year FROM batting '
+    query = 'SELECT SUM(hits), SUM(home_runs), SUM(rbis), team_name, data_year FROM batting b '
+    query += 'JOIN player_year_team pyts ON b.pyts_id=pyts.Id '
     query += 'GROUP BY team_name, data_year'
     results = dr.baseball_db_reader(query)
     for r in results:
