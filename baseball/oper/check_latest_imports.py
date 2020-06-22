@@ -87,7 +87,7 @@ def check_teams(year, which_process):
     # check for view_stats
     else:
         # next, check to see if the teams were processed at all
-        query = "SELECT team_name FROM process_log WHERE data_year=? AND process_name='stat_processor'"
+        query = "SELECT team_name FROM process_log WHERE data_year=? AND process_name LIKE 'stat_processor%'"
         results = c.execute(query, year).fetchall()
         results = [r for r, in results]
 
@@ -211,21 +211,28 @@ def get_team_choices2(year):
     return team_choices
 
 
-# get a list of years that have fully completed processing
+# get a list of years that have fully completed processing but not done stats generation
 def get_process_complete_years():
 
-    # get list of years from stats
+    # get list of years from process
     conn = dbs.engine.connect()
-    query = 'SELECT data_year, COUNT(DISTINCT team_name) FROM starters GROUP BY data_year'
-    years = conn.execute(query).fetchall()
-    # years = [y for (y, c) in years]
-    print(years)
+    query = 'SELECT data_year, COUNT(DISTINCT team_name) FROM process_log WHERE team_name IS NOT ? GROUP BY data_year'
+    years = conn.execute(query, '---').fetchall()
+    # print("Done Teams:", years)
 
+    # get all team count per year
     query = 'SELECT data_year, COUNT(DISTINCT team_id) FROM teams GROUP BY data_year'
     teams = conn.execute(query).fetchall()
-    print(teams)
+    # print("Total Teams:", teams)
+
+    # get all years from stats generated
+    query = 'SELECT DISTINCT data_year FROM player_year_team GROUP BY data_year'
+    stats_gen = conn.execute(query).fetchall()
+    # print("STATS GEN", stats_gen)
 
     # check how many team names loaded for particular year vs. stat years
-    diff = [y for (y, c) in teams if (y, c) not in years]
+    done = [y for (y, c) in teams if (y, c) in years]
+    stats_not_done = [y for y in done if y not in stats_gen]
+    # print(done, stats_not_done)
 
-    return diff
+    return done

@@ -14,16 +14,16 @@ class Job(WeeklyJob):
         stat_cats = ['batting', 'pitching', 'fielding']  # or split into 3 separate jobs?
 
         # get a list of the years that HAVE been imported
-        year_choices = chk.get_years()
+        # year_choices = chk.get_years()
         # print(year_choices)
 
-        # get list of completely processed years
-        years = chk.get_process_complete_years()
+        # get list of completely processed years but not done stats generation
+        year = chk.get_process_complete_years()
 
         # get the latest year that has not had stats generated
-        year = [y for y in year_choices if y not in years]
+        # year = [y for y in year_choices if y not in years]
         year.sort(reverse=True)
-        # print(year)
+        print(year)
 
         # check if len of year > 0
         if len(year) > 0:
@@ -37,15 +37,17 @@ class Job(WeeklyJob):
                 if status:
                     print("Generate Stats:", cat, "... Success")
 
-                    # run some tests
-                    aut.import_test_cases(year[0])
-                    aut.run_test_cases('batting', year[0])
-                    # aut.run_test_cases('pitching', year[0])
-                    aut.run_test_cases('fielding', year[0])
-                    return True
                 else:
                     print("Generate Stats:", cat, "... Failed")
-                    return False
+
+            # run some tests
+            aut.import_test_cases(year[0])
+            aut.run_test_cases('batting', year[0])
+            # aut.run_test_cases('pitching', year[0])
+            aut.run_test_cases('fielding', year[0])
+
+            return True
+
         else:
             print("No teams to generate stats for... Wait for next Year import.")
             return False
