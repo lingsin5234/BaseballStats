@@ -98,7 +98,6 @@ def run_test_cases(stat_category, yr):
     # get category results
     player_id = tc['player_id'].unique().tolist()
     data_year = tc['data_year'].unique().tolist()
-    print(player_id, type(data_year[0]), type(2018))
     for pid in player_id:
         query = 'SELECT * FROM raw_player_stats WHERE player_id=? AND bat_pitch=? AND data_year=?'
         results = conn.execute(query, pid, stat_category, data_year[0]).fetchall()
