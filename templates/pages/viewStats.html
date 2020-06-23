@@ -21,6 +21,9 @@
             window.columns = {{post_col|safe}};
             window.bat_col = {{col_convert|safe}};
         }());
+        $(document).ready(function() {
+            $('#table_stats').DataTable();
+        } );
     </script>
     {% load static %}
     <script src="{% static 'scripts/baseball/view_stats.js' %}"></script>
