@@ -276,7 +276,7 @@ def jobs_dashboard(request):
     max_time_elapsed = max([val for val in [float(item['Elapsed']) for item in recent_10]])
     # print(max_time_elapsed)
 
-    # find the error rate based on gameplay
+    # find the error rate based on gameplay and GEN STATS
     query = 'SELECT COUNT(*) FROM processing_errors'
     results = dr.baseball_db_reader(query)
     errors = int(results[0][0])
@@ -326,3 +326,13 @@ def jobs_dashboard(request):
     }
 
     return render(request, 'pages/jobsDashboard.html', context)
+
+
+# show the process flowchart of baseball project
+def process_flowchart(request):
+
+    context = {
+
+    }
+
+    return render(request, 'pages/flowchart.html', context)

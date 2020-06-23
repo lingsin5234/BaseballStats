@@ -2,6 +2,8 @@
 from . import db_setup as dbs
 from . import global_variables as gv
 from . import date_time as dt
+from . import error_logger as el
+from sqlalchemy.exc import IntegrityError
 import os, re
 import pandas as pd
 import numpy as np
@@ -44,9 +46,19 @@ def import_test_cases(yr):
             df = df.fillna(0)
             db_name = 'test_' + stat_category
             df.to_sql(db_name, conn, if_exists='append', index=False)
+    except IntegrityError as e:
+        # print(type(e))
+        ex = str(e)
+        if 'UNIQUE constraint' in ex:
+            print('Unique Constraint error', ex)
+        else:
+            print('Other SQL error', ex)
+            return False
     except Exception as e:
-        print('Import Tests Failed:', e)
+        print('Import Test Cases Failed.', e)
+        return False
 
+    '''
     # read from database
     query = 'SELECT * FROM test_batting'
     results = conn.execute(query).fetchall()
@@ -65,6 +77,7 @@ def import_test_cases(yr):
         fielding[idx] = dict(x)
         idx += 1
     print(pd.DataFrame.from_dict(fielding).transpose())
+    '''
     conn.close()
 
     return True
@@ -94,16 +107,20 @@ def run_test_cases(stat_category, yr):
     tc = pd.DataFrame(results)
     tc.columns = columns.keys()
     # print(tc)
+    conn.close()
 
     # get category results
     player_id = tc['player_id'].unique().tolist()
     data_year = tc['data_year'].unique().tolist()
     for pid in player_id:
+        conn = dbs.engine.connect()
+        conn.fast_executemany = True
         query = 'SELECT * FROM raw_player_stats WHERE player_id=? AND bat_pitch=? AND data_year=?'
         results = conn.execute(query, pid, stat_category, data_year[0]).fetchall()
         columns = conn.execute(query, pid, stat_category, data_year[0])
         stats = pd.DataFrame(results)
         stats.columns = columns.keys()
+        conn.close()
         # print(stats)
 
         # tally by date
@@ -118,7 +135,7 @@ def run_test_cases(stat_category, yr):
         # print(len(agg_stats), len(tc[tc['player_id'] == pid]))
 
         # compare with test case
-        print(compare_data(agg_stats, tc[tc['player_id'] == pid].set_index(['GameDate']), pid, yr))
+        print(compare_data(agg_stats, tc[tc['player_id'] == pid].set_index(['GameDate']), pid, yr, stat_category))
 
     # df = df.rename(columns=gv.bat_stat_types)
 
@@ -126,7 +143,7 @@ def run_test_cases(stat_category, yr):
 
 
 # compare columns for data frames
-def compare_data(df1, df2, pid, yr):
+def compare_data(df1, df2, pid, yr, stat_category):
 
     # first check if lengths are the same
     # print(len(df1), len(df2))
@@ -138,6 +155,14 @@ def compare_data(df1, df2, pid, yr):
         fgp = open('TEST_CASES.LOG', mode='a')
         fgp.write('Automated Testing for ' + pid + ', ' + str(yr) + '\n' + json.dumps(results, indent=4) + '\n')
         fgp.close()
+
+        try:
+            # write to database
+            error = 'Failed. DataFrame Lengths Different - agg:tc ' + str(len(df1)) + ':' + str(len(df2))
+            el.processing_errors(error, 'stat_test_cases ' + stat_category, '---', str(yr), '', '')
+        except Exception as e:
+            print(e)
+
         return results
 
     # get comparable columns
@@ -169,6 +194,13 @@ def compare_data(df1, df2, pid, yr):
         results = {'Status': 'Success', 'columns': '100% match'}
     else:
         results = {'Status': 'Failed. Column Mismatches', 'columns': failed}
+
+        try:
+            # write to database
+            error = 'Failed. Column Mismatches - columns ' + ','.join(failed)
+            el.processing_errors(error, 'stat_test_cases ' + stat_category, '---', str(yr), '', '')
+        except Exception as e:
+            print(e)
 
     # write to log
     fgp = open('TEST_CASES.LOG', mode='a')
