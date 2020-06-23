@@ -41,10 +41,13 @@ class Job(WeeklyJob):
                     print("Generate Stats:", cat, "... Failed")
 
             # run some tests
-            aut.import_test_cases(year[0])
-            aut.run_test_cases('batting', year[0])
-            # aut.run_test_cases('pitching', year[0])
-            aut.run_test_cases('fielding', year[0])
+            status = aut.import_test_cases(year[0])
+
+            if status:
+                aut.run_test_cases('batting', year[0])
+                # aut.run_test_cases('pitching', year[0])
+                aut.run_test_cases('fielding', year[0])
+            # else pass, as no test cases to run
 
             return True
 
