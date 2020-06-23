@@ -224,12 +224,10 @@ def get_process_complete_years():
     query = 'SELECT data_year, COUNT(DISTINCT team_id) FROM teams GROUP BY data_year'
     teams = conn.execute(query).fetchall()
     print("Total Teams:", teams)
+    conn.close()
 
     # get all years from stats generated
-    query = 'SELECT DISTINCT data_year FROM player_year_team GROUP BY data_year'
-    stats_gen = conn.execute(query).fetchall()
-    stats_gen = [r for (r, ) in stats_gen]
-    print("STATS GEN", stats_gen)
+    stats_gen = get_stats_gen_complete_years()
 
     # check how many team names loaded for particular year vs. stat years
     done = [y for (y, c) in teams if (y, c) in years]
@@ -237,3 +235,17 @@ def get_process_complete_years():
     print(done, stats_not_done)
 
     return stats_not_done
+
+
+# get list of years that have completed stats generation
+def get_stats_gen_complete_years():
+
+    # get all years from stats generated
+    conn = dbs.engine.connect()
+    query = 'SELECT DISTINCT data_year FROM player_year_team GROUP BY data_year'
+    stats_gen = conn.execute(query).fetchall()
+    stats_gen = [r for (r, ) in stats_gen]
+    print("STATS GEN", stats_gen)
+    conn.close()
+
+    return stats_gen

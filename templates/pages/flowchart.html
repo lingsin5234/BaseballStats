@@ -1,0 +1,55 @@
+{% include 'partials/header_baseball.html' %}
+    <div id="my_title" class="d-flex justify-content-center">
+        <h1>Baseball Project Flowchart</h1>
+    </div><br>
+    <div class="mermaid">
+        graph TB
+            subgraph importYear
+                S1[Start] --> A1[Get all files]
+                A1 --> A2[Sort into Folder]
+                A2 --> A3[Finish]
+            end
+
+            subgraph extractNames
+                A3 --> S2
+                S2[Start] --> B1[Extract Team Names]
+                B1 --> B2[Extract all Player Names]
+                B2 --> B3[Sort Both into Database]
+                B3 --> B4[Finish]
+            end
+
+            subgraph processTeam
+                B4 --> S3
+                S3[Start] --> C[Loop thru file]
+                C --> C1{If End of File}
+                C1 --> |Yes|FN[Finish]
+                C1 --> |No|D{Type of Play}
+                D -->|Non-Plate Appearance| E1[Process Play]
+                D -->|Plate Appearance| E2[Process Play]
+                D -->|Substitution| E3[Handle Substitute]
+                E2 --> E4[Handle Batter]
+                E1 --> F[Record Raw Stats]
+                E4 --> F
+                E3 --> F
+                F --> F1[Move Baserunners]
+                F1 --> F2[Handle Current Half Inning]
+                F2 --> |Next play|C
+            end
+
+            subgraph generateStats
+                FN --> S4
+                S4[Start] --> G1{Type of Stat}
+                G1 --> |Batting|G3[Grab Raw Stats]
+                G1 --> |Pitching|G3
+                G1 --> |Fielding|G3
+                G3 --> G4[Aggregate & Tally]
+                G4 --> G5[Insert to Database]
+                G5 --> H{If Test Case Exists}
+                H --> |Yes|H1[Run Test Cases]
+                H --> |No|H2[Finish]
+            end
+    </div>
+    <br>
+    <script>mermaid.initialize({startOnLoad:true});</script>
+
+{% include 'partials/footer_baseball.html' %}
