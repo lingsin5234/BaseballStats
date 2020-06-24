@@ -1,0 +1,11 @@
+<div id="selected" class="d-flex justify-content-center">
+    <h3>{{ heading }}</h3>
+</div><br>
+<div id="table_output" class="d-flex justify-content-center">{{ results.as_table }}</div>
+
+<script>
+    (function () {
+        window.results = {{results|safe}};
+        window.bat_col = {{col_convert|safe}};
+    }());
+</script>
