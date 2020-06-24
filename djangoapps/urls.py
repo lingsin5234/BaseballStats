@@ -26,7 +26,6 @@ urlpatterns = [
     re_path(r'^project/', baseball_vw.project_markdown),
     re_path(r'^jobs-dashboard/', baseball_vw.jobs_dashboard),
     re_path(r'ajax/load-teams/', baseball_vw.load_teams, name='ajax_load_teams'),
-    re_path(r'ajax/load-stats/', baseball_vw.load_stats, name='ajax_load_stats'),
     re_path(r'stat_results', baseball_vw.StatsResults.as_view(), name='api_get_stats'),
     re_path(r'flowchart/', baseball_vw.process_flowchart)
 ]

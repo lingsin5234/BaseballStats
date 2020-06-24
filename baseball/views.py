@@ -122,81 +122,13 @@ def load_teams(request):
     return render(request, 'partials/teams_dropdown_options.html', {'teams': team_choices})
 
 
-# load the stat results
-def load_stats(request):
-
-    # declarations
-    results = []
-
-    # get batting cols and pop the columns not being displayed
-    viewer_col = gv.bat_stat_types.copy()
-    viewer_col.pop('PID')
-    viewer_col.pop('YEAR')
-
-    # get the keys and values, then add in name to the viewer_col
-    query_col = ['player_nm'] + list(viewer_col.values())
-    post_col_keys = ['NAME'] + list(viewer_col.keys())
-    viewer_col['NAME'] = 'player_nm'  # this way the order for will remain the same
-
-    # handle the POST request
-    if request.method == 'POST':
-
-        # print(request.POST)
-        year_choices = chk.get_year_choices2()
-        team_choices = chk.get_team_choices2(str(request.POST['year']))
-        # print(team_choices)
-        form = ViewStats(year_choices, team_choices, request.POST)
-
-        if form.is_valid():
-            # read from database; || is concatenate in sqlite!
-            query = "SELECT DISTINCT {} FROM batting b " \
-                        .format(", ".join(query_col).replace("team_name", "pyts.team_name")
-                                .replace("player_nm", "(first_name || ' ' || last_name) as player_nm")) + \
-                    " JOIN player_year_team pyts ON b.pyts_id = pyts.Id JOIN players p ON " + \
-                    "pyts.player_id=p.player_id AND pyts.team_name = p.team_id AND pyts.data_year = p.data_year " + \
-                    "WHERE pyts.team_name='{}' AND pyts.data_year={} " \
-                        .format(str(request.POST['team']), str(request.POST['year'])) + "ORDER BY rbis desc"
-            print(query)
-            temp = dr.baseball_db_reader(query)
-            print(temp)
-
-            # because `temp` is NOT a dictionary we need to convert it!
-            results = []
-            for t in temp:
-                add = dict(zip(query_col, t))
-                add['player_nm'] = add['player_nm'].replace('"', '')  # replace the extra '"' if there.
-                results.append(add)
-            # print(results)
-
-            # change heading
-            heading = "Batting Stats for " + str(request.POST['team']) + " in " + str(request.POST['year'])
-
-            # show column headings
-            post_col = post_col_keys
-            # print(post_col)
-            # print(viewer_col)
-
-        else:
-            # if user submits with a '---' team
-            if request.POST['team'] == '---':
-                heading = "Please Select a Team!"
-            print(form.errors)
-
-    context = {
-        'bat_col': json.dumps(viewer_col),
-        'results': json.dumps(results, cls=DjangoJSONEncoder)
-    }
-
-    return render(request, 'partials/stat_results.html', context)
-
-
 # view stats
 def stats_view(request):
 
     # get the year and team choices then grab the ViewStats Form
     year_choices = chk.get_year_choices2()
-    team_choices = [('TOR', 'TOR')]
-    team_choices.extend(chk.get_team_choices2("2019"))
+    # team_choices = [('---', '---')]  ## remove
+    team_choices = chk.get_team_choices2("2019")
     form_view_stats = ViewStats(year_choices, team_choices, initial={'form_type': 'view_stats'})
 
     # get batting cols and pop the columns not being displayed
@@ -216,7 +148,7 @@ def stats_view(request):
         " JOIN player_year_team pyts ON b.pyts_id = pyts.Id JOIN players p ON " + \
         "pyts.player_id=p.player_id AND pyts.team_name = p.team_id AND pyts.data_year = p.data_year " + \
         "WHERE pyts.team_name='{}' AND pyts.data_year={} " \
-            .format('TOR', 2019) + "ORDER BY rbis desc"
+            .format('ANA', 2019) + "ORDER BY rbis desc"
     print(query)
     temp = dr.baseball_db_reader(query)
     print(temp)
@@ -230,7 +162,7 @@ def stats_view(request):
     # print(results)
 
     # change heading
-    heading = "Batting Stats for TOR in 2019"
+    heading = "Batting Stats for ANA in 2019"
 
     # show column headings
     post_col = post_col_keys
