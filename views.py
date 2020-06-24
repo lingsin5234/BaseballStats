@@ -18,6 +18,22 @@ from .functions import instantiate_forms
 from djangoapps.utils import get_this_template
 from datetime import time
 
+'''
+API Section
+'''
+from rest_framework import views
+from rest_framework.response import Response
+from .serializers import YourSerializer
+
+
+class StatsResults(views.APIView):
+
+    # get request
+    def get(self, request):
+        yourdata = [{"likes": 10, "comments": 0}, {"likes": 4, "comments": 23}]
+        results = YourSerializer(yourdata, many=True).data
+        return Response(results)
+
 
 # home page
 def home_page(request):
@@ -57,22 +73,11 @@ def load_teams(request):
     return render(request, 'partials/teams_dropdown_options.html', {'teams': team_choices})
 
 
-# view stats
-def stats_view(request):
+# load the stat results
+def load_stats(request):
 
     # declarations
     results = []
-    # batting_col = []
-    post_col = []  # only send columns once request.POST received!
-    heading = ""
-
-    '''
-    # get batting stats table column names
-    cols = cs.batting_stats.columns
-    for i in cols:
-        batting_col.append(str(i).replace('batting.', ''))
-    batting_col = batting_col[1:len(batting_col)]  # ignore ID
-    '''
 
     # get batting cols and pop the columns not being displayed
     viewer_col = gv.bat_stat_types.copy()
@@ -83,12 +88,6 @@ def stats_view(request):
     query_col = ['player_nm'] + list(viewer_col.values())
     post_col_keys = ['NAME'] + list(viewer_col.keys())
     viewer_col['NAME'] = 'player_nm'  # this way the order for will remain the same
-
-    # get the year and team choices then grab the ViewStats Form
-    year_choices = chk.get_year_choices2()
-    team_choices = [('---', '---')]
-    team_choices.extend(chk.get_team_choices2("2019"))
-    form_view_stats = ViewStats(year_choices, team_choices, initial={'form_type': 'view_stats'})
 
     # handle the POST request
     if request.method == 'POST':
@@ -106,7 +105,7 @@ def stats_view(request):
                                 .replace("player_nm", "(first_name || ' ' || last_name) as player_nm")) + \
                     " JOIN player_year_team pyts ON b.pyts_id = pyts.Id JOIN players p ON " + \
                     "pyts.player_id=p.player_id AND pyts.team_name = p.team_id AND pyts.data_year = p.data_year " + \
-                    "WHERE pyts.team_name='{}' AND pyts.data_year={} "\
+                    "WHERE pyts.team_name='{}' AND pyts.data_year={} " \
                         .format(str(request.POST['team']), str(request.POST['year'])) + "ORDER BY rbis desc"
             print(query)
             temp = dr.baseball_db_reader(query)
@@ -135,10 +134,39 @@ def stats_view(request):
             print(form.errors)
 
     context = {
-        'form_view_stats': form_view_stats,
-        'results': json.dumps(results, cls=DjangoJSONEncoder),
-        'post_col': post_col,
         'col_convert': json.dumps(viewer_col),
+        'results': json.dumps(results, cls=DjangoJSONEncoder)
+    }
+
+    return render(request, 'partials/stat_results.html', context)
+
+
+# view stats
+def stats_view(request):
+
+    # declarations
+    results = []
+    # batting_col = []
+    post_col = []  # only send columns once request.POST received!
+    heading = ""
+
+    '''
+    # get batting stats table column names
+    cols = cs.batting_stats.columns
+    for i in cols:
+        batting_col.append(str(i).replace('batting.', ''))
+    batting_col = batting_col[1:len(batting_col)]  # ignore ID
+    '''
+
+    # get the year and team choices then grab the ViewStats Form
+    year_choices = chk.get_year_choices2()
+    team_choices = [('---', '---')]
+    team_choices.extend(chk.get_team_choices2("2019"))
+    form_view_stats = ViewStats(year_choices, team_choices, initial={'form_type': 'view_stats'})
+
+    context = {
+        'form_view_stats': form_view_stats,
+        'post_col': post_col,
         'heading': heading
     }
 

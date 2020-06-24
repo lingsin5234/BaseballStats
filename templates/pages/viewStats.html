@@ -8,22 +8,20 @@
     </div><br>
 
     {% load crispy_forms_tags %}
-    <form id="view_stats" action="" method="post" data-teams-url="{% url 'ajax_load_teams' %}" novalidate>
+    <form id="view_stats" data-stats-url="{% url 'ajax_load_stats' %}"
+          method="post" data-teams-url="{% url 'ajax_load_teams' %}" novalidate>
         {% csrf_token %}
         {{ form_view_stats.as_table }}
-        <input type="submit" value="View Stats">
+        <!--input type="submit" value="View Stats"-->
     </form>
 
-    <div id="selected" class="d-flex justify-content-center">
-        <h3>{{ heading }}</h3>
-    </div><br>
-    <div id="table_output" class="d-flex justify-content-center"></div>
+    <div id="stat_results"></div>
 
     <script>
         (function () {
-            window.results = {{results|safe}};
+            window.results = "{'data': ''}";
             window.columns = {{post_col|safe}};
-            window.bat_col = {{col_convert|safe}};
+            window.bat_col = "{'cols': ''}";
         }());
         $(document).ready(function() {
             $('#table_stats').DataTable();
@@ -38,7 +36,7 @@
     $("#id_year").change(function () {
         var url = $("#view_stats").attr("data-teams-url");  // get the url of the `load_teams` view
         var yearId = $(this).val();  // get selected YEAR
-        console.log(url);
+        //console.log(url);
         // initialize an AJAX request
         $.ajax({
             //async: true,
@@ -47,8 +45,47 @@
                 'year': yearId  // add the year id to the GET parameters
             },
             success: function (data) {  // `data` is the return of the `load_teams` view function
-                console.log(data);
+                //console.log(data);
                 $("#id_team").html(data);  // replace with the values retrieved
+            }
+        });
+    });
+
+    // loading stats
+    $("#id_team").change(function() {
+        var url = $("#view_stats").attr("data-stats-url");  // get the url of the `load_teams` view
+        var yearId = $(this).val();  // get selected YEAR
+        var teamId = $(this).val();  // get selected TEAM
+        //console.log(url);
+        // initialize an AJAX request
+        $.ajax({
+            //async: true,
+            url: url,  // set the url of the request (= localhost:8000/ajax/load-stats/)
+            data: {
+                'year': yearId,
+                'team': teamId
+            },
+            success: function (data) {
+                console.log(data);
+                console.log(typeof(data));
+                $("#stat_results").html(data);
+            }
+        });
+    });
+
+    // get API
+    $("#id_team").change(function() {
+        $.ajax({
+            url: "/stat_results",
+            type: "GET",
+            success: function(data) {
+                console.log("API RESULTS");
+                console.log(data[0]);
+                console.log(data.length);
+            },
+            error: function(error) {
+                console.log("API ERROR");
+                console.log(error);
             }
         });
     });
