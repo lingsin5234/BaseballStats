@@ -15,7 +15,10 @@
         <!--input type="submit" value="View Stats"-->
     </form>
 
-    <div id="stat_results"></div>
+    <div id="selected" class="d-flex justify-content-center">
+        <h3>{{ heading }}</h3>
+    </div><br>
+    <div id="table_output" class="d-flex justify-content-center">{{ results.as_table }}</div>
 
     <script>
         (function () {
@@ -23,9 +26,6 @@
             window.columns = {{post_col|safe}};
             window.bat_col = "{'cols': ''}";
         }());
-        $(document).ready(function() {
-            $('#table_stats').DataTable();
-        } );
     </script>
     {% load static %}
     <script src="{% static 'scripts/baseball/view_stats.js' %}"></script>
@@ -51,37 +51,26 @@
         });
     });
 
-    // loading stats
+    // get API
     $("#id_team").change(function() {
-        var url = $("#view_stats").attr("data-stats-url");  // get the url of the `load_teams` view
-        var yearId = $(this).val();  // get selected YEAR
+        var yearId = $('#id_year').val();  // get selected YEAR
         var teamId = $(this).val();  // get selected TEAM
-        //console.log(url);
-        // initialize an AJAX request
         $.ajax({
-            //async: true,
-            url: url,  // set the url of the request (= localhost:8000/ajax/load-stats/)
+            url: "/stat_results",
+            type: "POST",
             data: {
                 'year': yearId,
                 'team': teamId
             },
-            success: function (data) {
-                console.log(data);
-                console.log(typeof(data));
-                $("#stat_results").html(data);
-            }
-        });
-    });
-
-    // get API
-    $("#id_team").change(function() {
-        $.ajax({
-            url: "/stat_results",
-            type: "GET",
             success: function(data) {
                 console.log("API RESULTS");
-                console.log(data[0]);
-                console.log(data.length);
+                //console.log(data);
+                //console.log(data.length);
+                results = data[0]['results'];
+                heading = data[0]['heading'];
+                console.log(heading);
+                bat_col = data[0]['post_col'];
+                $('#table_stats').DataTable();
             },
             error: function(error) {
                 console.log("API ERROR");
