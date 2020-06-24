@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
 
-class YourSerializer(serializers.Serializer):
+class StatSerializer(serializers.Serializer):
     # Your data serializer, define your fields here.
-    comments = serializers.IntegerField()
-    likes = serializers.IntegerField()
+    results = serializers.ListField()
+    heading = serializers.CharField()
+    post_col = serializers.ListField()
