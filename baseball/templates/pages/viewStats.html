@@ -20,15 +20,16 @@
     </div><br>
     <div id="table_output" class="d-flex justify-content-center">{{ results.as_table }}</div>
 
-    <script>
-        (function () {
-            window.results = "{'data': ''}";
-            window.columns = {{post_col|safe}};
-            window.bat_col = "{'cols': ''}";
-        }());
-    </script>
     {% load static %}
     <script src="{% static 'scripts/baseball/view_stats.js' %}"></script>
+    <script>
+        (function () {
+            window.results = {{results|safe}};
+            window.columns = {{post_col|safe}};
+            window.bat_col = {{bat_col|safe}};
+        }());
+    </script>
+
     <br>
 
     <script>
@@ -51,6 +52,9 @@
         });
     });
 
+    // instantiate StatsTable
+    StatsTable = new StatsTable("#table_stats");
+
     // get API
     $("#id_team").change(function() {
         var yearId = $('#id_year').val();  // get selected YEAR
@@ -69,8 +73,8 @@
                 results = data[0]['results'];
                 heading = data[0]['heading'];
                 console.log(heading);
-                bat_col = data[0]['post_col'];
-                $('#table_stats').DataTable();
+                columns = data[0]['post_col'];
+                StatsTable.wrangleData();
             },
             error: function(error) {
                 console.log("API ERROR");
