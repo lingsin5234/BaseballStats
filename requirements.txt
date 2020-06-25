@@ -29,6 +29,7 @@ django-rq==2.3.2
 django-simple-captcha==0.5.12
 django-simple-menu==1.2.1
 djangorestframework==3.11.0
+djangorestframework-datatables==0.5.2
 dpd-components==0.1.0
 Flask==1.1.2
 Flask-Compress==1.5.0
