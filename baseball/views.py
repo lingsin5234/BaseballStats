@@ -26,12 +26,11 @@ from rest_framework.response import Response
 from .serializers import StatSerializer
 
 
+# API View for getting Stats Results table
 class StatsResults(views.APIView):
 
     # get request
     def get(self, request):
-        # yourdata = [{"likes": 10, "comments": 0}, {"likes": 4, "comments": 23}]
-        # results = YourSerializer(yourdata, many=True).data
 
         # get batting cols and pop the columns not being displayed
         viewer_col = gv.bat_stat_types.copy()
@@ -43,8 +42,6 @@ class StatsResults(views.APIView):
         post_col_keys = ['NAME'] + list(viewer_col.keys())
         viewer_col['NAME'] = 'player_nm'  # this way the order for will remain the same
 
-        # print(request)  #, request.POST)
-        # print("REQUEST DATA", request.GET)
         # read from database; || is concatenate in sqlite!
         query = "SELECT DISTINCT {} FROM batting b " \
                     .format(", ".join(query_col).replace("team_name", "pyts.team_name")
@@ -53,10 +50,7 @@ class StatsResults(views.APIView):
                 "pyts.player_id=p.player_id AND pyts.team_name = p.team_id AND pyts.data_year = p.data_year " + \
                 "WHERE pyts.team_name='{}' AND pyts.data_year={} " \
                     .format(str(request.GET['team']), str(request.GET['year'])) + "ORDER BY rbis desc"
-        print(query)
         temp = dr.baseball_db_reader(query)
-        # print(temp)
-        # print("\n\n\n")
 
         # because `temp` is NOT a dictionary we need to convert it!
         post_col = post_col_keys
@@ -65,33 +59,9 @@ class StatsResults(views.APIView):
             add = dict(zip(post_col, t))
             add['NAME'] = add['NAME'].replace('"', '')  # replace the extra '"' if there.
             results.append(add)
-        # print(results)
 
-        # change columns into ajax format for the DataTable.js
-        ajax_col = []
-        for col in post_col:
-            ac = {'data': col, 'title': col}
-            ajax_col.append(ac)
-        # print(ajax_col)
-
-        # change heading
-        heading = "Batting Stats for " + str(request.GET['team']) + " in " + str(request.GET['year'])
-
-        # put output into a dict
-        dict_output = [{
-            'results': {'data': results},
-            'heading': heading,
-            'post_col': ajax_col
-        }]
-        the_output = {
-            'data': results,
-            'heading': heading,
-            'post_col': ajax_col
-        }
-        # print(dict_output)
         data_output = StatSerializer(results, many=True).data
-        # print('DATA OUTPUT', data_output)
-        # return Response(data_output)
+
         return Response(data_output)
 
 

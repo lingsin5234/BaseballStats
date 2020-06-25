@@ -15,13 +15,9 @@
     </form>
 
     <div id="selected" class="d-flex justify-content-center">
-        <h3>{{ heading }}</h3>
+        <h3>Batting Stats</h3>
     </div><br>
-    <table id="table_output" class="display" width="100%"></table>
-
-    {% load static %}
-    <!--script src="{% static 'scripts/baseball/view_stats.js' %}"></script-->
-    <br>
+    <table id="table_output" class="display" width="100%"></table><br>
 
     <script>
     // for the teams drop-down dependency
@@ -47,7 +43,7 @@
     $(document).ready(function() {
         window.columns = {{post_col|safe}};
         getURL = "/api/stat_results?format=datatables&year=" + $("#id_year").val() + "&team=" + $("#id_team").val();
-        console.log(getURL);
+        //console.log(getURL);
         $('#table_output').DataTable({
             "ajax": getURL,
             "columns": columns,
@@ -58,7 +54,7 @@
     // new GET request call every time the team name is changed
     $("#id_team").change(function () {
         getURL = "/api/stat_results?format=datatables&year=" + $("#id_year").val() + "&team=" + $("#id_team").val();
-        console.log(getURL);
+        //console.log(getURL);
         $('#table_output').DataTable().ajax.url(getURL).load();
     });
     </script>
