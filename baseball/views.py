@@ -28,8 +28,8 @@ from .serializers import StatSerializer
 
 class StatsResults(views.APIView):
 
-    # post request
-    def post(self, request):
+    # get request
+    def get(self, request):
         # yourdata = [{"likes": 10, "comments": 0}, {"likes": 4, "comments": 23}]
         # results = YourSerializer(yourdata, many=True).data
 
@@ -43,7 +43,8 @@ class StatsResults(views.APIView):
         post_col_keys = ['NAME'] + list(viewer_col.keys())
         viewer_col['NAME'] = 'player_nm'  # this way the order for will remain the same
 
-        print(request, request.POST)
+        # print(request)  #, request.POST)
+        # print("REQUEST DATA", request.GET)
         # read from database; || is concatenate in sqlite!
         query = "SELECT DISTINCT {} FROM batting b " \
                     .format(", ".join(query_col).replace("team_name", "pyts.team_name")
@@ -51,37 +52,47 @@ class StatsResults(views.APIView):
                 " JOIN player_year_team pyts ON b.pyts_id = pyts.Id JOIN players p ON " + \
                 "pyts.player_id=p.player_id AND pyts.team_name = p.team_id AND pyts.data_year = p.data_year " + \
                 "WHERE pyts.team_name='{}' AND pyts.data_year={} " \
-                    .format(str(request.POST['team']), str(request.POST['year'])) + "ORDER BY rbis desc"
+                    .format(str(request.GET['team']), str(request.GET['year'])) + "ORDER BY rbis desc"
         print(query)
         temp = dr.baseball_db_reader(query)
-        print(temp)
-        print("\n\n\n")
+        # print(temp)
+        # print("\n\n\n")
 
         # because `temp` is NOT a dictionary we need to convert it!
+        post_col = post_col_keys
         results = []
         for t in temp:
-            add = dict(zip(query_col, t))
-            add['player_nm'] = add['player_nm'].replace('"', '')  # replace the extra '"' if there.
+            add = dict(zip(post_col, t))
+            add['NAME'] = add['NAME'].replace('"', '')  # replace the extra '"' if there.
             results.append(add)
         # print(results)
 
-        # change heading
-        heading = "Batting Stats for " + str(request.POST['team']) + " in " + str(request.POST['year'])
+        # change columns into ajax format for the DataTable.js
+        ajax_col = []
+        for col in post_col:
+            ac = {'data': col, 'title': col}
+            ajax_col.append(ac)
+        # print(ajax_col)
 
-        # show column headings
-        post_col = post_col_keys
+        # change heading
+        heading = "Batting Stats for " + str(request.GET['team']) + " in " + str(request.GET['year'])
 
         # put output into a dict
         dict_output = [{
-            'results': results,
+            'results': {'data': results},
             'heading': heading,
-            'post_col': post_col
+            'post_col': ajax_col
         }]
+        the_output = {
+            'data': results,
+            'heading': heading,
+            'post_col': ajax_col
+        }
         # print(dict_output)
-        # data_output = StatSerializer(dict_output).data
-        # print(data_output)
+        data_output = StatSerializer(results, many=True).data
+        # print('DATA OUTPUT', data_output)
         # return Response(data_output)
-        return Response(dict_output)
+        return Response(data_output)
 
 
 # home page
@@ -149,30 +160,40 @@ def stats_view(request):
         "pyts.player_id=p.player_id AND pyts.team_name = p.team_id AND pyts.data_year = p.data_year " + \
         "WHERE pyts.team_name='{}' AND pyts.data_year={} " \
             .format('ANA', 2019) + "ORDER BY rbis desc"
-    print(query)
+    # print(query)
     temp = dr.baseball_db_reader(query)
-    print(temp)
+    # print(temp)
 
     # because `temp` is NOT a dictionary we need to convert it!
+    post_col = post_col_keys
     results = []
     for t in temp:
-        add = dict(zip(query_col, t))
-        add['player_nm'] = add['player_nm'].replace('"', '')  # replace the extra '"' if there.
+        add = dict(zip(post_col, t))
+        add['NAME'] = add['NAME'].replace('"', '')  # replace the extra '"' if there.
         results.append(add)
     # print(results)
 
     # change heading
     heading = "Batting Stats for ANA in 2019"
 
-    # show column headings
-    post_col = post_col_keys
+    # change columns into ajax format for the DataTable.js
+    ajax_col = []
+    for col in post_col:
+        ac = {'data': col, 'title': col}
+        ajax_col.append(ac)
+    # print(ajax_col)
+
+    # put output into a dict
+    dict_output = [{
+        'results': {'data': results},
+        'heading': heading,
+        'post_col': ajax_col
+    }]
 
     context = {
         'form_view_stats': form_view_stats,
-        'post_col': post_col,
-        'bat_col': json.dumps(viewer_col),
-        'heading': heading,
-        'results': results
+        'dict_output': dict_output,
+        'post_col': ajax_col
     }
 
     return render(request, 'pages/viewStats.html', context)
