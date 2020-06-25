@@ -17,10 +17,10 @@
     <div id="selected" class="d-flex justify-content-center">
         <h3>{{ heading }}</h3>
     </div><br>
-    <div id="table_output" class="d-flex justify-content-center"></div>
+    <table id="table_output" class="display" width="100%"></table>
 
     {% load static %}
-    <script src="{% static 'scripts/baseball/view_stats.js' %}"></script>
+    <!--script src="{% static 'scripts/baseball/view_stats.js' %}"></script-->
     <br>
 
     <script>
@@ -45,51 +45,22 @@
 
     // instantiate StatsTable
     $(document).ready(function() {
-        callAPI();
-        window.results = {{results|safe}};
-        window.heading = '{{heading}}';
         window.columns = {{post_col|safe}};
-        window.bat_col = {{bat_col|safe}};
-        StatsTable = new StatsTable("#table_stats");
-        // call DataTable js
-        $('#table_stats').DataTable({
-            "processing": true,
-            "serverSide": true,
-            "ajax": callAPI()
+        getURL = "/api/stat_results?format=datatables&year=" + $("#id_year").val() + "&team=" + $("#id_team").val();
+        console.log(getURL);
+        $('#table_output').DataTable({
+            "ajax": getURL,
+            "columns": columns,
+            "paging": false
         });
     });
 
-    // call API on Team selector change
-    $("#id_team").change(function() {
-        // call API
-        callAPI();
+    // new GET request call every time the team name is changed
+    $("#id_team").change(function () {
+        getURL = "/api/stat_results?format=datatables&year=" + $("#id_year").val() + "&team=" + $("#id_team").val();
+        console.log(getURL);
+        $('#table_output').DataTable().ajax.url(getURL).load();
     });
-
-    // call API function
-    function callAPI() {
-        var yearId = $('#id_year').val();  // get selected YEAR
-        var teamId = $('#id_team').val();  // get selected TEAM
-        var output;
-        $.ajax({
-            url: "/stat_results",
-            type: "POST",
-            data: {
-                'year': yearId,
-                'team': teamId
-            },
-            success: function(data) {
-                results = data[0]['results'];
-                heading = data[0]['heading'];
-                columns = data[0]['post_col'];
-                console.log(results);
-                StatsTable.wrangleData();
-            },
-            error: function(error) {
-                console.log("API ERROR");
-                console.log(error);
-            }
-        });
-    };
     </script>
 
 {% include 'partials/footer_baseball.html' %}
