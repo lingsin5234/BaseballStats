@@ -7,10 +7,18 @@ import pandas as pd
 
 # query
 # c = dbs.engine.connect()
+# query = 'SELECT * FROM process_log WHERE process_name LIKE ?'
+# query = "SELECT COUNT(*) FROM raw_player_stats"
 # query = 'SELECT data_year, stat_category, COUNT(*) FROM player_year_team GROUP BY data_year, stat_category'
 # query = 'SELECT COUNT(DISTINCT pyts_id) FROM batting_calc'
 # query = 'SELECT * FROM process_log'
-# results = c.execute(query).fetchall()
+'''
+# DELETE batting table and batting_calc to re-apply BB (walks)
+c.execute('DELETE FROM batting')
+c.execute('DELETE FROM batting_calc')
+query = 'SELECT COUNT(*) FROM batting'
+'''
+# results = c.execute(query, 'stat_processor%').fetchall()
 # print(results)
 # columns = c.execute(query)
 # df = pd.DataFrame(results)
