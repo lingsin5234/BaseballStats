@@ -153,17 +153,15 @@ def stats_view(request):
         ajax_col.append(ac)
     # print(ajax_col)
 
-    # put output into a dict
-    dict_output = [{
-        'results': {'data': results},
-        'heading': heading,
-        'post_col': ajax_col
-    }]
+    # query_col -- dict of post_col vs column desc
+    query_col = [q.replace('_', ' ') for q in query_col]
+    col_dict = dict(zip(post_col, query_col))
+    # print(col_dict)
 
     context = {
         'form_view_stats': form_view_stats,
-        'dict_output': dict_output,
-        'post_col': ajax_col
+        'post_col': ajax_col,
+        'col_dict': col_dict
     }
 
     return render(request, 'pages/viewStats.html', context)
