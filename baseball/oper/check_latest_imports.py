@@ -43,11 +43,11 @@ def check_teams(year, which_process):
             # print(missing_teams_pp)
             return missing_teams_pp
 
-    # check gen_stats
+    # check gen_stats  ---- THIS WON'T WORK ANYMORE ---- no more TEAM NAME
     elif which_process == 'generate_stats':
 
         # next, check to see if the teams were processed at all
-        query = "SELECT team_name FROM process_log WHERE data_year=? AND process_name='stat_processor'"
+        query = "SELECT team_name FROM process_log WHERE data_year=? AND process_name LIKE 'stat_processor%'"
         results = c.execute(query, year).fetchall()
         results = [r for r, in results]
 
@@ -69,7 +69,7 @@ def check_teams(year, which_process):
         results = [r for r, in results]
         print("HERE ARE PROCESSED:", results)
 
-        query = "SELECT team_name FROM process_log WHERE data_year=? AND process_name='stat_processor'"
+        query = "SELECT team_name FROM process_log WHERE data_year=? AND process_name LIKE 'stat_processor%'"
         completed = c.execute(query, year).fetchall()
         completed = [r for r, in completed]
         print("HERE ARE COMPLETED: ", completed)
