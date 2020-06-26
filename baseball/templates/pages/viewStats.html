@@ -42,6 +42,7 @@
     // instantiate StatsTable
     $(document).ready(function() {
         window.columns = {{post_col|safe}};
+        window.column_desc = {{col_dict|safe}};
         getURL = "/api/stat_results?format=datatables&year=" + $("#id_year").val() + "&team=" + $("#id_team").val();
         //console.log(getURL);
         $('#table_output').DataTable({
@@ -49,6 +50,17 @@
             "columns": columns,
             "paging": false
         });
+
+        // add the title to use for tool tip later
+        $('#table_output thead tr th').each( function() {
+            var sTitle;
+            var nTds = $(this);
+            var sTip = $(nTds[0]).text();
+            //console.log(sTip);
+            var sDesc = column_desc[sTip];
+            //console.log(sDesc);
+            this.setAttribute('title', sDesc);
+        } );
     });
 
     // new GET request call every time the team name is changed
