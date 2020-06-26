@@ -49,6 +49,7 @@ class Job(WeeklyJob):
                 aut.run_test_cases('fielding', year[0])
             # else pass, as no test cases to run
 
+            print("STATS GEN COMPLETE")
             return True
 
         else:

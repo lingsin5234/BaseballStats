@@ -168,7 +168,7 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                     else:
                         gv.bases_after = 'B' + gv.bases_after
 
-                        st = ['PA', 'W']
+                        st = ['PA', 'BB']
                         pt = ['BF', 'BB']
                         if bool(re.search(r'^IW', begin_play)):
                             st.append('IW')
@@ -550,7 +550,8 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                         pass
 
                     # add games played stat - as "batting" stat
-                    sc.stat_collector(pid, lineup, this_line, ['GP'])
+                    st = ['GP', 'PR']
+                    sc.stat_collector(pid, lineup, this_line, st)
 
                 # pinch hitter only
                 elif this_line['fielding'] == '11':
@@ -560,7 +561,8 @@ def play_processor4(the_dict, games_roster, team_name, data_year):
                     lineup = substitution[0]
 
                     # add games played stat - as "batting" stat
-                    sc.stat_collector(pid, lineup, this_line, ['GP'])
+                    st = ['GP', 'PH']
+                    sc.stat_collector(pid, lineup, this_line, st)
 
                 # what other scenarios here?
                 else:

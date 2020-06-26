@@ -141,7 +141,7 @@ def stats_view(request):
         add = dict(zip(post_col, t))
         add['NAME'] = add['NAME'].replace('"', '')  # replace the extra '"' if there.
         results.append(add)
-    # print(results)
+    print(results)
 
     # change heading
     heading = "Batting Stats for ANA in 2019"
@@ -327,10 +327,14 @@ def jobs_dashboard(request):
     if len(results) > 0:
         max_hits = max([val for val in [r['hits'] for r in team_data]])
         max_hrs = max([val for val in [r['hrs'] for r in team_data]])
+        min_hits = min([val for val in [r['hits'] for r in team_data]])
+        min_hrs = min([val for val in [r['hrs'] for r in team_data]])
     else:
         team_data = [{'hits': 0, 'hrs': 0, 'rbis': 0, 'team_name': 'N/A', 'data_year': 'N/A'}]
         max_hits = 0
         max_hrs = 0
+        min_hits = 0
+        min_hrs = 0
 
     context = {
         'processes': json.dumps(processes),
@@ -344,7 +348,9 @@ def jobs_dashboard(request):
         'error_rate': error_rate,
         'team_data': team_data,
         'max_hits': max_hits,
-        'max_hrs': max_hrs
+        'max_hrs': max_hrs,
+        'min_hits': min_hits,
+        'min_hrs': min_hrs
     }
 
     return render(request, 'pages/jobsDashboard.html', context)
