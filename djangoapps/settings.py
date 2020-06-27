@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'hv!^w1xx_2w#ey95bqzoi3fp^0i)06x!q0c-97z+a$70w!ixeu'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -94,9 +94,9 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': 'baseball',
-            'USER': 'baseballapp',
-            'PASSWORD': 'G06lU3j@ySgO',
+            'NAME': os.environ.get('BASEBALL_DB_NAME'),
+            'USER': os.environ.get('BASEBALL_DB_USER'),
+            'PASSWORD': os.environ.get('BASEBALL_DB_PWD'),
             'HOST': 'localhost',
             'PORT': '',
         }
