@@ -30,6 +30,7 @@ def generate_stats2(year, stat_category):
             for x in output:
                 gv.player[idx] = dict(x)
                 idx += 1
+            print(idx)
         print('Conversion Time:', dt.seconds_convert(t.time() - conv_time))
     except Exception as e:
         # accept any types of errors
