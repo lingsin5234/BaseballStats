@@ -6,6 +6,7 @@ from . import stat_collector as sc
 from . import date_time as dt
 from . import db_setup as dbs
 from . import error_logger as el
+from . import check_latest_imports as chk
 import pandas as pd
 import datetime
 
@@ -18,14 +19,18 @@ def generate_stats2(year, stat_category):
     try:
         # retrieve the game player stats
         conn = dbs.engine.connect()
-        output = conn.execute("SELECT * FROM raw_player_stats WHERE data_year=? AND bat_pitch=?",
-                              year, stat_category).fetchall()
-        idx = 0
-        # conversion time
         conv_time = t.time()
-        for x in output:
-            gv.player[idx] = dict(x)
-            idx += 1
+
+        # fetch per team so to limit the query result size
+        teams = chk.get_team_choices2(year)
+        teams = [x for (x, x) in teams]
+        idx = 0
+        for team in teams:
+            output = conn.execute("SELECT * FROM raw_player_stats WHERE data_year=? AND bat_pitch=? AND team_name=?",
+                                  year, stat_category, team).fetchall()
+            for x in output:
+                gv.player[idx] = dict(x)
+                idx += 1
         print('Conversion Time:', dt.seconds_convert(t.time() - conv_time))
     except Exception as e:
         # accept any types of errors
