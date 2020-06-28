@@ -200,7 +200,7 @@ def get_team_choices2(year):
 
     # remember to assign them as tuples
     team_choices = [(t, t) for t in results]
-    print("Get Team Choices 2: ", team_choices)
+    # print("Get Team Choices 2: ", team_choices)
 
     # query = 'SELECT COUNT(*) FROM players'
     # conn = dbs.engine.connect()
