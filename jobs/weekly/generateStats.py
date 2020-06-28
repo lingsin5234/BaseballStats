@@ -30,15 +30,18 @@ class Job(WeeklyJob):
 
             # only use latest year
             for cat in stat_cats:
-                status = gs.generate_stats2(year[0], cat)
 
-                # these messages should be stored in /var/log/syslog
-                # use cat syslog | grep CRON to view
-                if status:
-                    print("Generate Stats:", cat, "... Success")
+                teams = chk.check_teams(year, 'go_generate_stats')
+                for team in teams:
+                    status = gs.generate_stats2(year[0], team, cat)
 
-                else:
-                    print("Generate Stats:", cat, "... Failed")
+                    # these messages should be stored in /var/log/syslog
+                    # use cat syslog | grep CRON to view
+                    if status:
+                        print("Generate Stats:", cat, "... Success")
+
+                    else:
+                        print("Generate Stats:", cat, "... Failed")
 
             # run some tests
             status = aut.import_test_cases(year[0])

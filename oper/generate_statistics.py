@@ -12,7 +12,7 @@ import datetime
 
 
 # splitting the generate_stats function into separate jobs => separate functions
-def generate_stats2(year, stat_category):
+def generate_stats2(year, team, stat_category):
 
     t1_time = t.time()
 
@@ -21,20 +21,17 @@ def generate_stats2(year, stat_category):
         conn = dbs.engine.connect()
         conv_time = t.time()
 
-        # fetch per team so to limit the query result size
-        teams = chk.check_teams(year, 'go_generate_stats')
+        # put fetched raw player stats and form player dictionaries
         idx = 0
-        for team in teams:
-            output = conn.execute("SELECT * FROM raw_player_stats WHERE data_year=? AND bat_pitch=? AND team_name=?",
-                                  year, stat_category, team).fetchall()
-            for x in output:
-                gv.player[idx] = dict(x)
-                idx += 1
-            print(idx)
+        output = conn.execute("SELECT * FROM raw_player_stats WHERE data_year=? AND bat_pitch=? AND team_name=?",
+                              year, stat_category, team).fetchall()
+        for x in output:
+            gv.player[idx] = dict(x)
+            idx += 1
         print('Conversion Time:', dt.seconds_convert(t.time() - conv_time))
     except Exception as e:
         # accept any types of errors
-        el.error_logger(e, 'Query & Convert Raw Player Stats: ' + str(e), '---', year, stat_category)
+        el.error_logger(e, 'Query & Convert Raw Player Stats: ' + str(e), team, year, stat_category)
         return False
 
     try:
@@ -42,7 +39,7 @@ def generate_stats2(year, stat_category):
         # t.sleep(10)
     except Exception as e:
         # accept any types of errors
-        el.error_logger(e, 'STAT_ORGANIZER: ' + str(e), '---', year, stat_category)
+        el.error_logger(e, 'STAT_ORGANIZER: ' + str(e), team, year, stat_category)
         return False
 
     try:
@@ -56,7 +53,7 @@ def generate_stats2(year, stat_category):
             gen_stats = gen_stats.rename(columns=gv.field_stat_types)
     except Exception as e:
         # accept any types of errors
-        el.error_logger(e, 'Re-assign Columns: ' + str(e), '---', year, stat_category)
+        el.error_logger(e, 'Re-assign Columns: ' + str(e), team, year, stat_category)
         return False
 
     try:
@@ -68,7 +65,7 @@ def generate_stats2(year, stat_category):
         print('CHECK PYTS Table:', dt.seconds_convert(t.time() - check_time))
     except Exception as e:
         # accept any type of errors
-        el.error_logger(e, 'Check PYTS table: ' + str(e), '---', year, stat_category)
+        el.error_logger(e, 'Check PYTS table: ' + str(e), team, year, stat_category)
         return False
 
     try:
@@ -78,7 +75,7 @@ def generate_stats2(year, stat_category):
         print('Import', stat_category.upper(), 'STATS to Database: ', dt.seconds_convert(t.time() - update_time))
     except Exception as e:
         # accept any type of errors
-        el.error_logger(e, 'WRITE stats: ' + str(e), '---', year, stat_category)
+        el.error_logger(e, 'WRITE stats: ' + str(e), team, year, stat_category)
         return False
 
     try:
@@ -90,14 +87,14 @@ def generate_stats2(year, stat_category):
         fgp.close()
     except Exception as e:
         # accept any types of errors
-        el.error_logger(e, 'WRITE stats performance: ' + str(e), '---', year, stat_category)
+        el.error_logger(e, 'WRITE stats performance: ' + str(e), team, year, stat_category)
         return False
 
     # send completion notice
     finish_str = {
         'process_name': 'stat_processor: ' + stat_category,
         'data_year': year,
-        'team_name': '---',
+        'team_name': team,
         'time_elapsed': t2_time - t1_time,
         'timestamp': t.strftime("%Y-%m-%d %H:%M:%S", t.localtime())
     }
