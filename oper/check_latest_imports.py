@@ -204,6 +204,7 @@ def get_team_choices2(year):
 
     query = 'SELECT COUNT(*) FROM players'
     conn = dbs.engine.connect()
+    conn.detach()
     results = conn.execute(query).fetchall()
     # print("Players", results)
     conn.close()
@@ -216,6 +217,7 @@ def get_process_complete_years():
 
     # get list of years from process
     conn = dbs.engine.connect()
+    conn.detach()
     query = 'SELECT data_year, COUNT(DISTINCT team_name) FROM process_log WHERE team_name IS NOT ? GROUP BY data_year'
     years = conn.execute(query, '---').fetchall()
     print("Done Teams:", years)
@@ -242,6 +244,7 @@ def get_stats_gen_complete_years():
 
     # get all years from stats generated
     conn = dbs.engine.connect()
+    conn.detach()
     query = 'SELECT DISTINCT data_year FROM player_year_team GROUP BY data_year'
     stats_gen = conn.execute(query).fetchall()
     stats_gen = [r for (r, ) in stats_gen]
