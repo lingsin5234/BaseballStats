@@ -31,7 +31,7 @@ class Job(WeeklyJob):
             # only use latest year
             for cat in stat_cats:
 
-                teams = chk.check_teams(year, 'go_generate_stats')
+                teams = chk.check_teams(year[0], 'go_generate_stats')
                 for team in teams:
                     status = gs.generate_stats2(year[0], team, cat)
 
