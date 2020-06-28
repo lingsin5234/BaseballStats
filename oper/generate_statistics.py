@@ -20,6 +20,7 @@ def generate_stats2(year, stat_category):
         # retrieve the game player stats
         conn = dbs.engine.connect()
         conv_time = t.time()
+        print("Generate Stats Start:", year)
 
         # fetch per team so to limit the query result size
         teams = chk.get_team_choices2(year)
