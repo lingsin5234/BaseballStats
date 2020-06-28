@@ -18,9 +18,11 @@ def generate_stats2(year, stat_category):
     try:
         # retrieve the game player stats
         conn = dbs.engine.connect()
-        output = conn.execute("SELECT * FROM raw_player_stats WHERE data_year=? AND bat_pitch=?",
+        output = conn.execute("SELECT COUNT(*) FROM raw_player_stats WHERE data_year=? AND bat_pitch=?",
                               year, stat_category).fetchall()
         print(output)
+        output = conn.execute("SELECT * FROM raw_player_stats WHERE data_year=? AND bat_pitch=?",
+                              year, stat_category).fetchall()
         idx = 0
         # conversion time
         conv_time = t.time()
