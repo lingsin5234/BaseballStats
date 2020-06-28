@@ -22,8 +22,7 @@ def generate_stats2(year, stat_category):
         conv_time = t.time()
 
         # fetch per team so to limit the query result size
-        teams = chk.get_team_choices(year)
-        teams = teams[3]  # fourth item of list
+        teams = chk.check_teams(year, 'go_generate_stats')
         print(teams)
         teams = []
         idx = 0
