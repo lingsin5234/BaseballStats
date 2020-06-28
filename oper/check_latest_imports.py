@@ -171,7 +171,7 @@ def get_team_choices(which_process):
         processed_teams = sorted(np.unique(processed_teams))
         team_choices = [(t, t) for t in processed_teams]
         team = forms.ChoiceField(required=True, label='Team', choices=team_choices)
-        
+
     return [year, year_choices, team, team_choices]
 
 
