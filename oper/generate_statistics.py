@@ -23,8 +23,6 @@ def generate_stats2(year, stat_category):
 
         # fetch per team so to limit the query result size
         teams = chk.check_teams(year, 'go_generate_stats')
-        print(teams)
-        teams = []
         idx = 0
         for team in teams:
             output = conn.execute("SELECT * FROM raw_player_stats WHERE data_year=? AND bat_pitch=? AND team_name=?",
