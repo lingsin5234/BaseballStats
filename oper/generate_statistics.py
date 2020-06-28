@@ -23,7 +23,7 @@ def generate_stats2(year, stat_category):
 
         # fetch per team so to limit the query result size
         teams = chk.get_team_choices(year)
-        teams = [x for (x, x) in teams]
+        teams = teams[3]  # fourth item of list
         print(teams)
         teams = []
         idx = 0
