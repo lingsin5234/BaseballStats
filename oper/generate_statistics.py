@@ -20,12 +20,12 @@ def generate_stats2(year, stat_category):
         # retrieve the game player stats
         conn = dbs.engine.connect()
         conv_time = t.time()
-        print("Generate Stats Start:", year)
 
         # fetch per team so to limit the query result size
-        teams = chk.get_team_choices2(year)
+        teams = chk.get_team_choices(year)
         teams = [x for (x, x) in teams]
         print(teams)
+        teams = []
         idx = 0
         for team in teams:
             output = conn.execute("SELECT * FROM raw_player_stats WHERE data_year=? AND bat_pitch=? AND team_name=?",
