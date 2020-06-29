@@ -29,8 +29,9 @@
     <div class="d-flex justify-content-center">
         <h3 id="select_header">2019 Batting Stats for ANA</h3>
     </div><br>
-    <table id="table_output" class="display" width="100%"></table><br>
-
+    <div id="table_div" class="d-flex justify-content-center">
+        <table id="table_output" class="display" width="100%"></table><br>
+    </div><br>
     <script>
     // for the teams drop-down dependency
     $("#id_year").change(function () {
@@ -75,12 +76,12 @@
 
         // destroy the table, then setup a new table
         table.destroy(true);
-        var get_div = document.getElementsByTagName("body");
+        var get_div = document.getElementById("table_div");
         var new_table = document.createElement("table");
         new_table.setAttribute("id", "table_output");
         new_table.setAttribute("class", "display");
         new_table.setAttribute("width", "100%");
-        get_div[0].appendChild(new_table);
+        get_div.appendChild(new_table);
 
         // instantiate the table
         table_instantiate();
