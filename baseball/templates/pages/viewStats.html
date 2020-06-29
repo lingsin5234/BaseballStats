@@ -13,10 +13,10 @@
 
     <div class="col-1">
         <div class="switch-toggle switch-3 switch-candy">
-            <input id="batting" name="state-d" type="radio" value="batting" />
+            <input id="batting" name="state-d" type="radio" value="batting" checked="checked" />
             <label class="stat_state" for="batting" onclick="">batting</label>
 
-            <input id="pitching" name="state-d" type="radio" value="pitching" checked="checked" />
+            <input id="pitching" name="state-d" type="radio" value="pitching" />
             <label class="stat_state" for="pitching" onclick="">pitching</label>
 
             <input id="fielding" name="state-d" type="radio" value="fielding" />
@@ -26,8 +26,8 @@
         </div>
     </div>
 
-    <div id="selected" class="d-flex justify-content-center">
-        <h3>Batting Stats</h3>
+    <div class="d-flex justify-content-center">
+        <h3 id="select_header">2019 Batting Stats for ANA</h3>
     </div><br>
     <table id="table_output" class="display" width="100%"></table><br>
 
@@ -54,6 +54,45 @@
     // get request for the DataTable stats
     $(document).ready(function() {
         window.col_types = {{col_types|safe}};
+
+        // instantiate DataTable
+        table_instantiate();
+    });
+
+    // new GET request call every time the team name is changed
+    $("#id_team").change(function () {
+        getURL = "/api/stat_results?format=datatables&year=" + $("#id_year").val()  +
+            "&team=" + $("#id_team").val() + "&stats_table=" + $("input[name=state-d]:checked").val();
+        //console.log(getURL);
+        table.ajax.url(getURL).load();
+
+        // update the header
+        update_header();
+    });
+
+    // new GET request when stat type is toggled (batting, pitching, fielding)
+    $(".switch-candy").change(function() {
+
+        // destroy the table, then setup a new table
+        table.destroy(true);
+        var get_div = document.getElementsByTagName("body");
+        var new_table = document.createElement("table");
+        new_table.setAttribute("id", "table_output");
+        new_table.setAttribute("class", "display");
+        new_table.setAttribute("width", "100%");
+        get_div[0].appendChild(new_table);
+
+        // instantiate the table
+        table_instantiate();
+
+        //console.log("switch toggled");
+
+        // update header
+        update_header();
+    });
+
+    // function to instantiate DataTable
+    function table_instantiate() {
         getURL = "/api/stat_results?format=datatables&year=" + $("#id_year").val() +
             "&team=" + $("#id_team").val() + "&stats_table=" + $("input[name=state-d]:checked").val();
         console.log(getURL);
@@ -74,52 +113,17 @@
             var sDesc = col_types[$("input[name=state-d]:checked").val()]['column_desc'][sTip];
             //console.log(sDesc);
             this.setAttribute('title', sDesc);
-        } );
-    });
-
-    // new GET request call every time the team name is changed
-    $("#id_team").change(function () {
-        getURL = "/api/stat_results?format=datatables&year=" + $("#id_year").val()  +
-            "&team=" + $("#id_team").val() + "&stats_table=" + $("input[name=state-d]:checked").val();
-        console.log(getURL);
-        table.ajax.url(getURL).load();
-    });
-
-    // new GET request when stat type is toggled (batting, pitching, fielding)
-    $(".switch-candy").change(function() {
-
-        // destroy the table, then setup a new table
-        table.destroy(true);
-        var get_div = document.getElementsByTagName("body");
-        var new_table = document.createElement("table");
-        new_table.setAttribute("id", "table_output");
-        new_table.setAttribute("class", "display");
-        new_table.setAttribute("width", "100%");
-        get_div[0].appendChild(new_table);
-
-        // instantiate the table
-        getURL = "/api/stat_results?format=datatables&year=" + $("#id_year").val()  +
-            "&team=" + $("#id_team").val() + "&stats_table=" + $("input[name=state-d]:checked").val();
-        console.log(getURL);
-        table = $('#table_output').DataTable({
-            "ajax": getURL,
-            "columns": col_types[$("input[name=state-d]:checked").val()]['column_name'],
-            "paging": false
         });
+    };
 
-        // add the title to use for tool tip later
-        $('#table_output thead tr th').each( function() {
-            var sTitle;
-            var nTds = $(this);
-            var sTip = $(nTds[0]).text();
-            //console.log(sTip);
-            var sDesc = col_types[$("input[name=state-d]:checked").val()]['column_desc'][sTip];
-            //console.log(sDesc);
-            this.setAttribute('title', sDesc);
-        } );
-
-        //console.log("switch toggled");
-    });
+    // function to update header
+    function update_header() {
+        var stat_select = $("input[name=state-d]:checked").val();
+        var first_letter = stat_select.charAt(0).toUpperCase();
+        stat_select = first_letter + stat_select.slice(1); // skip first letter
+        //console.log(stat_select);
+        $("#select_header").text($("#id_year").val() + " " + stat_select + " Stats for " + $("#id_team").val());
+    };
     </script>
 
 {% include 'partials/footer_baseball.html' %}
