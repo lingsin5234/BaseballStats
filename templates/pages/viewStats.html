@@ -1,8 +1,4 @@
-{% include 'partials/header_baseball.html' %}
-    <!-- Data Tables -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.21/datatables.min.css"/>
-    <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.21/datatables.min.js"></script>
-
+{% include 'partials/header_viewStats.html' %}
     <div id="my_title" class="d-flex justify-content-center">
         <h1>View Team Stats</h1>
     </div><br>
@@ -13,6 +9,22 @@
         {{ form_view_stats.as_table }}
         <!--input type="submit" value="View Stats"-->
     </form>
+
+
+    <div class="col-1">
+        <div class="switch-toggle switch-3 switch-candy">
+            <input id="batting" name="state-d" type="radio" value="batting" />
+            <label class="stat_state" for="batting" onclick="">batting</label>
+
+            <input id="pitching" name="state-d" type="radio" value="pitching" checked="checked" />
+            <label class="stat_state" for="pitching" onclick="">pitching</label>
+
+            <input id="fielding" name="state-d" type="radio" value="fielding" />
+            <label class="stat_state" for="fielding" onclick="">fielding</label>
+
+            <a></a>
+        </div>
+    </div>
 
     <div id="selected" class="d-flex justify-content-center">
         <h3>Batting Stats</h3>
@@ -39,15 +51,17 @@
         });
     });
 
-    // instantiate StatsTable
+    // get request for the DataTable stats
     $(document).ready(function() {
-        window.columns = {{post_col|safe}};
-        window.column_desc = {{col_dict|safe}};
-        getURL = "/api/stat_results?format=datatables&year=" + $("#id_year").val() + "&team=" + $("#id_team").val();
-        //console.log(getURL);
-        $('#table_output').DataTable({
+        window.col_types = {{col_types|safe}};
+        getURL = "/api/stat_results?format=datatables&year=" + $("#id_year").val() +
+            "&team=" + $("#id_team").val() + "&stats_table=" + $("input[name=state-d]:checked").val();
+        console.log(getURL);
+
+        // instantiate the table
+        table = $('#table_output').DataTable({
             "ajax": getURL,
-            "columns": columns,
+            "columns": col_types[$("input[name=state-d]:checked").val()]['column_name'],
             "paging": false
         });
 
@@ -57,7 +71,7 @@
             var nTds = $(this);
             var sTip = $(nTds[0]).text();
             //console.log(sTip);
-            var sDesc = column_desc[sTip];
+            var sDesc = col_types[$("input[name=state-d]:checked").val()]['column_desc'][sTip];
             //console.log(sDesc);
             this.setAttribute('title', sDesc);
         } );
@@ -65,9 +79,46 @@
 
     // new GET request call every time the team name is changed
     $("#id_team").change(function () {
-        getURL = "/api/stat_results?format=datatables&year=" + $("#id_year").val() + "&team=" + $("#id_team").val();
-        //console.log(getURL);
-        $('#table_output').DataTable().ajax.url(getURL).load();
+        getURL = "/api/stat_results?format=datatables&year=" + $("#id_year").val()  +
+            "&team=" + $("#id_team").val() + "&stats_table=" + $("input[name=state-d]:checked").val();
+        console.log(getURL);
+        table.ajax.url(getURL).load();
+    });
+
+    // new GET request when stat type is toggled (batting, pitching, fielding)
+    $(".switch-candy").change(function() {
+
+        // destroy the table, then setup a new table
+        table.destroy(true);
+        var get_div = document.getElementsByTagName("body");
+        var new_table = document.createElement("table");
+        new_table.setAttribute("id", "table_output");
+        new_table.setAttribute("class", "display");
+        new_table.setAttribute("width", "100%");
+        get_div[0].appendChild(new_table);
+
+        // instantiate the table
+        getURL = "/api/stat_results?format=datatables&year=" + $("#id_year").val()  +
+            "&team=" + $("#id_team").val() + "&stats_table=" + $("input[name=state-d]:checked").val();
+        console.log(getURL);
+        table = $('#table_output').DataTable({
+            "ajax": getURL,
+            "columns": col_types[$("input[name=state-d]:checked").val()]['column_name'],
+            "paging": false
+        });
+
+        // add the title to use for tool tip later
+        $('#table_output thead tr th').each( function() {
+            var sTitle;
+            var nTds = $(this);
+            var sTip = $(nTds[0]).text();
+            //console.log(sTip);
+            var sDesc = col_types[$("input[name=state-d]:checked").val()]['column_desc'][sTip];
+            //console.log(sDesc);
+            this.setAttribute('title', sDesc);
+        } );
+
+        //console.log("switch toggled");
     });
     </script>
 

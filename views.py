@@ -23,7 +23,7 @@ API Section
 '''
 from rest_framework import views
 from rest_framework.response import Response
-from .serializers import StatSerializer
+from .serializers import BatStatSerializer, PitchStatSerializer, FieldStatSerializer
 
 
 # API View for getting Stats Results table
@@ -32,8 +32,15 @@ class StatsResults(views.APIView):
     # get request
     def get(self, request):
 
-        # get batting cols and pop the columns not being displayed
-        viewer_col = gv.bat_stat_types.copy()
+        # get cols and pop the columns not being displayed
+        if request.GET['stats_table'] == 'batting':
+            viewer_col = gv.bat_stat_types.copy()
+        elif request.GET['stats_table'] == 'pitching':
+            viewer_col = gv.pitch_stat_types.copy()
+        elif request.GET['stats_table'] == 'fielding':
+            viewer_col = gv.field_stat_types.copy()
+        else:
+            viewer_col = gv.bat_stat_types.copy()  # default batting for now
         viewer_col.pop('PID')
         viewer_col.pop('YEAR')
 
@@ -43,14 +50,18 @@ class StatsResults(views.APIView):
         viewer_col['NAME'] = 'player_nm'  # this way the order for will remain the same
 
         # read from database; || is concatenate in sqlite!
-        query = "SELECT DISTINCT {} FROM batting b " \
+        # print(request.GET)
+        query = "SELECT DISTINCT {} FROM "\
                     .format(", ".join(query_col).replace("team_name", "pyts.team_name")
                             .replace("player_nm", "(first_name || ' ' || last_name) as player_nm")) + \
-                " JOIN player_year_team pyts ON b.pyts_id = pyts.Id JOIN players p ON " + \
+                str(request.GET['stats_table']) + " b " + \
+                "JOIN player_year_team pyts ON b.pyts_id = pyts.Id JOIN players p ON " + \
                 "pyts.player_id=p.player_id AND pyts.team_name = p.team_id AND pyts.data_year = p.data_year " + \
                 "WHERE pyts.team_name='{}' AND pyts.data_year={} " \
-                    .format(str(request.GET['team']), str(request.GET['year'])) + "ORDER BY rbis desc"
+                    .format(str(request.GET['team']), str(request.GET['year']))
+        # print(query)
         temp = dr.baseball_db_reader(query)
+        print(temp)
 
         # because `temp` is NOT a dictionary we need to convert it!
         post_col = post_col_keys
@@ -60,7 +71,15 @@ class StatsResults(views.APIView):
             add['NAME'] = add['NAME'].replace('"', '')  # replace the extra '"' if there.
             results.append(add)
 
-        data_output = StatSerializer(results, many=True).data
+        # run thru the corresponding serializer
+        if request.GET['stats_table'] == 'batting':
+            data_output = BatStatSerializer(results, many=True).data
+        elif request.GET['stats_table'] == 'pitching':
+            data_output = PitchStatSerializer(results, many=True).data
+        elif request.GET['stats_table'] == 'fielding':
+            data_output = FieldStatSerializer(results, many=True).data
+        else:
+            data_output = BatStatSerializer(results, many=True).data
 
         return Response(data_output)
 
@@ -112,56 +131,41 @@ def stats_view(request):
     team_choices = chk.get_team_choices2("2019")
     form_view_stats = ViewStats(year_choices, team_choices, initial={'form_type': 'view_stats'})
 
-    # get batting cols and pop the columns not being displayed
-    viewer_col = gv.bat_stat_types.copy()
-    viewer_col.pop('PID')
-    viewer_col.pop('YEAR')
+    # process all columns and send it out
+    col_types = {'batting': gv.bat_stat_types, 'pitching': gv.pitch_stat_types, 'fielding': gv.field_stat_types}
+    all_cols = dict()
+    for k, ct in enumerate(col_types):
+        viewer_col = col_types[ct].copy()
+        viewer_col.pop('PID')
+        viewer_col.pop('YEAR')
 
-    # get the keys and values, then add in name to the viewer_col
-    query_col = ['player_nm'] + list(viewer_col.values())
-    post_col_keys = ['NAME'] + list(viewer_col.keys())
-    viewer_col['NAME'] = 'player_nm'  # this way the order for will remain the same
+        # get the keys and values, then add in name to the viewer_col
+        query_col = ['player_nm'] + list(viewer_col.values())
+        post_col_keys = ['NAME'] + list(viewer_col.keys())
 
-    # read from database; || is concatenate in sqlite!
-    query = "SELECT DISTINCT {} FROM batting b " \
-            .format(", ".join(query_col).replace("team_name", "pyts.team_name")
-                    .replace("player_nm", "(first_name || ' ' || last_name) as player_nm")) + \
-        " JOIN player_year_team pyts ON b.pyts_id = pyts.Id JOIN players p ON " + \
-        "pyts.player_id=p.player_id AND pyts.team_name = p.team_id AND pyts.data_year = p.data_year " + \
-        "WHERE pyts.team_name='{}' AND pyts.data_year={} " \
-            .format('ANA', 2019) + "ORDER BY rbis desc"
-    # print(query)
-    temp = dr.baseball_db_reader(query)
-    # print(temp)
+        # change columns into ajax format for the DataTable.js
+        ajax_col = []
+        for col in post_col_keys:
+            ac = {'data': col, 'title': col}
+            ajax_col.append(ac)
 
-    # because `temp` is NOT a dictionary we need to convert it!
-    post_col = post_col_keys
-    results = []
-    for t in temp:
-        add = dict(zip(post_col, t))
-        add['NAME'] = add['NAME'].replace('"', '')  # replace the extra '"' if there.
-        results.append(add)
-    print(results)
+        # query_col -- dict of post_col vs column desc
+        query_col = [q.replace('_', ' ') for q in query_col]
+        col_dict = dict(zip(post_col_keys, query_col))
+
+        ct_dict = {
+            'column_name': ajax_col,
+            'column_desc': col_dict
+        }
+
+        all_cols[ct] = ct_dict
 
     # change heading
     heading = "Batting Stats for ANA in 2019"
 
-    # change columns into ajax format for the DataTable.js
-    ajax_col = []
-    for col in post_col:
-        ac = {'data': col, 'title': col}
-        ajax_col.append(ac)
-    # print(ajax_col)
-
-    # query_col -- dict of post_col vs column desc
-    query_col = [q.replace('_', ' ') for q in query_col]
-    col_dict = dict(zip(post_col, query_col))
-    # print(col_dict)
-
     context = {
         'form_view_stats': form_view_stats,
-        'post_col': ajax_col,
-        'col_dict': col_dict
+        'col_types': all_cols
     }
 
     return render(request, 'pages/viewStats.html', context)
@@ -245,7 +249,7 @@ def jobs_dashboard(request):
         year = s['data_year']
         if int(s['data_year']) == year:
             for n in stat_cats:
-                s['processes'] = s['processes'] / len(stat_cats)
+                s['processes'] = s['processes'] / (num_teams * len(stat_cats))
                 # also check if the year is completed
                 if s['processes'] == 1:
                     done_years.append(year)
@@ -258,7 +262,7 @@ def jobs_dashboard(request):
         # if it's done year, drop it
         if st['processes'] == 1:
             stats_generated.pop(i)
-
+    # print(stats_generated)
     # then add the completed, merged together, to top of the list
     stats_generated = [{
         'data_year': str(min(done_years)) + '-' + str(max(done_years)),

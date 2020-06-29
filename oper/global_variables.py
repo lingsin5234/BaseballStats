@@ -41,6 +41,9 @@ gr_idx = 0
 # for tracking baserunners
 bases_after = '---'
 
+# debugging pyts
+pyts_debug = []
+
 # global dictionary for stat types
 bat_stat_types = {
     'PID': 'player_id',

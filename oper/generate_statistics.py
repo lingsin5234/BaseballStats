@@ -9,6 +9,7 @@ from . import error_logger as el
 from . import check_latest_imports as chk
 import pandas as pd
 import datetime
+from sqlalchemy.exc import IntegrityError
 
 
 # splitting the generate_stats function into separate jobs => separate functions
@@ -68,13 +69,24 @@ def generate_stats2(year, team, stat_category):
         el.error_logger(e, 'Check PYTS table: ' + str(e), team, year, stat_category)
         return False
 
+    # DEBUGGING: print repeat?
+    query = 'SELECT pyts_id FROM ' + stat_category
+    db_pyts = conn.execute(query).fetchall()
+    db_pyts = [n for (n,) in db_pyts]
+    gen_pyts = gen_stats.loc[gen_stats['pyts_id'].isin(db_pyts), 'pyts_id']
+
     try:
         # write the STATS to corresponding database
         update_time = t.time()
         gen_stats.to_sql(stat_category, conn, if_exists='append', index=False)
         print('Import', stat_category.upper(), 'STATS to Database: ', dt.seconds_convert(t.time() - update_time))
+    except IntegrityError as e:
+        el.error_logger(e, 'UNIQUE constraint: ' + str(e), team, year, stat_category)
+        print("ALREADY IN DB:", gen_pyts)
+        t.sleep(5)
+        # keep going
     except Exception as e:
-        # accept any type of errors
+        # accept any other type of errors
         el.error_logger(e, 'WRITE stats: ' + str(e), team, year, stat_category)
         return False
 

@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
 
-class StatSerializer(serializers.Serializer):
+# batting
+class BatStatSerializer(serializers.Serializer):
     NAME = serializers.CharField()
     TEAM = serializers.CharField()
     GP = serializers.IntegerField()
@@ -28,3 +29,56 @@ class StatSerializer(serializers.Serializer):
     PH = serializers.IntegerField()
     PR = serializers.IntegerField()
 
+
+# pitching
+class PitchStatSerializer(serializers.Serializer):
+    NAME = serializers.CharField()
+    TEAM = serializers.CharField()
+    GP = serializers.IntegerField()
+    GS = serializers.IntegerField()
+    IP = serializers.IntegerField()
+    BF = serializers.IntegerField()
+    # W = serializers.IntegerField()
+    # L = serializers.IntegerField()
+    # HD = serializers.IntegerField()
+    # SV = serializers.IntegerField()
+    R = serializers.IntegerField()
+    ER = serializers.IntegerField()
+    H = serializers.IntegerField()
+    HR = serializers.IntegerField()
+    K = serializers.IntegerField()
+    BB = serializers.IntegerField()
+    IBB = serializers.IntegerField()
+    HBP = serializers.IntegerField()
+    POA = serializers.IntegerField()
+    PO = serializers.IntegerField()
+    WP = serializers.IntegerField()
+    PB = serializers.IntegerField()
+    BK = serializers.IntegerField()
+    DI = serializers.IntegerField()
+    CI = serializers.IntegerField()
+    PT = serializers.IntegerField()
+    ST = serializers.IntegerField()
+    BT = serializers.IntegerField()
+    FL = serializers.IntegerField()
+    
+
+# fielding
+class FieldStatSerializer(serializers.Serializer):
+    NAME = serializers.CharField()
+    TEAM = serializers.CharField()
+    GP = serializers.IntegerField()
+    GS = serializers.IntegerField()
+    IP = serializers.IntegerField()
+    # BF = serializers.IntegerField()
+    # W = serializers.IntegerField()
+    # L = serializers.IntegerField()
+    # HD = serializers.IntegerField()
+    # SV = serializers.IntegerField()
+    # R = serializers.IntegerField()
+    # ER = serializers.IntegerField()
+    A = serializers.IntegerField()
+    PO = serializers.IntegerField()
+    DP = serializers.IntegerField()
+    TP = serializers.IntegerField()
+    E = serializers.IntegerField()
