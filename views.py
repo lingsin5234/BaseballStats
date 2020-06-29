@@ -61,7 +61,7 @@ class StatsResults(views.APIView):
                     .format(str(request.GET['team']), str(request.GET['year']))
         # print(query)
         temp = dr.baseball_db_reader(query)
-        print(temp)
+        # print(temp)
 
         # because `temp` is NOT a dictionary we need to convert it!
         post_col = post_col_keys
