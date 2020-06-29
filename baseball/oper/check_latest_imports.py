@@ -202,11 +202,12 @@ def get_team_choices2(year):
     team_choices = [(t, t) for t in results]
     # print("Get Team Choices 2: ", team_choices)
 
-    query = 'SELECT COUNT(*) FROM players'
-    conn = dbs.engine.connect()
-    results = conn.execute(query).fetchall()
+    # query = 'SELECT COUNT(*) FROM players'
+    # conn = dbs.engine.connect()
+    # conn.detach()
+    # results = conn.execute(query).fetchall()
     # print("Players", results)
-    conn.close()
+    # conn.close()
 
     return team_choices
 
@@ -216,6 +217,7 @@ def get_process_complete_years():
 
     # get list of years from process
     conn = dbs.engine.connect()
+    # conn.detach()
     query = 'SELECT data_year, COUNT(DISTINCT team_name) FROM process_log WHERE team_name IS NOT ? GROUP BY data_year'
     years = conn.execute(query, '---').fetchall()
     print("Done Teams:", years)
@@ -224,7 +226,7 @@ def get_process_complete_years():
     query = 'SELECT data_year, COUNT(DISTINCT team_id) FROM teams GROUP BY data_year'
     teams = conn.execute(query).fetchall()
     print("Total Teams:", teams)
-    conn.close()
+    # conn.close()
 
     # get all years from stats generated
     stats_gen = get_stats_gen_complete_years()
@@ -242,10 +244,11 @@ def get_stats_gen_complete_years():
 
     # get all years from stats generated
     conn = dbs.engine.connect()
+    # conn.detach()
     query = 'SELECT DISTINCT data_year FROM player_year_team GROUP BY data_year'
     stats_gen = conn.execute(query).fetchall()
     stats_gen = [r for (r, ) in stats_gen]
     print("STATS GEN", stats_gen)
-    conn.close()
+    # conn.close()
 
     return stats_gen

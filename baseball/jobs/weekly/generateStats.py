@@ -2,6 +2,8 @@ from django_extensions.management.jobs import WeeklyJob
 from baseball.oper import generate_statistics as gs
 from baseball.oper import check_latest_imports as chk
 from baseball.oper import automated_tests as aut
+from baseball.oper import global_variables as gv
+import pandas as pd
 
 
 # this job generate stats for LATEST completed year
@@ -29,16 +31,19 @@ class Job(WeeklyJob):
         if len(year) > 0:
 
             # only use latest year
-            for cat in stat_cats:
-                status = gs.generate_stats2(year[0], cat)
+            teams = chk.check_teams(year[0], 'go_generate_stats')
+            for team in teams:
+                for cat in stat_cats:
+                    status = gs.generate_stats2(year[0], team, cat)
+                    gv.player = {}
+                    gv.player_stats = pd.DataFrame()
+                    # these messages should be stored in /var/log/syslog
+                    # use cat syslog | grep CRON to view
+                    if status:
+                        print("Generate Stats:", team, "-", cat, "... Success")
 
-                # these messages should be stored in /var/log/syslog
-                # use cat syslog | grep CRON to view
-                if status:
-                    print("Generate Stats:", cat, "... Success")
-
-                else:
-                    print("Generate Stats:", cat, "... Failed")
+                    else:
+                        print("Generate Stats:", team, "-", cat, "... Failed")
 
             # run some tests
             status = aut.import_test_cases(year[0])
