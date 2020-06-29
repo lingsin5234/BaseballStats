@@ -1,4 +1,4 @@
-table.dataTable.display tbody tr.odd,
+/*table.dataTable.display tbody tr.odd,
 table.dataTable.display tbody tr.odd>.sorting_1 {
     background-color: #3F3F3F!important;
     color: #DDD!important;
@@ -8,7 +8,7 @@ table.dataTable.display tbody tr.even,
 table.dataTable.display tbody tr.even>.sorting_1 {
     background-color: #5F5F5F!important;
     color: #DDD!important;
-}
+}*/
 
 /* 3-state toggle -- move to style.css later */
 .switch-toggle {
@@ -18,10 +18,10 @@ table.dataTable.display tbody tr.even>.sorting_1 {
 /* pointer and white text labels */
 .switch-toggle label:not(.disabled) {
     cursor: pointer;
-    color: #fff!important;
+    /* color: #fff!important; */
 }
-
+/*
 .switch-candy a {
     background-color: #4B59DB!important;
     color: #fff!important;
-}
+}*/
