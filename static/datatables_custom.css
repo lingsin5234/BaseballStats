@@ -18,10 +18,9 @@ table.dataTable.display tbody tr.even>.sorting_1 {
 /* pointer and white text labels */
 .switch-toggle label:not(.disabled) {
     cursor: pointer;
-    /* color: #fff!important; */
+    color: #fff!important;
 }
-/*
+
 .switch-candy a {
     background-color: #4B59DB!important;
-    color: #fff!important;
-}*/
+}
