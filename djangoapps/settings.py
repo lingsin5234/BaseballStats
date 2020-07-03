@@ -138,7 +138,6 @@ STATIC_URL = '/static/'
 # ADMIN setting for live site error logging sent by email
 ADMINS = [(os.environ.get('ADMIN_USER'), os.environ.get('ADMIN_EMAIL'))]
 
-
 # LOGGING ERRORS
 LOGGING = {
     'version': 1,
