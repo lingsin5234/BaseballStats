@@ -82,25 +82,12 @@ WSGI_APPLICATION = 'djangoapps.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-if DEBUG:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
-
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': os.environ.get('BASEBALL_DB_NAME'),
-            'USER': os.environ.get('BASEBALL_DB_USER'),
-            'PASSWORD': os.environ.get('BASEBALL_DB_PWD'),
-            'HOST': 'localhost',
-            'PORT': '',
-        }
-    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -149,12 +136,10 @@ STATIC_URL = '/static/'
 # STATIC_ROOT = 'static'
 
 # ADMIN setting for live site error logging sent by email
-
-ADMINS = [('Sinto', 'sinto.ling@gmail.com')]
+ADMINS = [(os.environ.get('ADMIN_USER'), os.environ.get('ADMIN_EMAIL'))]
 
 
 # LOGGING ERRORS
-
 LOGGING = {
     'version': 1,
     'filters': {
