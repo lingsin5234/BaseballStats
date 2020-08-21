@@ -3,15 +3,13 @@
         <h1>PROJECT: Baseball Stats</h1>
     </div><br>
     {% load markdown_extras %}
-    <style>
-        #my_descriptions {
-            height: {{page_height}}px;
-        }
-    </style>
     <div id="my_descriptions" class="d-flex justify-content-center">
-        <div>
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+        <!--div class="highlight" kinda works-->
             {{ readme | markdown | safe }}
         </div>
+        <div class="col-md-2">
     </div>
     <br>
 
