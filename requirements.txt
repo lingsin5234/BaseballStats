@@ -34,7 +34,7 @@ django-redis-cache==2.1.1
 django-rq==2.3.2
 django-simple-captcha==0.5.12
 django-simple-menu==1.2.1
-djangorestframework==3.11.0
+djangorestframework==3.11.2
 djangorestframework-datatables==0.5.2
 dpd-components==0.1.0
 entrypoints==0.3
